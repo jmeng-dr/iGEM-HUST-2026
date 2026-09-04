@@ -97,6 +97,12 @@ img{ max-width: 100%; display:block; }
   background: linear-gradient(135deg, var(--kingfisher-2), var(--kingfisher-3));
   box-shadow: 0 0 10px var(--kingfisher-glow);
 }
+/* The hand-drawn team mark, in place of the old gradient dot. Sized by height so
+   the nav bar's own height is unchanged; --brand-mark-size is the single knob. */
+:root{ --brand-mark-size: 30px; }
+.brand-mark{
+  height: var(--brand-mark-size); width: auto; display:block; flex-shrink:0;
+}
 .site-nav nav{ display:flex; flex-wrap:wrap; gap: 4px 28px; font-size: 0.86rem; }
 .site-nav nav a{
   color: var(--text-mid); padding: 6px 4px; border-bottom: 2px solid transparent;
@@ -214,6 +220,7 @@ img{ max-width: 100%; display:block; }
   background: linear-gradient(135deg, var(--kingfisher-2), var(--kingfisher-3));
   box-shadow: 0 0 10px var(--kingfisher-glow);
 }
+.rnc-brand .brand-mark{ height: 38px; }
 .rnc-tagline{ font-family: var(--font-display); font-style:italic; font-size:1.1rem; color: var(--text-on-dark); margin-bottom:12px; }
 .rnc-hint{ font-size:0.85rem; color: var(--text-on-dark-dim); }
 
@@ -317,6 +324,21 @@ img{ max-width: 100%; display:block; }
 }
 .site-footer a{ color: var(--text-on-dark); }
 .site-footer .container{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+
+/* Institution seals: a centred row above the copyright line, separated by a hairline.
+   Re-uses .container (so width and padding match the rest of the site) and only
+   overrides the alignment. */
+.site-footer .footer-institutions{
+  justify-content:center; gap: clamp(20px, 4vw, 46px);
+  padding-bottom: 18px; margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+.footer-seal{
+  height: 58px; width:auto; display:block;
+  opacity: 0.92; transition: opacity 0.25s;
+}
+.footer-seal:hover{ opacity: 1; }
+@media (max-width: 600px){ .footer-seal{ height: 44px; } }
 
 /* ---------- utility ---------- */
 .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }

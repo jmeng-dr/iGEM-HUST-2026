@@ -8,6 +8,14 @@ interface Props {
 const { safetyHref = 'Wet-Lab-Experiments.html#safety' } = Astro.props;
 ---
 <footer class="site-footer">
+  <div class="container footer-institutions">
+    <img class="footer-seal" src="/assets/img/seal-hust.webp" width="300" height="234" loading="lazy" decoding="async"
+      alt="Huazhong University of Science and Technology" />
+    <img class="footer-seal" src="/assets/img/seal-college.webp" width="300" height="300" loading="lazy" decoding="async"
+      alt="HUST College of Life Science and Technology" />
+    <img class="footer-seal" src="/assets/img/seal-qiming.webp" width="120" height="120" loading="lazy" decoding="async"
+      alt="Qiming College, HUST" />
+  </div>
   <div class="container">
     <div>© <span id="year"></span> Team Diǎn Cuì · iGEM</div>
     <div><a href="Attributions.html">Attributions</a> · <a href={safetyHref}>AI &amp; Safety</a></div>

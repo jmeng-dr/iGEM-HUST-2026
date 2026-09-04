@@ -1,136 +1,165 @@
 # REVIEW — coordination between Claude Code and the browser-QA session
 
-This file is the shared checklist for visual review. **Claude Code** updates the
-"Round" section below after each batch of changes. The **browser session** reads it,
-checks the listed URLs against the originals, and returns a report in the format at
-the bottom. The **human** copies text between the two.
-
-There is no automatic channel between the two sessions — every hand-off is a paste.
+This file is the shared checklist. **Claude Code** updates the "Round" section after
+each batch of changes. The **browser session** reads it at
+http://localhost:4322/qa/round.md, runs the checks, and reports back. The **human**
+carries text between the two. There is no automatic channel.
 
 ---
 
-## URLs — both served over http (no file:// needed)
+## URLs
 
-| | New (Astro) | Original (static) |
+| | NEW (Astro, **production build**) | ORIGINAL (frozen reference) |
 |---|---|---|
-| Home | http://localhost:4321/ | http://localhost:8080/index.html |
-| Project | http://localhost:4321/Project-Description.html | http://localhost:8080/Project-Description.html |
-| Wet Lab | http://localhost:4321/Wet-Lab-Experiments.html | http://localhost:8080/Wet-Lab-Experiments.html |
-| Human Practices | http://localhost:4321/Human-Practices.html | http://localhost:8080/Human-Practices.html |
-| Attributions | http://localhost:4321/Attributions.html | http://localhost:8080/Attributions.html |
-| AI Comp Methods | http://localhost:4321/AI-Computational-Methods.html | http://localhost:8080/AI-Computational-Methods.html |
-| AI Ethics/Safety | http://localhost:4321/AI-Ethics-Safety.html | http://localhost:8080/AI-Ethics-Safety.html |
+| Home | http://localhost:4322/ | http://localhost:8080/index.html |
+| Project | http://localhost:4322/Project-Description.html | http://localhost:8080/Project-Description.html |
+| Wet Lab | http://localhost:4322/Wet-Lab-Experiments.html | http://localhost:8080/Wet-Lab-Experiments.html |
+| Human Practices | http://localhost:4322/Human-Practices.html | http://localhost:8080/Human-Practices.html |
+| Attributions | http://localhost:4322/Attributions.html | http://localhost:8080/Attributions.html |
+| AI Comp Methods | http://localhost:4322/AI-Computational-Methods.html | http://localhost:8080/AI-Computational-Methods.html |
+| AI Ethics/Safety | http://localhost:4322/AI-Ethics-Safety.html | http://localhost:8080/AI-Ethics-Safety.html |
 
-Both servers confirmed (200) on all 7 pages + assets. On the new site, `/Name` and
-`/Name.html` both work.
+> **Port changed from 4321 → 4322.** Round 0 tested the dev server; from Round 1 on,
+> NEW is the real `astro build` output served by `astro preview`, so the comparison is
+> production-to-production and there is no Vite/dev-toolbar noise in the console.
 
-## Hand-off (minimal human involvement)
+## Hand-off
 
-- This file is also served at **http://localhost:4321/qa/round.md** — the browser
-  session opens that URL to get its instructions; the human does not paste them.
-- The browser session saves its report as **`E:\Downloads\qa-report.md`**
-  and screenshots as **`E:\Downloads\qa-*.png`** — Claude Code reads them
-  from there. The human only says "go" / "done".
-
----
-
-## Round 0 — faithful-port baseline (current)
-
-**Goal:** the Astro pages must be visually identical to the originals. No design
-changes yet.
-
-**Please check (all 7 pages, at 1440px and 768px):**
-- [ ] Fonts, spacing, colours, alignment match the original
-- [ ] Top nav: 3 dropdowns open and show icon + title + subtitle cards
-- [ ] Footer identical; floating bottom-right button opens the full-screen ring menu
-- [ ] Home: cream glow circle; scroll brightens it + washes bg teal; "Four modules"
-      section pins and steps through 4 modules; hovering the triangle totems fades
-      in a caption overlay
-- [ ] Project: tables + the grey code block under "Model" (whitespace intact)
-- [ ] Attributions: member-card grids fill; hover flips a card
-- [ ] Wet Lab / Project: coloured DBTL cards, status pills render
-
-**Known open items:** none yet.
+- Instructions: **http://localhost:4322/qa/round.md**
+- Report: save to `E:\Downloads\qa-report.md` if possible; if this session cannot
+  write files, just output the report as text in chat instead — that worked fine
+  for Round 0 and is an acceptable substitute. Screenshots are optional; the
+  per-element computed-style + geometry diff used in Round 0 is better evidence.
 
 ---
 
-## Interaction tests — run on BOTH sites, report divergence
+## Round 1 — first intended changes
 
-For each: before screenshot, after screenshot, and the DOM check. If an action does
-nothing, say so. If you cannot perform it, write "COULD NOT TEST: <why>".
+> **IMPORTANT — the brief has changed.** In Round 0 the two sites had to be
+> identical. They are now **intentionally different**. The ORIGINAL is a frozen
+> reference for everything that was *not* touched. Do **not** report the changes
+> listed below as failures — verify them, and judge whether they look good.
 
-**A. Top nav dropdowns** (any page, width ≥ 1000px)
-1. Click the "Project" trigger → its menu appears, 6 rows each with emoji + bold
-   title + teal subtitle. DOM: parent `.nav-dropdown` gains `open`; trigger
-   `aria-expanded="true"`.
-2. Click "Lab" trigger → Project menu closes, Lab opens.
-3. Click empty page area → menu closes; `aria-expanded="false"`.
-4. Quote the 6 item titles + subtitles of one dropdown.
+### What changed (verify these)
 
-**B. Ring navigator** (any page)
-1. Click the round button fixed bottom-right → full-screen dark overlay; a circle
-   with 5 labelled nodes (Home, Project, Human Practices, Lab, Team); current
-   page's node highlighted. DOM: `#ringNav` gains `open`, `aria-hidden="false"`.
-2. Press Esc → closes. 3. Reopen, click dark area outside circle → closes.
-4. Reopen, click the × → closes.
+1. **Favicon + theme colour** — every page now has a browser-tab icon
+   (`/assets/img/favicon-32.png`, the team's hand-drawn logo) and
+   `<meta name="theme-color" content="#0e6e6a">`. ORIGINAL has neither.
+   → Check the tab icon actually appears and is recognisable at 16–32px.
 
-**C. Home — preface scroll** (localhost:4321/, 1440×900)
-Set `window.scrollY` to 0, 120, 250, 400, 600; screenshot each. Across the series
-the cream glow circle grows a little and its halo brightens; the background tints
-from near-black toward teal; the "scroll" cue fades out after the first step.
-DOM at scrollY≈400: `getComputedStyle(document.getElementById('bg-wash')).opacity`
-> 0.3; `.glow-circle` transform scale > 1.
+2. **Nav brand mark** — the small gradient dot (`span.swatch`) before
+   "点翠 · Diǎn Cuì" in the top-left is replaced by the hand-drawn logo image
+   (`img.brand-mark`, `/assets/img/logo.webp`, 30px tall).
+   → Check: the nav bar height is unchanged vs ORIGINAL; the mark is vertically
+   centred with the wordmark; it does not push the nav items around; it renders
+   (not a broken image) on both the light interior nav and the dark home nav.
 
-**D. Home — intro wheel** (1440×900)
-Scroll past the "Four modules, one supply chain" heading, then in +300px steps ×5.
-The left list of 4 items should advance its highlight 01→02→03→04 and the right
-panel text should change (title / tagline / What is it / Methods / Consequence).
-Screenshot each step. DOM: exactly one `.wheel-stop.active` at a time; its number
-matches the panel `<h3>`. Report the 4 panel titles. Note whether the heading
-stays pinned while stepping.
+3. **Ring-navigator brand mark** — same image at 38px inside the full-screen ring
+   menu, replacing the dot there too. Open the ring nav and check it.
 
-**E. Home — TOC totems** (scroll to "Hover a totem")
-1. Hover the first triangle; if nothing happens, press Tab until a totem is
-   focused → a dark caption panel fades in over the image with a title +
-   description + "Open … →" link; the triangle lightens/lifts. DOM: that
-   `a.totem` gains `active`; `.toc-preview` loses `idle`.
-2. Repeat for all 4; report the 4 titles + each "Open →" `href`.
-3. Move pointer off the whole group → panel returns to idle "Hover a totem" text.
-4. Confirm NO dot/orb follows the cursor anywhere on this page.
+4. **Footer institution seals (NEW ROW)** — a centred row of three seals
+   (HUST / College of Life Science and Technology / Qiming College) now sits above
+   the copyright line, separated by a hairline. 58px tall, 44px at ≤600px.
+   → Check: spacing looks deliberate, the row is centred, the hairline sits right,
+   the three seals are not clipped, and the layout does not break at 375/768.
 
-**F. Attributions — cards** (localhost:4321/Attributions.html)
-1. Count cards under each heading (expect ≈ 10 / 7 / 6 / 3 / 2).
-2. Hover one card; if nothing, Tab into it → an overlay with "Contribution" /
-   "What others say" fades in over the name plate. DOM:
-   `getComputedStyle(.info-overlay).opacity` goes 0 → 1.
+5. **Attributions cards are now keyboard-reachable** — this fixes the accessibility
+   bug you found. Every `div.team-card` now has `tabindex="0"`.
+   → Test: on `/Attributions.html`, press Tab repeatedly. Focus must land on the
+   cards; a teal focus ring (`outline: 3px solid`) must be visible; and because the
+   CSS already has `:focus-within`, **the contribution overlay must open on focus** —
+   which finally gives you a way to verify the overlay that you could not hover-test
+   in Round 0. Confirm `.info-overlay` opacity goes 0 → 1 on focus.
+   ORIGINAL still has the bug (Tab never reaches a card) — that difference is expected.
 
-**G. Responsive** (Home + one interior page)
-Widths 1440, 860, 768, 375; screenshot each. At ≤860 the top nav collapses to a
-"Menu" button; clicking toggles it (DOM: `.site-nav` gains `nav-open`); dropdowns
-become a stacked accordion. At ≤760 on Home the intro-wheel stacks to one column.
-Report any horizontal scrollbar on the page body at any width (there should be none).
+### Aesthetic judgement wanted (not just pass/fail)
 
-**H. Console** — every page: report any console error or failed request.
+I cannot see the rendered page, so give me an opinion on these two:
+
+- **A.** Does the logo mark read clearly at 30px in the nav, or is it too detailed
+  and turning into a coloured smudge? Would it be better larger, smaller, or is the
+  old plain dot honestly cleaner?
+- **B.** The three institution seals are blue line-art on white discs, sitting on a
+  near-black footer. Do they read as three bright white circles that dominate the
+  footer, or does it look intentional? Suggest a treatment if it looks heavy
+  (smaller / lower opacity / a lighter strip behind them / greyscale).
+
+### Regression check (abbreviated — do not re-run everything)
+
+- Full visual + geometry diff on **index, Project-Description, Attributions** only,
+  at **1321 and 768**. Everything except the five changes above must still match.
+- Interaction tests **A (nav dropdowns)** and **B (ring navigator)** only.
+- **Console on all 7 pages.** Round 0 saw an intermittent
+  `InvalidStateError: Transition was aborted` on the dev server, attributed to
+  `@view-transition { navigation: auto }`. Now that NEW is a production build,
+  report whether it still occurs. If it does, note on which pages and whether it
+  reproduces on a second pass.
+
+### Known and deliberately not fixed this round
+
+- `Project-Description.html` overflows horizontally at 375px (present in both).
+- `AI-Computational-Methods` / `AI-Ethics-Safety` are **intentional redirect stubs**
+  (they carry a `<meta http-equiv="refresh">`), not unfinished pages.
+- Attributions content is still "Team Member N / TODO" placeholder in both.
 
 ---
 
-## Response format — save as E:\Downloads\qa-report.md
+## Standing interaction test script (full suite — run only when asked)
+
+**A. Top nav dropdowns** (width ≥ 1000px)
+1. Click "Project" → menu appears, 6 rows with emoji + bold title + teal subtitle.
+   DOM: parent `.nav-dropdown` gains `open`; trigger `aria-expanded="true"`.
+2. Click "Lab" → Project closes, Lab opens (Lab has 4 rows, not 6 — expected).
+3. Click empty page area → all closed, `aria-expanded="false"`.
+
+**B. Ring navigator**
+1. Click the round bottom-right button → full-screen overlay, circle with 5 labelled
+   nodes; current page's node highlighted. DOM: `#ringNav` gains `open`.
+2. Esc closes. 3. Click outside the circle closes. 4. The × closes.
+
+**C. Home preface scroll** (1440×900 or widest available)
+scrollY 0 / 120 / 250 / 400 / 600 — glow circle grows, background tints teal, scroll
+cue fades after step 1. DOM at 400: `#bg-wash` opacity > 0.3, `.glow-circle` scale > 1.
+
+**D. Home intro wheel** — scroll past "Four modules…" in +300px steps ×5. Highlight
+advances 01→02→03→04; panel text changes; exactly one `.wheel-stop.active`; heading
+stays pinned.
+
+**E. Home TOC totems** — hover each triangle → `a.totem` gains `active`,
+`.toc-preview` loses `idle`, caption shows title + desc + "Open … →". Pointer off the
+group → back to idle. No orb follows the cursor.
+
+**F. Attributions cards** — counts ≈ 10/7/6/3/2. Overlay opacity 0 → 1 on hover *or
+focus* (focus now works, see Round 1 item 5).
+
+**G. Responsive** — widths 1321/860/768/375. At ≤860 nav collapses to "Menu"
+(`.site-nav` gains `nav-open`); at ≤760 the home intro-wheel stacks to one column.
+Report any horizontal scrollbar on the body.
+
+**H. Console** — every page: errors and failed requests.
+
+---
+
+## Response format
 
 ```
-ROUND: 0
-Dev server reachable: yes/no
-Sub-page URL form used: /Name.html
-
-index          — PASS   (or)   DIFFERENCES:
-  - <concrete difference>
-Project-Description — PASS / DIFFERENCES: ...
-Wet-Lab-Experiments — ...
-Human-Practices — ...
-Attributions — ...
-AI-Computational-Methods — ...
-AI-Ethics-Safety — ...
-
-Console errors: <list, or "none">
-Screenshots: <attached / saved as "<page> — new|orig — 1440|768">
-Overall aesthetic notes (optional): <brief>
+ROUND: 1
+NEW build reachable (4322): yes/no
+--- INTENDED CHANGES ---
+1 favicon        — OK / problem: ...
+2 nav brand mark — OK / problem: ...
+3 ring nav mark  — OK / problem: ...
+4 footer seals   — OK / problem: ...
+5 card keyboard  — OK / problem: ...   (overlay opacity on focus: 0 -> ?)
+--- AESTHETIC ---
+A logo at 30px: <opinion + recommendation>
+B footer seals on dark: <opinion + recommendation>
+--- REGRESSION ---
+index / Project-Description / Attributions at 1321 + 768 — PASS or diffs
+A nav dropdowns — PASS/FAIL
+B ring navigator — PASS/FAIL
+--- CONSOLE ---
+<per page; does InvalidStateError still occur on the production build?>
+--- NOTES ---
+<anything else>
 ```

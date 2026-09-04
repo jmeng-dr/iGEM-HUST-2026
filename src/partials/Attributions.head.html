@@ -20,6 +20,10 @@
     opacity:0; transform: translateY(10px); transition: opacity 0.28s, transform 0.28s; overflow-y:auto;
   }
   .team-card:hover .info-overlay, .team-card:focus-within .info-overlay{ opacity:1; transform:none; }
+  /* The cards carry tabindex="0" so the overlay is reachable without a mouse;
+     give that focus a visible ring (the :focus-within rule above then reveals
+     the contribution text exactly as hovering does). */
+  .team-card:focus-visible{ outline:3px solid var(--kingfisher-3); outline-offset:2px; }
   .team-card:hover .name-plate{ opacity:0; }
   .info-overlay .tc-name2{ font-family:var(--font-display); font-weight:700; font-size:1.05rem; color: var(--cream-glow-lit); }
   .info-overlay .tc-role2{ font-size:0.74rem; color: var(--kingfisher-3); margin-bottom:10px; }
