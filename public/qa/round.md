@@ -28,8 +28,8 @@ Both servers confirmed (200) on all 7 pages + assets. On the new site, `/Name` a
 
 - This file is also served at **http://localhost:4321/qa/round.md** — the browser
   session opens that URL to get its instructions; the human does not paste them.
-- The browser session saves its report as **`C:\Users\junya\Downloads\qa-report.md`**
-  and screenshots as **`C:\Users\junya\Downloads\qa-*.png`** — Claude Code reads them
+- The browser session saves its report as **`E:\Downloads\qa-report.md`**
+  and screenshots as **`E:\Downloads\qa-*.png`** — Claude Code reads them
   from there. The human only says "go" / "done".
 
 ---
@@ -114,7 +114,7 @@ Report any horizontal scrollbar on the page body at any width (there should be n
 
 ---
 
-## Response format — save as C:\Users\junya\Downloads\qa-report.md
+## Response format — save as E:\Downloads\qa-report.md
 
 ```
 ROUND: 0
