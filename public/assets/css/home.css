@@ -182,7 +182,10 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    #intro-wheel (see #bg-wash above) instead of the bright --paper "milky" section this used
    to be, sandwiched oddly between two dark sections. Text colours flipped to light-on-dark
    to match. */
-#toc{ padding: 40px 0 360px; } /* the top-of-#toc gap is now handled by .wheel-sticky's bottom-anchored content above, so this only needs a small top nudge; kept generous at the very bottom */
+/* The generous bottom padding here used to be the end of the page; the promotion
+   video now follows, so #toc only needs normal separation and the long tail moved
+   to #promo-video. */
+#toc{ padding: 40px 0 120px; }
 #toc .eyebrow{ color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; }
 #toc h2{ font-size: clamp(1.6rem,3vw,2.3rem); color: var(--text-on-dark); margin-bottom: 40px; }
 
@@ -214,19 +217,31 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    a:hover{text-decoration:underline} — more specific than the plain .totem class — now wins
    over the "all:unset" reset during hover, drawing an underline under the icon. Beat it back. */
 .totem:hover, .totem:focus-visible{ text-decoration:none; color:inherit; }
-/* A plain CSS triangle, base-down — its own bottom edge is the totem's bottom edge, which
-   (since .toc-totems is bottom:0 against the same box the stage fills) lands exactly on the
-   stage's bottom edge, so every triangle rides that one shared line regardless of screen size. */
+/* The four hand-drawn section emblems, each on a shared circular ground.
+   The ground is doing real work: the four drawings are not a matched set on their
+   own — Project is a round badge, Team a square flower, Wet Lab a tall flask and
+   Human Practices a wide pair of hands. Dropped straight into a row they read as
+   four unrelated stickers. A common disc, with each emblem letterboxed inside it
+   via object-fit, turns them into one set and keeps every totem the same size
+   whatever its artwork's aspect ratio.
+   Bottom edge of the disc still lands on the stage's bottom edge (.toc-totems is
+   bottom:0, align-items:flex-end), so they ride the same shared line the old
+   triangles did. */
 .totem-figure{
-  display:block; width:0; height:0;
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-bottom: 42px solid var(--kingfisher-3);
-  transition: border-bottom-color 0.3s, transform 0.3s;
+  display:grid; place-items:center;
+  width: 78px; height: 78px; border-radius: 50%;
+  background: rgba(11,15,16,0.55);
+  border: 1px solid rgba(255,255,255,0.16);
+  transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s, background 0.3s;
+}
+.totem-figure img{
+  width: 64%; height: 64%; object-fit: contain; display:block;
 }
 .totem:hover .totem-figure, .totem:focus-visible .totem-figure, .totem.active .totem-figure{
-  border-bottom-color: var(--cream-glow-lit);
-  transform: translateY(-4px);
+  transform: translateY(-6px);
+  border-color: var(--cream-glow-lit);
+  background: rgba(11,15,16,0.78);
+  box-shadow: 0 0 20px 2px var(--kingfisher-glow);
 }
 
 /* Transparent until a figure is hovered, then fades in as a dark scrim with the
@@ -241,7 +256,8 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   background: linear-gradient(0deg, rgba(11,15,16,0.92) 0%, rgba(11,15,16,0.75) 45%, transparent 85%);
   border-radius: var(--radius-md);
   display:flex; flex-direction:column; justify-content:flex-end; align-items:flex-start;
-  padding: 24px 28px 54px;
+  /* bottom padding clears the 78px emblem discs standing on the stage's bottom edge */
+  padding: 24px 28px 96px;
   opacity: 0; transition: opacity 0.3s ease;
   pointer-events:none;
 }
@@ -256,6 +272,29 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 }
 .toc-preview .go:hover{ color: var(--cream-glow-lit); border-color: var(--cream-glow-lit); }
 .toc-preview.idle h3{ font-style: italic; font-weight:500; }
+
+/* ---------------- 6. PROMOTION VIDEO ---------------- */
+/* Same dark, transparent treatment as the sections above it — #bg-wash carries
+   through. The frame holds a 16:9 box so the iframe never causes a layout shift
+   while it loads, and the video is served from iGEM's own Video Universe. */
+#promo-video{ padding: 0 0 340px; color: var(--text-on-dark); }
+#promo-video .eyebrow{
+  color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em;
+  text-transform:uppercase; font-weight:700;
+}
+#promo-video h2{
+  color: var(--text-on-dark); font-size: clamp(1.6rem,3vw,2.3rem); margin-bottom: 28px;
+}
+.promo-frame{
+  position:relative; width:100%; aspect-ratio: 16 / 9;
+  background: rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg);
+  overflow:hidden;
+}
+.promo-video{
+  position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
+}
 
 /* ---------------- Home nav: fixed, not sticky ---------------- */
 /* Sticky reserves its own height in normal document flow, which pushed #preface's natural

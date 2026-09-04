@@ -2,7 +2,7 @@
   <div class="container">
     <div class="eyebrow">Attributions</div>
     <h1>Who built what</h1>
-    <p class="lede">Hover (or tap, on touch devices) any card to see that person's contribution and peer feedback. Photos and names below are placeholders; the seven Dry-Lab cards carry real, non-anonymized contribution text pulled directly from the modelling document, with names withheld pending the team's decision on public attribution.</p>
+    <p class="lede">Hover or tab onto any card to see that person's contribution and peer feedback. The roster and portraits below are the team's own; display names are the initials published so far, and each person's written contribution is still being collected. Nothing here is invented to fill a gap.</p>
   </div>
 </section>
 
@@ -17,7 +17,7 @@
 
     <section>
       <h2>Dry Lab <span class="credit-tag">7 members</span></h2>
-      <p class="section-note">These seven contributions are real, pulled from the computational-methods document's per-section credits (see <a href="Project-Description.html#modelling">Project: Model</a>); names are anonymized here pending the team's decision on public attribution. Note: this is 7 people, not the 4 originally quoted, which is worth reconciling with the actual roster.</p>
+      <p class="section-note">The modelling work behind these credits is documented in full on <a href="Project-Description.html#modelling">Project: Model</a> — optical (§1), synthetic-biology (§2) and protein (§3). Display names are the initials the team has published so far; which member led which section has not been published, so no assignment is claimed here.</p>
       <div class="team-grid" id="dry-grid">
         <div class="team-card" tabindex="0">
           <div class="photo-ph">Photo</div>
@@ -106,7 +106,7 @@
       <p>A claim only counts if someone outside the team could reproduce it. This section collects, in one place, exactly what we're releasing and where: protocols, raw data, analysis code, and registry parts.</p>
 
       <h3>What's reproducible right now</h3>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Artifact</th><th>Where it lives</th><th>Status</th></tr>
         <tr><td>Full bench protocols, all four modules</td><td><a href="Wet-Lab-Experiments.html">Wet Lab</a></td><td>Published on wiki</td></tr>
         <tr><td>Live notebook entries</td><td><a href="Wet-Lab-Experiments.html#notebook">Wet Lab: Live notebook</a></td><td>Updated as experiments run</td></tr>
@@ -114,7 +114,7 @@
         <tr><td>Analysis / simulation code</td><td>Repository link: <span class="ph-block" style="display:inline-block;padding:2px 10px;">TODO: add GitHub link</span></td><td>Pending release</td></tr>
         <tr><td>Raw characterization data (UV-Vis, SEM, DLS, AFM, XRD…)</td><td>Data repository link: <span class="ph-block" style="display:inline-block;padding:2px 10px;">TODO: add link</span></td><td>Pending release</td></tr>
         <tr><td>Registry parts &amp; sequences</td><td><a href="Wet-Lab-Experiments.html#parts">Wet Lab: Parts</a></td><td>In progress</td></tr>
-      </table>
+      </table></div>
 
       <h3>How to reproduce a result end-to-end</h3>
       <ol>
@@ -140,7 +140,7 @@
     <section>
       <h2>Software, tools &amp; external resources</h2>
       <p>Attribution for every third-party tool, package, model, or dataset used; expand as items are finalized.</p>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Resource</th><th>Used for</th></tr>
         <tr><td>iYali4 (BiGG Models)</td><td><em>Y. lipolytica</em> genome-scale metabolic model: Dry Lab §2.6, §2.8.3</td></tr>
         <tr><td>iML1515 (BiGG Models)</td><td><em>E. coli</em> genome-scale metabolic model: Dry Lab §2.8.1</td></tr>
@@ -149,7 +149,7 @@
         <tr><td>APBS</td><td>Electrostatic surface potential mapping: Dry Lab §3.5</td></tr>
         <tr><td>AlphaFold2</td><td>Initial protein structure prediction ahead of MD: Dry Lab §3.1</td></tr>
         <tr><td>COBRApy, SALib, MDTraj/MDAnalysis, scikit-optimize/BoTorch, tmm, miepython/PyMieScatt</td><td>Modelling toolchain: see <a href="Project-Description.html#modelling">Project: Model</a> for per-model tool listings</td></tr>
-      </table>
+      </table></div>
     </section>
 
   </div>

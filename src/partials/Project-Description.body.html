@@ -50,11 +50,11 @@
 
       <h3>Module 1: one gene, two jobs</h3>
       <p>Cel5A is an endoglucanase used in <em>two different strains for two different purposes</em>, a deliberate design choice rather than a duplication.</p>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Strain</th><th>Construct</th><th>Role</th></tr>
         <tr><td>Strain A (degradation)</td><td>BL21 + pET-Cel5A + pCDF-Cel6B-BglC(-LPMO10A)</td><td>Full enzyme cocktail acting in concert; complete degradation of waste cotton to glucose</td></tr>
         <tr><td>Strain B (CNC prep)</td><td>BL21 + pET-Cel5A only</td><td>Endoglucanase alone, selectively hydrolyses the <em>amorphous</em> regions of bacterial cellulose while leaving the crystalline core intact, yielding CNC directly</td></tr>
-      </table>
+      </table></div>
       <p>Running the same gene in two roles keeps the part count low while giving Module 3 a greener alternative to acid hydrolysis (see below).</p>
 
       <h3>Module 2: three ways to load pigment</h3>
@@ -67,14 +67,14 @@
 
       <h3>Module 3: enzymatic vs. acid CNC, and why yield matters first</h3>
       <h4 style="margin-top:1em;">Two hydrolysis routes</h4>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th></th><th>Route 1: Cel5A enzymatic (preferred)</th><th>Route 2: 64% H₂SO₄ acid (baseline)</th></tr>
         <tr><td>Conditions</td><td>37–50 °C aqueous buffer</td><td>64% w/w H₂SO₄, 45 °C</td></tr>
         <tr><td>Safety</td><td>Aqueous, mild</td><td>Concentrated hot acid</td></tr>
         <tr><td>Environmental footprint</td><td>Biodegradable enzyme, no acid waste stream</td><td>Acid neutralisation waste</td></tr>
         <tr><td>Selectivity</td><td>Preferentially clears amorphous regions</td><td>Less selective</td></tr>
         <tr><td>Process fit</td><td>Can chain directly onto BC fermentation as one continuous bioprocess</td><td>Separate unit operation</td></tr>
-      </table>
+      </table></div>
       <p>The acid route is retained as the literature-standard baseline and control for characterisation comparisons, but the enzymatic route is the one we are trying to make work end-to-end.</p>
 
       <h4>BC yield comes before film quality</h4>
@@ -105,11 +105,11 @@
       <div class="callout">
         <p>Reflectin nanoparticles are pre-assembled under pH/salt control (~30 nm, Levenson 2016) <em>before</em> ever meeting the CNC film. Once folded, most of the positively-charged residues are buried inside the nanoparticle by π–π and hydrophobic interactions, so the exposed surface charge density is far too low to trigger bulk aggregation.</p>
       </div>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Route</th><th>Approach</th><th>Status</th></tr>
         <tr><td><strong>A, sequential deposition</strong></td><td>Pre-form the CNC film by EISA → dialyse secreted protein to pH 4.0 + 150 mM NaCl to trigger nanoparticle formation → soak the CNC film in the nanoparticle suspension</td><td>Recommended, following the general "protein-infusion into a pre-formed CNC template" platform established by Bast et al. (2021)</td></tr>
         <tr><td><strong>B, low-loading co-assembly</strong></td><td>Reflectin nanoparticles blended at &lt;5 wt% into the CNC suspension before a single EISA run</td><td>Backup, only if Route A fails</td></tr>
-      </table>
+      </table></div>
 
       <h3>Modelling shaped these choices too</h3>
       <p>Optical modelling (Berreman 4×4 and de Vries equation, Mie scattering, transfer-matrix method) and synthetic-biology modelling (enzyme kinetics, flux-balance analysis, amino-acid supply and demand for refCBA secretion) ran alongside the wet-lab design decisions above, not after them. Full detail is under <a href="#modelling">Model</a>.</p>
@@ -263,7 +263,7 @@
     <section id="validation">
       <h2>Results: model ↔ experiment cross-checks</h2>
       <p>Every model above exists to be checked against real data, not just to run once. These are the specific comparisons we track. Go/no-go pass criteria for the underlying wet-lab checkpoints are on <a href="Wet-Lab-Experiments.html#validation">Wet Lab: Validation Checkpoints</a>.</p>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Prediction</th><th>Model</th><th>Validated against</th></tr>
         <tr><td>refCBA production ceiling &amp; bottleneck amino acid</td><td>2.5 static supply/demand analysis</td><td>2.6 <em>Y. lipolytica</em> FBA (iYali4); do the two independent methods agree on which amino acid is limiting?</td></tr>
         <tr><td>refCBA assembly phase boundary (pH × [NaCl] × concentration)</td><td>3.2 coarse-grained colloidal MD</td><td>4.5 wet-lab LLPS phase-diagram DOE (Module 4)</td></tr>
@@ -272,7 +272,7 @@
         <tr><td>Isotropic vs. patchy surface charge → spherical vs. anisotropic assembly</td><td>3.5 APBS electrostatic mapping</td><td>4.6 AFM/TEM particle morphology</td></tr>
         <tr><td>Reflectance peak vs. film pitch/thickness</td><td>1.1 Bragg / de Vries model</td><td>3.6 angle-resolved reflectance spectroscopy</td></tr>
         <tr><td>BC theoretical yield ceiling</td><td>2.8.2 <em>K. xylinus</em> FBA</td><td>2.4 Monod+logistic fit to real fermentation curves; 3.1 RBS-library titres</td></tr>
-      </table>
+      </table></div>
       <div class="callout">
         <p>See the worked DBTL example directly below for what happened when one of these cross-checks <em>disagreed</em>: the 3.2 assembly-concentration prediction did not match the actual 4.5 DOE result, and how that discrepancy fed back into a revised model.</p>
       </div>

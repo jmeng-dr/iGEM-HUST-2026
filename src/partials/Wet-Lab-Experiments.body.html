@@ -267,7 +267,7 @@
     <section id="validation">
       <h2>Validation checkpoints</h2>
       <p>Individual modules can each look successful in isolation. This table tracks the checkpoints that prove they work <em>together</em>: module-to-module handoffs and pass/fail criteria for each build. Model-side validation (checking a prediction against this data) lives on <a href="Project-Description.html#validation">Project: Results</a>.</p>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Module</th><th>Checkpoint</th><th>Pass criteria</th><th>Status</th></tr>
         <tr><td>Module 1: Cellulose recovery</td><td>Four-enzyme synergistic degradation</td><td>Waste-cotton hydrolysate reaches target glucose titre; HPLC-confirmed glucose fraction</td><td><span class="status">Planned</span></td></tr>
         <tr><td>Module 1: Compatibility</td><td>Degradation supernatant feeds <em>K. xylinus</em></td><td>BC dry weight in supernatant-fed culture ≥ pure-HS control</td><td><span class="status">Planned</span></td></tr>
@@ -276,18 +276,18 @@
         <tr><td>Module 3: CNC film</td><td>EISA self-assembly</td><td>Fingerprint texture under polarized light; reflectance λmax in 450–530 nm target band</td><td><span class="status">Planned</span></td></tr>
         <tr><td>Module 4: Secretion &amp; assembly</td><td><strong>Week-12 Go/No-Go</strong></td><td>His6-tagged band detected in supernatant + solution turns turbid at pH 4.0 + DLS shows 20–50 nm particles</td><td><span class="status">Planned</span></td></tr>
         <tr><td>Integration</td><td>Route A infusion</td><td>Reflectance / CIE Lab* measurably shifts after CNC-film infusion vs. before</td><td><span class="status">Planned</span></td></tr>
-      </table>
+      </table></div>
     </section>
 
     <section id="roadmap">
       <h2>Near-term roadmap, by module</h2>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Module</th><th>Build</th><th>Test</th></tr>
         <tr><td>Module 1: Cellulose recovery</td><td>Synthesize the four enzyme genes → dual-plasmid construction → transform into BL21(DE3)</td><td>Enzyme-activity verification (CMC plate, pNPG, DNS assays)</td></tr>
         <tr><td>Module 2: Pigment film</td><td>Establish <em>K. xylinus</em> BC fermentation; construct the indigo-producing strain</td><td>Pigment-loading test (Strategy A vs. B)</td></tr>
         <tr><td>Module 3: CNC iridescent film</td><td>BC fermentation scale-up; Cel5A enzymatic CNC preparation</td><td>CNC characterization (AFM/TEM/XRD/Zeta/DLS) → EISA film formation</td></tr>
         <tr><td>Module 4: Reflectin layer</td><td>refCBA gene synthesis; <em>Y. lipolytica</em> transformation</td><td>Secreted-supernatant LLPS verification (Week-12 Go/No-Go)</td></tr>
-      </table>
+      </table></div>
       <p>See <a href="Project-Description.html#engineering-cycle">Project: Engineering Cycle</a> for the model-guided design work behind this roadmap.</p>
     </section>
 
@@ -296,7 +296,7 @@
       <p>Registry (BBa_) IDs are intentionally left blank below rather than guessed; they'll be filled in once each part is actually submitted. Everything else (gene identity, source organism, construct, role) is real.</p>
 
       <h3>Module 1: Cellulose recovery</h3>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Part</th><th>Description</th><th>Source</th><th>Registry ID</th></tr>
         <tr><td>Cel5A</td><td>Endoglucanase</td><td><em>Thermobifida fusca</em> YX (M19373.1)</td><td class="pending">submission pending</td></tr>
         <tr><td>Cel6B</td><td>Exoglucanase / cellobiohydrolase</td><td><em>Thermobifida fusca</em> YX</td><td class="pending">submission pending</td></tr>
@@ -305,27 +305,27 @@
         <tr><td>pETDuet-Cel5A-Cel6B</td><td>Composite: degradation strain, MCS1/MCS2</td><td>Constructed</td><td class="pending">submission pending</td></tr>
         <tr><td>pCDFDuet-BglC-LPMO10A</td><td>Composite: degradation strain, MCS1/MCS2</td><td>Constructed</td><td class="pending">submission pending</td></tr>
         <tr><td>pET-Cel5A (Strain B)</td><td>Cel5A alone, used for selective CNC-route hydrolysis</td><td>Constructed</td><td class="pending">submission pending</td></tr>
-      </table>
+      </table></div>
 
       <h3>Module 2: Pigment film</h3>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Part</th><th>Description</th><th>Source</th><th>Registry ID</th></tr>
         <tr><td>tnaA</td><td>Tryptophanase (Trp → indole)</td><td><em>E. coli</em> K-12 genomic</td><td class="pending">submission pending</td></tr>
         <tr><td>FMO</td><td>Flavin-containing monooxygenase (indole → indigo)</td><td>e.g. <em>Methylophaga</em> sp.</td><td class="pending">submission pending</td></tr>
         <tr><td>pETDuet-tnaA-FMO</td><td>Composite: indigo-producing strain</td><td>Constructed</td><td class="pending">submission pending</td></tr>
-      </table>
+      </table></div>
 
       <h3>Module 3: CNC iridescent film</h3>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Part</th><th>Description</th><th>Source</th><th>Registry ID</th></tr>
         <tr><td>pgm</td><td>Phosphoglucomutase (G6P → G1P)</td><td><em>K. xylinus</em>-codon-optimized</td><td class="pending">submission pending</td></tr>
         <tr><td>galU</td><td>UTP–glucose-1-phosphate uridylyltransferase (G1P → UDP-glucose)</td><td><em>K. xylinus</em>-codon-optimized</td><td class="pending">submission pending</td></tr>
         <tr><td>ndp</td><td>Nucleoside diphosphate kinase (maintains NTP pool)</td><td><em>K. xylinus</em>-codon-optimized</td><td class="pending">submission pending</td></tr>
         <tr><td>pDHJC_pgm_galU_ndp RBS library</td><td>Composite: BC-yield metabolic-engineering library (RBS variants around the Hur 2020 R15 reference)</td><td>Constructed</td><td class="pending">submission pending</td></tr>
-      </table>
+      </table></div>
 
       <h3>Module 4: Reflectin layer</h3>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Part</th><th>Description</th><th>Source</th><th>Registry ID</th></tr>
         <tr><td>refCBA</td><td>Reflectin C+B+A tri-domain fragment (~64 aa), primary self-assembling unit</td><td><em>Euprymna scolopes</em> reflectin 1a (UniProt Q6WDN8)</td><td class="pending">submission pending</td></tr>
         <tr><td>refB</td><td>B-domain only (~25 aa), truncation-series comparator</td><td><em>E. scolopes</em> reflectin 1a</td><td class="pending">submission pending</td></tr>
@@ -336,13 +336,13 @@
         <tr><td>refCBA-CBD</td><td>Fusion: cellulose-binding domain for directed CNC binding</td><td>Designed</td><td class="pending">submission pending</td></tr>
         <tr><td>refSAD–GGGGS×3–refCBD</td><td>Two-domain split design, independent assembly &amp; CNC-binding domains</td><td>Designed</td><td class="pending">submission pending</td></tr>
         <tr><td>pTEF-SP2-His6 (backbone)</td><td>Constitutive secretion-expression vector</td><td>Lab platform, existing</td><td class="pending">submission pending</td></tr>
-      </table>
+      </table></div>
 
       <h3>Biosafety</h3>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Part</th><th>Description</th><th>Registry ID</th></tr>
         <tr><td>cI857/λPR → mazF kill switch</td><td>Temperature-controlled containment circuit; pSB1C3 backbone</td><td class="pending">submission pending</td></tr>
-      </table>
+      </table></div>
     </section>
 
     <section id="safety">
@@ -363,22 +363,43 @@
       </div>
 
       <h3>Standard biosafety practice</h3>
-      <table>
+      <div class="table-wrap"><table>
         <tr><th>Chassis</th><th>Risk group</th><th>Notes</th></tr>
         <tr><td><em>E. coli</em> BL21(DE3)</td><td>Risk Group 1</td><td>K-12-derived, non-pathogenic; carries the cellulase (Module 1) and indigo-pathway (Module 2) constructs</td></tr>
         <tr><td><em>Komagataeibacter xylinus</em></td><td>Risk Group 1</td><td>Food/industrial-fermentation organism (bacterial cellulose production)</td></tr>
         <tr><td><em>Yarrowia lipolytica</em> Po1f</td><td>Risk Group 1</td><td>GRAS oleaginous yeast; secretes the refCBA reflectin fragment</td></tr>
-      </table>
+      </table></div>
       <p>Reagent-specific hazards (e.g. concentrated H₂SO₄ in the acid-CNC route, §3.3; Na₂S₂O₄ reducing agent, §2.4) are flagged inline in the protocol sections above.</p>
 
       <h3>How we used AI &amp; computational tools</h3>
       <p>This project leans heavily on computational modelling (see <a href="Project-Description.html#modelling">Project: Model</a>) and, during planning, on AI-assisted literature review, protocol drafting, and modelling-code scaffolding. We treat every AI-assisted output the same way we treat a first-pass model prediction: as a hypothesis to be checked, not a result to be trusted outright.</p>
+
+      <h4 style="margin-top:1em;">Models used</h4>
+      <div class="table-wrap"><table>
+        <tr><th>Model</th><th>Used for</th></tr>
+        <tr><td>DeepSeek-V4-Pro</td><td>Literature-search assistance, first-draft protocol writing, modelling-code scaffolding (FBA, Bragg/TMM optics, MD trajectory analysis), code debugging, and text polishing and translation</td></tr>
+        <tr><td>Claude (Anthropic)</td><td>Building this wiki: page structure, layout, styling, and the build pipeline. No scientific content was authored by it.</td></tr>
+        <tr><td>AlphaFold2</td><td>Initial protein structure prediction ahead of MD simulation (<a href="Project-Description.html#modelling">Project: Model §3</a>)</td></tr>
+      </table></div>
+
+      <h4>Specific uses</h4>
       <ul>
-        <li><strong>Literature &amp; protocol drafting:</strong> AI tools were used to accelerate literature search and first-draft protocol writing; every cited claim was traced back to and verified against the primary source before being relied on for a design decision (see citations throughout <a href="Project-Description.html#design-rationale">Project: Design Rationale</a>).</li>
-        <li><strong>Modelling code:</strong> AI coding assistants helped scaffold simulation and analysis scripts (FBA, Bragg/TMM optics, MD trajectory analysis); outputs were validated against wet-lab data wherever possible. See the model↔experiment cross-checks on <a href="Project-Description.html#validation">Project: Results</a>.</li>
-        <li><strong>What we did not do:</strong> we did not treat any AI-generated prediction (sequence design, phase-diagram prediction, yield estimate) as final without either a literature cross-check or a wet-lab validation step.</li>
-        <li><strong>Structural predictions:</strong> AlphaFold2 was used for initial protein structure prediction ahead of MD simulation (<a href="Project-Description.html#modelling">Project: Model §3</a>), a standard and disclosed use of a public structure-prediction model rather than a novel or undisclosed AI application.</li>
+        <li><strong>Literature &amp; protocol drafting:</strong> used to accelerate literature search and first-draft protocol writing; every cited claim was traced back to and verified against the primary source before being relied on for a design decision (see citations throughout <a href="Project-Description.html#design-rationale">Project: Design Rationale</a>).</li>
+        <li><strong>Modelling code:</strong> used to scaffold simulation and analysis scripts (FBA, Bragg/TMM optics, MD trajectory analysis); outputs were validated against wet-lab data wherever possible. See the model↔experiment cross-checks on <a href="Project-Description.html#validation">Project: Results</a>.</li>
+        <li><strong>Wiki code:</strong> the structure, layout and styling of this website were built with AI assistance. All of it was reviewed and tested by the team before publication. No scientific claim on this wiki originates from that work.</li>
+        <li><strong>Text polishing:</strong> used to refine grammar, clarity and translation of wiki content originally written by the team.</li>
+        <li><strong>Structural predictions:</strong> AlphaFold2 is a standard, publicly documented structure-prediction model; its use here is disclosed rather than novel or hidden.</li>
+        <li><strong>What we did not do:</strong> we did not treat any AI-generated prediction (sequence design, phase-diagram prediction, yield estimate) as final without either a literature cross-check or a wet-lab validation step. No experimental result, measurement, citation or attribution on this wiki was generated by a model.</li>
       </ul>
+
+      <h4>Human review process</h4>
+      <p>All AI-assisted output passed two review stages before appearing on this wiki:</p>
+      <ol>
+        <li><strong>Author check.</strong> The team member who prompted the model reviewed the output against primary sources — literature, experimental data, or design documents — and corrected any errors.</li>
+        <li><strong>Cross-check.</strong> A second team member from the relevant sub-team (Wet Lab / Dry Lab / Human Practices) independently verified the factual claims before the content was committed.</li>
+      </ol>
+      <p>No AI-generated content was published without passing both stages.</p>
+
       <div class="callout">
         <p>We are documenting this disclosure honestly and expect to refine it as the project's actual AI usage, and our own thinking about where it's appropriate, develops further before the wiki freeze.</p>
       </div>

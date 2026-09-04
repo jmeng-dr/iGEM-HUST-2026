@@ -1,15 +1,19 @@
 # REVIEW — coordination between Claude Code and the browser-QA session
 
-This file is the shared checklist. **Claude Code** updates the "Round" section after
-each batch of changes. The **browser session** reads it at
-http://localhost:4322/qa/round.md, runs the checks, and reports back. The **human**
-carries text between the two. There is no automatic channel.
+Claude Code updates the "Round" section after each batch. The browser session reads
+it at **http://localhost:4322/qa/round.md**, runs the checks, and reports back.
+No automatic channel — the human carries text between the two.
+
+**Reports:** save to `E:\Downloads\qa-report.md` (always that exact name — Claude Code
+moves it into `astro/qa-archive/round-N.md` after reading, so the name is free again).
+If this session cannot write files, output the report as text in chat instead; that
+worked fine for rounds 0 and 1.
 
 ---
 
 ## URLs
 
-| | NEW (Astro, **production build**) | ORIGINAL (frozen reference) |
+| | NEW (Astro production build) | ORIGINAL (frozen reference) |
 |---|---|---|
 | Home | http://localhost:4322/ | http://localhost:8080/index.html |
 | Project | http://localhost:4322/Project-Description.html | http://localhost:8080/Project-Description.html |
@@ -19,147 +23,134 @@ carries text between the two. There is no automatic channel.
 | AI Comp Methods | http://localhost:4322/AI-Computational-Methods.html | http://localhost:8080/AI-Computational-Methods.html |
 | AI Ethics/Safety | http://localhost:4322/AI-Ethics-Safety.html | http://localhost:8080/AI-Ethics-Safety.html |
 
-> **Port changed from 4321 → 4322.** Round 0 tested the dev server; from Round 1 on,
-> NEW is the real `astro build` output served by `astro preview`, so the comparison is
-> production-to-production and there is no Vite/dev-toolbar noise in the console.
-
-## Hand-off
-
-- Instructions: **http://localhost:4322/qa/round.md**
-- Report: save to `E:\Downloads\qa-report.md` if possible; if this session cannot
-  write files, just output the report as text in chat instead — that worked fine
-  for Round 0 and is an acceptable substitute. Screenshots are optional; the
-  per-element computed-style + geometry diff used in Round 0 is better evidence.
+> The ORIGINAL is a frozen reference for anything **not** listed as changed. The two
+> sites now differ substantially and deliberately. Do not report intended changes as
+> failures. **Re-run `astro preview` has been restarted — hard-refresh 4322.**
 
 ---
 
-## Round 1 — first intended changes
+## Round 2 — QA fixes + artwork + real content
 
-> **IMPORTANT — the brief has changed.** In Round 0 the two sites had to be
-> identical. They are now **intentionally different**. The ORIGINAL is a frozen
-> reference for everything that was *not* touched. Do **not** report the changes
-> listed below as failures — verify them, and judge whether they look good.
+Round 1's report drove most of this. Thank you for the correction on the
+view-transition error — it was right, and it is now fixed at the source.
 
-### What changed (verify these)
+### A. Your Round 1 findings, actioned
 
-1. **Favicon + theme colour** — every page now has a browser-tab icon
-   (`/assets/img/favicon-32.png`, the team's hand-drawn logo) and
-   `<meta name="theme-color" content="#0e6e6a">`. ORIGINAL has neither.
-   → Check the tab icon actually appears and is recognisable at 16–32px.
+1. **Favicon redrawn.** You were right that the full logo is a green smudge at 16px.
+   There is now a purpose-drawn `/assets/img/favicon.svg` (teal roundel + one
+   kingfisher feather, no ribbon) served first, with 16/32/180 PNG fallbacks
+   generated from it. → Check the tab icon is recognisable at 16px now.
+2. **Nav mark 30 → 36px**, and `object-fit: contain` added as you suggested.
+   → Confirm the bar height and every nav item position are still unchanged vs
+   ORIGINAL, and that the pink ribbon now reads.
+3. **Footer seals now sit on a tint band.** Your recommendation B1, implemented:
+   a full-bleed `rgba(255,255,255,0.045)` strip behind the row, flush to the footer's
+   top edge (negative margin cancels the footer's own padding), hairline as its
+   bottom edge. Seals unchanged at 58px / 0.92 opacity.
+   → **Question C below.**
+4. **Qiming seal re-exported lossless** (it was lossy-compressed line art). Its source
+   is only 120×120 — that is genuinely all the team has, so 2x is 1:1 and 3x will be
+   soft. Flagged for the team to supply a larger original; not fixable here.
+5. **Skip link added.** You noted the first card is the 21st tab stop. Tab once from
+   the top of any page → a "Skip to content" button should appear top-left and jump
+   focus to `#main` just below the nav.
+6. **View-transition error fixed.** `nav.js` now listens for `pagereveal` / `pageswap`
+   and swallows the rejection from a skipped transition (`.ready`, `.finished`,
+   `.updateCallbackDone`). → **This is the single most important thing to verify:
+   does `AbortError: Transition was skipped` still appear in the console?** Please
+   repeat your Round 1 method — a slow pass with real dwell, plus a real mouse click
+   Home → Team — since that is what caught it.
 
-2. **Nav brand mark** — the small gradient dot (`span.swatch`) before
-   "点翠 · Diǎn Cuì" in the top-left is replaced by the hand-drawn logo image
-   (`img.brand-mark`, `/assets/img/logo.webp`, 30px tall).
-   → Check: the nav bar height is unchanged vs ORIGINAL; the mark is vertically
-   centred with the wordmark; it does not push the nav items around; it renders
-   (not a broken image) on both the light interior nav and the dark home nav.
+### B. New artwork
 
-3. **Ring-navigator brand mark** — same image at 38px inside the full-screen ring
-   menu, replacing the dot there too. Open the ring nav and check it.
+7. **Home TOC totems.** The four CSS triangles are gone; each totem is now one of the
+   team's hand-drawn emblems (Project / Wet Lab / Human Practices / Team) sitting on a
+   shared 78px circular ground. The ground is deliberate: the four drawings are not a
+   matched set (round badge / tall flask / wide hands / square flower), so a common
+   disc plus `object-fit: contain` normalises them.
+   `.toc-preview` bottom padding went 54px → 96px so the caption clears the taller
+   totems. → **Question D below.**
 
-4. **Footer institution seals (NEW ROW)** — a centred row of three seals
-   (HUST / College of Life Science and Technology / Qiming College) now sits above
-   the copyright line, separated by a hairline. 58px tall, 44px at ≤600px.
-   → Check: spacing looks deliberate, the row is centred, the hairline sits right,
-   the three seals are not clipped, and the layout does not break at 375/768.
+### C. New content and sections
 
-5. **Attributions cards are now keyboard-reachable** — this fixes the accessibility
-   bug you found. Every `div.team-card` now has `tabindex="0"`.
-   → Test: on `/Attributions.html`, press Tab repeatedly. Focus must land on the
-   cards; a teal focus ring (`outline: 3px solid`) must be visible; and because the
-   CSS already has `:focus-within`, **the contribution overlay must open on focus** —
-   which finally gives you a way to verify the overlay that you could not hover-test
-   in Round 0. Confirm `.info-overlay` opacity goes 0 → 1 on focus.
-   ORIGINAL still has the bug (Tab never reaches a card) — that difference is expected.
+8. **Promotion video (new section).** `#promo-video` now follows `#toc` on the home
+   page — the team's real iGEM Video Universe embed in a 16:9 frame. `#toc` bottom
+   padding dropped 360px → 120px to make room. → **Question E below.**
+9. **Attributions now has the real roster.** The five grids were empty `<div>`s filled
+   by an inline script with 28 "Team Member N / TODO" cards. They are now rendered at
+   build time from the team's actual roster: **31 people** (Wet Lab 11, Dry Lab 8,
+   Human Practices 7, Advisors 3, PIs 2), each with their real uploaded portrait from
+   `static.igem.wiki`. Headcount badges corrected. The inline script is deleted, so
+   the cards are in the HTML rather than appearing only after JS runs.
+   → Check: 31 cards, all portraits load (none broken), the hover/focus overlay still
+   works over a photo instead of the old grey "Photo" block, and the cards are still
+   keyboard-reachable with the focus ring.
+10. **AI-use disclosure expanded** (Wet Lab → Biosafety & responsible AI use). It was
+    vague ("AI tools"); it now has a models table, per-use detail, and a two-stage
+    human review process. → Just confirm it renders correctly; no comparison needed.
+11. **All 18 tables wrapped** in `.table-wrap` (`overflow-x: auto`).
+    → **Verify the Round 1 bug is gone: Project-Description at 375px should no longer
+    overflow** (was scrollWidth 416 > clientWidth 360). Desktop widths should be
+    completely unaffected.
 
-### Aesthetic judgement wanted (not just pass/fail)
+### Aesthetic judgement wanted
 
-I cannot see the rendered page, so give me an opinion on these two:
+I still cannot see the page. Please give an opinion, not just pass/fail:
 
-- **A.** Does the logo mark read clearly at 30px in the nav, or is it too detailed
-  and turning into a coloured smudge? Would it be better larger, smaller, or is the
-  old plain dot honestly cleaner?
-- **B.** The three institution seals are blue line-art on white discs, sitting on a
-  near-black footer. Do they read as three bright white circles that dominate the
-  footer, or does it look intentional? Suggest a treatment if it looks heavy
-  (smaller / lower opacity / a lighter strip behind them / greyscale).
+- **C.** Does the tint band behind the footer seals fix the "three unrelated logos"
+  problem you described, or does the band itself now look like a seam? Is
+  `rgba(255,255,255,0.045)` about right, too faint, or too strong?
+- **D.** Do the four emblems on their shared discs read as **one set** at 78px? Is the
+  disc doing its job, or would the emblems be better without it? Is 78px right, and
+  does the caption panel actually clear them at every width?
+- **E.** Does the promotion video read as part of the page, or bolted on to the end?
+  The home page now runs preface → module wheel → totems → video. Is that a sensible
+  place for it, or should it come earlier?
 
-### Regression check (abbreviated — do not re-run everything)
+### Regression (abbreviated)
 
-- Full visual + geometry diff on **index, Project-Description, Attributions** only,
-  at **1321 and 768**. Everything except the five changes above must still match.
-- Interaction tests **A (nav dropdowns)** and **B (ring navigator)** only.
-- **Console on all 7 pages.** Round 0 saw an intermittent
-  `InvalidStateError: Transition was aborted` on the dev server, attributed to
-  `@view-transition { navigation: auto }`. Now that NEW is a production build,
-  report whether it still occurs. If it does, note on which pages and whether it
-  reproduces on a second pass.
+- Full geometry/style diff on **index, Attributions, Wet-Lab-Experiments** at
+  **1321 and 768**. Everything outside the changes above must still match ORIGINAL.
+- **Console on all 7 pages** — especially item 6.
+- Horizontal scrollbar check at **375px on Project-Description** — expected fixed.
+- Interaction **E (home totems)** — the hover→caption behaviour must still work now
+  that the totems are images rather than CSS triangles.
 
-### Known and deliberately not fixed this round
+### Known, still not fixed
 
-- `Project-Description.html` overflows horizontally at 375px (present in both).
-- `AI-Computational-Methods` / `AI-Ethics-Safety` are **intentional redirect stubs**
-  (they carry a `<meta http-equiv="refresh">`), not unfinished pages.
-- Attributions content is still "Team Member N / TODO" placeholder in both.
-
----
-
-## Standing interaction test script (full suite — run only when asked)
-
-**A. Top nav dropdowns** (width ≥ 1000px)
-1. Click "Project" → menu appears, 6 rows with emoji + bold title + teal subtitle.
-   DOM: parent `.nav-dropdown` gains `open`; trigger `aria-expanded="true"`.
-2. Click "Lab" → Project closes, Lab opens (Lab has 4 rows, not 6 — expected).
-3. Click empty page area → all closed, `aria-expanded="false"`.
-
-**B. Ring navigator**
-1. Click the round bottom-right button → full-screen overlay, circle with 5 labelled
-   nodes; current page's node highlighted. DOM: `#ringNav` gains `open`.
-2. Esc closes. 3. Click outside the circle closes. 4. The × closes.
-
-**C. Home preface scroll** (1440×900 or widest available)
-scrollY 0 / 120 / 250 / 400 / 600 — glow circle grows, background tints teal, scroll
-cue fades after step 1. DOM at 400: `#bg-wash` opacity > 0.3, `.glow-circle` scale > 1.
-
-**D. Home intro wheel** — scroll past "Four modules…" in +300px steps ×5. Highlight
-advances 01→02→03→04; panel text changes; exactly one `.wheel-stop.active`; heading
-stays pinned.
-
-**E. Home TOC totems** — hover each triangle → `a.totem` gains `active`,
-`.toc-preview` loses `idle`, caption shows title + desc + "Open … →". Pointer off the
-group → back to idle. No orb follows the cursor.
-
-**F. Attributions cards** — counts ≈ 10/7/6/3/2. Overlay opacity 0 → 1 on hover *or
-focus* (focus now works, see Round 1 item 5).
-
-**G. Responsive** — widths 1321/860/768/375. At ≤860 nav collapses to "Menu"
-(`.site-nav` gains `nav-open`); at ≤760 the home intro-wheel stacks to one column.
-Report any horizontal scrollbar on the body.
-
-**H. Console** — every page: errors and failed requests.
+- Per-person contribution text is genuinely not written yet — the cards say so
+  rather than inventing it. Not a bug.
+- No GitLab repository link in the footer yet (a judging requirement) — blocked on
+  deciding which repo this site will live in.
 
 ---
 
 ## Response format
 
 ```
-ROUND: 1
+ROUND: 2
 NEW build reachable (4322): yes/no
---- INTENDED CHANGES ---
-1 favicon        — OK / problem: ...
-2 nav brand mark — OK / problem: ...
-3 ring nav mark  — OK / problem: ...
-4 footer seals   — OK / problem: ...
-5 card keyboard  — OK / problem: ...   (overlay opacity on focus: 0 -> ?)
+--- ROUND 1 FIXES ---
+1 favicon at 16px   — OK / problem:
+2 nav mark 36px     — OK / problem:   (bar height, item positions vs ORIGINAL)
+3 footer tint band  — OK / problem:
+4 qiming lossless   — OK / problem:
+5 skip link         — OK / problem:
+6 AbortError GONE?  — YES / NO  + method used, per page
+--- NEW WORK ---
+7 totem emblems     — OK / problem:
+8 promo video       — OK / problem:
+9 roster 31 cards   — OK / problem:   (portraits loaded? overlay? focus ring?)
+10 AI disclosure    — OK / problem:
+11 table-wrap       — OK / 375px overflow fixed? YES / NO
 --- AESTHETIC ---
-A logo at 30px: <opinion + recommendation>
-B footer seals on dark: <opinion + recommendation>
+C footer band:
+D emblem discs:
+E video placement:
 --- REGRESSION ---
-index / Project-Description / Attributions at 1321 + 768 — PASS or diffs
-A nav dropdowns — PASS/FAIL
-B ring navigator — PASS/FAIL
+index / Attributions / Wet-Lab at 1321 + 768 — PASS or diffs
+E home totems interaction — PASS/FAIL
 --- CONSOLE ---
-<per page; does InvalidStateError still occur on the production build?>
+<per page>
 --- NOTES ---
-<anything else>
 ```

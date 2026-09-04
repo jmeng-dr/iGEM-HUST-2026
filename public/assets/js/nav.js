@@ -1,5 +1,22 @@
 // Shared across every wiki page: mobile nav toggle, dropdowns, active-link highlight, ring navigator.
 (function () {
+  // The cross-document view transition declared in style.css (@view-transition
+  // { navigation: auto }) surfaces "AbortError: Transition was skipped" in the
+  // console whenever the browser decides to skip it — which it does often, and on
+  // real clicks, not just automated ones. A skipped transition is a normal outcome,
+  // not a fault, so claim the promises and swallow the rejection rather than
+  // leaving an unhandled one to surface as a page error. Guarded because these
+  // events only exist where cross-document transitions are supported.
+  function settleViewTransition(e) {
+    var vt = e && e.viewTransition;
+    if (!vt) return;
+    if (vt.ready && vt.ready.catch) vt.ready.catch(function () {});
+    if (vt.finished && vt.finished.catch) vt.finished.catch(function () {});
+    if (vt.updateCallbackDone && vt.updateCallbackDone.catch) vt.updateCallbackDone.catch(function () {});
+  }
+  window.addEventListener("pagereveal", settleViewTransition);
+  window.addEventListener("pageswap", settleViewTransition);
+
   document.addEventListener("DOMContentLoaded", function () {
     var toggle = document.querySelector(".nav-toggle");
     var navEl = document.querySelector(".site-nav");

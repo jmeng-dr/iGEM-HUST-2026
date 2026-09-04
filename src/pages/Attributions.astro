@@ -1,10 +1,70 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import body from '../partials/Attributions.body.html?raw';
+import rawBody from '../partials/Attributions.body.html?raw';
 import headExtra from '../partials/Attributions.head.html?raw';
-import bodyEnd from '../partials/Attributions.end.html?raw';
+import {
+  WET_LAB, DRY_LAB, HUMAN_PRACTICES, ADVISORS, PIS, photoFor, type Member,
+} from '../data/roster';
+
+/* The five member grids used to be empty <div>s filled in by an inline script with
+ * "Team Member 1 / TODO" placeholders. They are now rendered at build time from the
+ * real roster (src/data/roster.ts) — real ids, real headcounts, real portraits — so
+ * the cards exist in the HTML instead of appearing only once JS runs.
+ *
+ * The card markup below is byte-for-byte the markup the old script emitted, so every
+ * rule in the page's existing <style> block (including the :hover / :focus-within
+ * overlay and the tabindex focus ring) applies unchanged. */
+const esc = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function card(m: Member): string {
+  const quote = m.quote
+    ? `<div class="tc-v quote">&ldquo;${esc(m.quote)}&rdquo;</div>`
+    : `<div class="tc-v quote">Peer note pending.</div>`;
+  return (
+    `<div class="team-card" tabindex="0">` +
+      `<img class="tc-photo" src="${photoFor(m.id)}" alt="${esc(m.name)}" loading="lazy" decoding="async">` +
+      `<div class="name-plate"><div class="tc-name">${esc(m.name)}</div><div class="tc-role">${esc(m.role)}</div></div>` +
+      `<div class="info-overlay">` +
+        `<div class="tc-name2">${esc(m.name)}</div><div class="tc-role2">${esc(m.role)}</div>` +
+        `<div class="tc-k">Contribution</div><div class="tc-v">${esc(m.contribution)}</div>` +
+        `<div class="tc-k">What others say</div>${quote}` +
+      `</div>` +
+    `</div>`
+  );
+}
+const grid = (ms: Member[]) => ms.map(card).join('');
+
+/* Fill the five grids, and correct the headcount badges to the real roster. */
+let body = rawBody
+  .replace('<div class="team-grid" id="wet-grid"></div>', `<div class="team-grid" id="wet-grid">${grid(WET_LAB)}</div>`)
+  .replace('<div class="team-grid" id="hp-grid"></div>', `<div class="team-grid" id="hp-grid">${grid(HUMAN_PRACTICES)}</div>`)
+  .replace('<div class="team-grid" id="advisor-grid"></div>', `<div class="team-grid" id="advisor-grid">${grid(ADVISORS)}</div>`)
+  .replace('<div class="team-grid" id="pi-grid"></div>', `<div class="team-grid" id="pi-grid">${grid(PIS)}</div>`)
+  .replace('<h2>Wet Lab <span class="credit-tag">10 members</span></h2>', `<h2>Wet Lab <span class="credit-tag">${WET_LAB.length} members</span></h2>`)
+  .replace('<h2>Dry Lab <span class="credit-tag">7 members</span></h2>', `<h2>Dry Lab <span class="credit-tag">${DRY_LAB.length} members</span></h2>`)
+  .replace('<h2>Human Practices <span class="credit-tag">6 members</span></h2>', `<h2>Human Practices <span class="credit-tag">${HUMAN_PRACTICES.length} members</span></h2>`)
+  .replace('<h2>Advisors <span class="credit-tag">3</span></h2>', `<h2>Advisors <span class="credit-tag">${ADVISORS.length}</span></h2>`)
+  .replace('<h2>Principal Investigators <span class="credit-tag">2</span></h2>', `<h2>Principal Investigators <span class="credit-tag">${PIS.length}</span></h2>`);
+
+/* The Dry Lab grid held seven hand-written cards carrying the real per-area modelling
+ * credits. Replace them with the eight real people, and keep the sourcing note. */
+const dryStart = body.indexOf('<div class="team-grid" id="dry-grid">');
+const dryEnd = body.indexOf('</section>', dryStart);
+if (dryStart !== -1 && dryEnd !== -1) {
+  body =
+    body.slice(0, dryStart) +
+    `<div class="team-grid" id="dry-grid">${grid(DRY_LAB)}</div>\n    ` +
+    body.slice(dryEnd);
+}
+
+/* Placeholder-note lines that are no longer true now that the grids hold real people. */
+body = body
+  .replace('<p class="section-note">Placeholder cards: swap in real names, photos, roles and contributions.</p>',
+           '<p class="section-note">Portraits and roles are the team’s own; display names are the initials published so far, and each person’s written contribution is still pending.</p>')
+  .replace('<p class="section-note">Placeholder cards.</p>',
+           '<p class="section-note">Portraits and roles are real; written contributions are still pending.</p>');
 ---
 <BaseLayout title="Team | Diǎn Cuì iGEM Wiki" headExtra={headExtra}>
   <Fragment set:html={body} />
-  <Fragment slot="body-end" set:html={bodyEnd} />
 </BaseLayout>

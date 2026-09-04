@@ -34,7 +34,9 @@ const {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title set:html={title}></title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicon-180.png" />
   <meta name="theme-color" content="#0e6e6a" />
   {description && <meta name="description" content={description} />}
@@ -48,8 +50,10 @@ const {
   {headExtra && <Fragment set:html={headExtra} />}
 </head>
 <body class={bodyClass || undefined}>
+  <a class="skip-link" href="#main">Skip to content</a>
   <slot name="body-top" />
   <SiteNav variant={navVariant} />
+  <div id="main" tabindex="-1"></div>
   <slot />
   <SiteFooter safetyHref={safetyHref} />
   <RingNav />

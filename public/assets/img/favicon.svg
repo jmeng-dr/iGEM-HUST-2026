@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Diǎn Cuì">
+  <!-- Purpose-drawn favicon. The full logo collapses into a green smudge at 16px
+       because its three elements (green mass, blue feather, pink ribbon) all
+       compete for the same handful of pixels. This keeps only what survives:
+       one teal roundel and one high-contrast kingfisher feather. SVG so it is
+       crisp at 16, 32 and any future size. -->
+  <circle cx="16" cy="16" r="16" fill="#0e6e6a"/>
+  <path d="M23.4 5.4c2.6 5.1 1.4 12.2-3.1 17.2-2.5 2.8-5.7 4.6-8.9 5.1-1.1-5.6.7-11.7 4.7-16.2 2-2.3 4.5-4.6 7.3-6.1z"
+        fill="#5cbcf5"/>
+  <path d="M23.4 5.4C19.3 11.2 15.4 18.6 11.4 27.7"
+        stroke="#0a3a55" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M20.6 9.9c-3.1 1.6-6 4.4-7.6 7.6" stroke="#a8e2ff" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.7"/>
+</svg>
