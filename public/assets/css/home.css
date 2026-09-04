@@ -1,0 +1,268 @@
+/* ===========================================================
+   Home page only — preface glow, cursor orb, intro wheel, TOC
+   =========================================================== */
+
+html{ background: var(--ink); }
+/* Must be explicitly transparent, not just "unset" — otherwise it falls back to the shared
+   body{background:var(--paper)} rule (used by the light interior pages), and that opaque
+   color paints over #bg-wash's z-index:-1 layer exactly like the old opaque ink override did. */
+body.home{ background: transparent; }
+
+/* ---------------- 0. GLOBAL COLOUR WASH (spans preface + intro-wheel as one surface) ---------------- */
+/* Fixed to the viewport (not scoped inside #preface) and z-index:-1, so it sits behind every
+   section's own (now-transparent, see below) background instead of resetting at a section
+   boundary. Its opacity is still driven by the exact same scroll progress as the glow circle
+   (home.js initPreface) — that circle's own colour-change behaviour is untouched, only the
+   ambient wash it used to be paired with got promoted to page-level so it reads as one
+   continuous tint through both the preface and the intro-wheel section, instead of two
+   separately-coloured boxes with a hard seam between them. */
+#bg-wash{
+  position: fixed; inset:0; z-index:-1;
+  background: radial-gradient(circle at 50% 42%, var(--kingfisher-2) 0%, var(--kingfisher-1) 35%, transparent 68%);
+  opacity: 0;
+  transition: opacity 0.06s linear;
+  pointer-events:none;
+}
+
+/* ---------------- 1. PREFACE (pinned exactly as long as the colour effect takes) ---------------- */
+/* Uses the native `dvh` unit (real, dynamic viewport height — accounts for mobile address
+   bars etc. natively, no JS measurement race condition) with a plain `vh` fallback line
+   above it for older browsers. .preface-sticky pins at top:0 and is a full screen tall,
+   deliberately extending *behind* the nav bar rather than trying to compute "viewport minus
+   nav height" — the nav already has its own opaque+blurred background on every page, so
+   this is invisible, and it removes an entire category of measurement-timing bugs.
+   #preface itself is taller than one screen by exactly 450px (must match EFFECT_DISTANCE_PX
+   in home.js) — that extra height is what position:sticky "spends" holding .preface-sticky
+   in place while the colour effect plays, then releases into normal scrolling. */
+#preface{
+  position: relative;
+  height: calc(100vh + 450px);
+  height: calc(100dvh + 450px);
+  /* no background here — #bg-wash (fixed, page-level, below) plus body.home's base black
+     show through instead, so preface and intro-wheel read as one continuous surface rather
+     than two separately-coloured boxes with a seam between them. */
+  /* NOTE: do not put overflow:hidden here — on the sticky child's *parent* it silently
+     breaks position:sticky (traps it in a clipping context instead of the real page
+     scroll). Put overflow:hidden on .preface-sticky itself instead, below, where it's safe. */
+}
+#preface .preface-sticky{
+  position: sticky; top: 0;
+  height: 100vh;
+  height: 100dvh;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+#preface .glow-circle{
+  position:relative; z-index:2;
+  width: min(46vw, 480px); height: min(46vw, 480px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, var(--cream-glow-lit) 0%, var(--cream-glow) 55%, rgba(244,236,216,0) 78%);
+  box-shadow: 0 0 60px 10px rgba(244,236,216,0.35);
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  transition: transform 0.06s linear, box-shadow 0.06s linear;
+}
+#preface .glow-circle .quote-mark{
+  padding: 0 14%;
+}
+#preface .glow-circle h2{
+  font-size: clamp(1.3rem, 2.6vw, 2.1rem);
+  color: var(--ink-brown-dim); margin-bottom: 0.3em; line-height:1.3;
+}
+#preface .glow-circle .attribution{
+  font-style: italic; color: var(--ink-brown); font-size: 0.95rem; font-family: var(--font-body);
+}
+#preface .scroll-cue{
+  position:absolute; bottom: clamp(14px, 5%, 40px); left:50%; transform:translateX(-50%);
+  color: var(--text-on-dark-dim); font-size: 0.78rem; letter-spacing: 0.14em; text-transform:uppercase;
+  display:flex; flex-direction:column; align-items:center; gap:8px; z-index:3;
+  opacity: 1; transition: opacity 0.3s;
+  white-space: nowrap; max-width: 90%;
+}
+#preface .scroll-cue .chevron{
+  width:10px; height:10px; border-right:2px solid currentColor; border-bottom:2px solid currentColor;
+  transform: rotate(45deg); animation: bob 1.6s ease-in-out infinite;
+}
+@keyframes bob{ 0%,100%{ transform: translateY(0) rotate(45deg);} 50%{ transform: translateY(6px) rotate(45deg);} }
+
+/* ---------------- 2. CURSOR ORB (page-wide clue) ---------------- */
+#cursor-orb{
+  position: fixed; top:0; left:0; width: 13px; height:13px; border-radius:50%;
+  background: radial-gradient(circle at 35% 32%, var(--cream-glow-lit), var(--kingfisher-2) 70%);
+  box-shadow: 0 0 18px 4px var(--kingfisher-glow);
+  pointer-events:none; z-index: 9999; transform: translate(-50%,-50%);
+  opacity:0; transition: opacity 0.3s ease;
+}
+#cursor-orb.visible{ opacity: 1; }
+/* To swap in a custom icon instead of the glow dot:
+   #cursor-orb{ background:url('../img/clue-icon.png') center/contain no-repeat; box-shadow:none; } */
+
+/* Real OS cursor hidden while the orb is following it — the orb is the only pointer shown.
+   !important + the universal selector because plenty of elements (links, buttons, .wheel-stop,
+   .totem) set their own `cursor: pointer`, which would otherwise win over a plain inherited value. */
+body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
+
+/* ---------------- 3. INTRO WHEEL (scroll-driven — steps through the 4 modules) ---------------- */
+/* Same pin pattern as #preface: .wheel-sticky holds the viewport still while .wheel-scroll-track's
+   extra height (WHEEL_STEP_PX * 4 modules — keep in sync with home.js) gets "spent" scrolling
+   through the four modules one at a time, then releases into #toc normally. The heading lives
+   *inside* .wheel-sticky (not before it) so it's still on screen the whole time the modules are
+   being browsed, instead of having already scrolled away by the time the pin engages.
+   .wheel-panel is a fixed height (never reflows) with its content vertically centred inside, so
+   shorter modules don't look top-heavy; switching modules crossfades .wp-content rather than
+   swapping text instantly or scrolling an overflow box. */
+/* no background here either — same reasoning as #preface above: #bg-wash + body.home's
+   base black carry through continuously instead of intro-wheel having its own flat tone. */
+#intro-wheel{ color: var(--text-on-dark); }
+#intro-wheel .eyebrow{
+  color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em; text-transform:uppercase; font-weight:700;
+}
+#intro-wheel h2{ color: var(--text-on-dark); font-size: clamp(1.6rem,3vw,2.3rem); margin-bottom: 36px; }
+
+.wheel-scroll-track{ position: relative; height: calc(100vh + 1200px); height: calc(100dvh + 1200px); }
+.wheel-sticky{
+  position: sticky; top: 0;
+  height: 100vh; height: 100dvh;
+  /* Centered (not bottom-aligned): bottom-alignment kept the module content pinned to the
+     floor of the viewport throughout the whole scroll-through-modules interaction, which
+     read as top-heavy/empty above. Centering it back gives a balanced view while pinned; the
+     resulting gap before #toc (this box is always a full viewport tall, so centered content
+     leaves empty space below it too) is now treated as intentional breathing room that
+     separates the intro-wheel from the totems section, sized via #toc's own top padding. */
+  display:flex; align-items:center;
+  overflow:hidden;
+}
+
+.wheel-layout{
+  display:grid; grid-template-columns: 220px 1fr; gap: 48px; align-items:center;
+  width:100%;
+}
+@media (max-width: 760px){ .wheel-layout{ grid-template-columns: 1fr; } }
+
+.wheel-track{ display:flex; flex-direction:column; gap: 4px; border-left: 2px solid rgba(255,255,255,0.12); }
+.wheel-stop{
+  all:unset; display:flex; align-items:baseline; gap:12px;
+  padding: 14px 0 14px 22px; position:relative; color: var(--text-on-dark-dim);
+  transition: color 0.3s;
+}
+.wheel-stop::before{
+  content:""; position:absolute; left:-7px; top:50%; transform: translateY(-50%);
+  width:12px; height:12px; border-radius:50%; background: var(--ink-soft);
+  border: 2px solid var(--kingfisher-3); transition: all 0.3s;
+}
+.wheel-stop .n{ font-family: var(--font-display); font-size:1.4rem; opacity:0.6; transition: opacity 0.3s, color 0.3s; }
+.wheel-stop .label{ font-weight:600; }
+.wheel-stop.active{ color: var(--text-on-dark); }
+.wheel-stop.active::before{ background: var(--kingfisher-2); box-shadow: 0 0 12px var(--kingfisher-glow); }
+.wheel-stop.active .n{ opacity: 1; color: var(--kingfisher-3); }
+
+.wheel-panel{
+  background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg); padding: 34px 38px;
+  height: 480px;              /* fixed and generous — never reflows between modules */
+  display:flex; align-items:center;   /* shorter modules sit centred, not stranded at the top */
+  overflow: hidden;           /* safety net; no visible scrollbar, ever */
+}
+.wheel-panel .wp-content{
+  width:100%;
+  opacity: 1; transform: translateY(0);
+  transition: opacity 0.32s ease, transform 0.32s ease;
+}
+.wheel-panel .wp-content.fade-out{ opacity: 0; transform: translateY(10px); }
+.wheel-panel h3{ color: var(--cream-glow-lit); font-size:1.5rem; margin-bottom:0.2em; }
+.wheel-panel .tagline{ color: var(--kingfisher-3); font-size:0.85rem; margin-bottom:20px; }
+.wheel-panel .wp-row{ margin-bottom: 16px; }
+.wheel-panel .wp-row .wp-k{
+  font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color: var(--text-on-dark-dim);
+  margin-bottom:4px; font-weight:700;
+}
+.wheel-panel .wp-row .wp-v{ color: var(--text-on-dark); font-size:0.96rem; }
+
+/* ---------------- 5. TOC (hover totems -> big title + click through) ---------------- */
+/* No background here either — same "one continuous surface" treatment as #preface and
+   #intro-wheel (see #bg-wash above) instead of the bright --paper "milky" section this used
+   to be, sandwiched oddly between two dark sections. Text colours flipped to light-on-dark
+   to match. */
+#toc{ padding: 40px 0 360px; } /* the top-of-#toc gap is now handled by .wheel-sticky's bottom-anchored content above, so this only needs a small top nudge; kept generous at the very bottom */
+#toc .eyebrow{ color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; }
+#toc h2{ font-size: clamp(1.6rem,3vw,2.3rem); color: var(--text-on-dark); margin-bottom: 40px; }
+
+.toc-stage{
+  background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg); padding: 44px; color: var(--text-on-dark);
+}
+
+/* One shared "stage" image (placeholder pattern for now, a real per-page photo/illustration
+   later) with a row of triangle "figures" standing right on its bottom edge, and the text
+   preview overlaid directly on the image itself once you hover a figure, rather than sitting
+   beside it in a separate panel. */
+.totem-display-wrap{ position:relative; }
+.totem-display{
+  width:100%; height:360px; border-radius: var(--radius-md); overflow:hidden;
+  background: var(--ph-bg); border:1px solid var(--ph-border);
+  display:flex; align-items:center; justify-content:center;
+}
+.totem-display-label{
+  font-family: var(--font-display); font-size:1.7rem; color: var(--text-on-dark-dim);
+  letter-spacing:0.02em; transition: color 0.3s;
+}
+.toc-totems{
+  position:absolute; left:0; right:0; bottom:0; z-index:3;
+  display:flex; justify-content:center; align-items:flex-end; gap:26px;
+}
+.totem{ all:unset; cursor:pointer; display:block; position:relative; }
+/* Totems became real <a> tags (for direct-click navigation) which means style.css's global
+   a:hover{text-decoration:underline} — more specific than the plain .totem class — now wins
+   over the "all:unset" reset during hover, drawing an underline under the icon. Beat it back. */
+.totem:hover, .totem:focus-visible{ text-decoration:none; color:inherit; }
+/* A plain CSS triangle, base-down — its own bottom edge is the totem's bottom edge, which
+   (since .toc-totems is bottom:0 against the same box the stage fills) lands exactly on the
+   stage's bottom edge, so every triangle rides that one shared line regardless of screen size. */
+.totem-figure{
+  display:block; width:0; height:0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 42px solid var(--kingfisher-3);
+  transition: border-bottom-color 0.3s, transform 0.3s;
+}
+.totem:hover .totem-figure, .totem:focus-visible .totem-figure, .totem.active .totem-figure{
+  border-bottom-color: var(--cream-glow-lit);
+  transform: translateY(-4px);
+}
+
+/* Transparent until a figure is hovered, then fades in as a dark scrim with the
+   title/description/link, like a caption overlaid on a photo — bottom-anchored
+   (justify-content:flex-end) so the link lands at a consistent position near the bottom
+   regardless of how many lines the description wraps to, since the whole block moves as a
+   unit rather than any one piece being separately height-reserved.
+   pointer-events:none so it never blocks the triangles (z-index:3, above this) or the plain
+   image underneath — only the link itself (set back to auto below) stays clickable. */
+.toc-preview{
+  position:absolute; inset:0; z-index:2;
+  background: linear-gradient(0deg, rgba(11,15,16,0.92) 0%, rgba(11,15,16,0.75) 45%, transparent 85%);
+  border-radius: var(--radius-md);
+  display:flex; flex-direction:column; justify-content:flex-end; align-items:flex-start;
+  padding: 24px 28px 54px;
+  opacity: 0; transition: opacity 0.3s ease;
+  pointer-events:none;
+}
+.toc-preview:not(.idle){ opacity: 1; }
+.toc-preview .req-badge{ align-self:flex-start; }
+.toc-preview h3{ color: var(--cream-glow-lit); font-size: 1.6rem; margin: 6px 0 8px; transition: color 0.25s ease; }
+.toc-preview p{ color: var(--text-on-dark-dim); margin: 0 0 14px; max-width: 46ch; }
+.toc-preview .go{
+  align-self:flex-start; color: var(--kingfisher-3); font-weight:700; font-size:0.88rem;
+  border-bottom: 1px solid var(--kingfisher-3); padding-bottom:2px;
+  pointer-events:auto;
+}
+.toc-preview .go:hover{ color: var(--cream-glow-lit); border-color: var(--cream-glow-lit); }
+.toc-preview.idle h3{ font-style: italic; font-weight:500; }
+
+/* ---------------- Home nav: fixed, not sticky ---------------- */
+/* Sticky reserves its own height in normal document flow, which pushed #preface's natural
+   resting position down by the nav's height even before any scrolling happened — the actual
+   cause of the "bottom is cut off" bug (sticky only *engages* once you scroll past that
+   reserved space; it doesn't snap to top:0 on load). Fixed removes it from flow entirely, so
+   #preface starts at true y=0 with nothing to miscalculate. Home-only — every other page's
+   nav stays position:sticky (style.css), which is correct there since they have no full-bleed
+   section underneath it. */
+.home-topbar{ position: fixed; top: 0; left: 0; right: 0; z-index: 501; }

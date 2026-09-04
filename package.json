@@ -1,0 +1,17 @@
+{
+  "name": "dian-cui-wiki-astro",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18.20.8"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "devDependencies": {
+    "astro": "^7.3.1"
+  }
+}

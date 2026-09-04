@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import body from '../partials/Human-Practices.body.html?raw';
+import headExtra from '../partials/Human-Practices.head.html?raw';
+---
+<BaseLayout title="Human Practices | Diǎn Cuì iGEM Wiki" headExtra={headExtra}>
+  <Fragment set:html={body} />
+</BaseLayout>

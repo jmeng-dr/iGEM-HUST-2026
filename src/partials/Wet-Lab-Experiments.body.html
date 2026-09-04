@@ -1,0 +1,413 @@
+<section class="page-hero plain">
+  <div class="container">
+    <div class="eyebrow">Wet Lab</div>
+    <h1>Bench protocols, module by module</h1>
+    <p class="lede">This page is intentionally plain: text and images only, with no interactive elements, so it reads cleanly as a lab record. Design rationale lives on <a href="Project-Description.html#design-rationale">Project</a>; parts, biosafety, validation checkpoints and the near-term roadmap are consolidated below rather than split across separate pages.</p>
+  </div>
+</section>
+
+<div class="page-body plain">
+  <div class="container">
+
+    <section>
+      <h2>Module 1: Cellulose recovery</h2>
+
+      <h3>1.1 Gene synthesis &amp; plasmid construction</h3>
+      <ul>
+        <li>Cel5A (M19373.1), Cel6B, BglC (AJ132386.1) and LPMO10A sequences obtained from NCBI (<em>Thermobifida fusca</em> YX)</li>
+        <li>Codon-optimized for <em>E. coli</em> BL21(DE3) and synthesized as complete genes</li>
+        <li>Constructed pETDuet-Cel5A-Cel6B (MCS1: Cel5A, MCS2: Cel6B)</li>
+        <li>Constructed pCDFDuet-BglC-LPMO10A (MCS1: BglC, MCS2: LPMO10A)</li>
+        <li>Co-transformed both plasmids into <em>E. coli</em> BL21(DE3), dual-antibiotic selection (Amp + Strep/Spc)</li>
+        <li>Colony PCR + sequencing verification</li>
+      </ul>
+
+      <h3>1.2 Expression verification</h3>
+      <ul>
+        <li>Single colony → LB + dual antibiotics → 37 °C → OD₆₀₀ = 0.6 → IPTG induction (0.1–1.0 mM, 16–37 °C DOE)</li>
+        <li>SDS-PAGE for four bands (expected MW: Cel5A ~49 kDa, Cel6B ~65 kDa, BglC ~52 kDa, LPMO10A ~28 kDa)</li>
+        <li>Solubility check: sonication → separate supernatant/pellet → SDS-PAGE to judge soluble vs. inclusion-body fraction</li>
+      </ul>
+
+      <h3>1.3 Enzyme activity assays</h3>
+      <ul>
+        <li>Cel5A/Cel6B activity: CMC plate method (0.5% CMC agar → Congo red staining → measure clear-zone diameter)</li>
+        <li>BglC activity: pNPG method (4 mM pNPG, 50 °C, pH 6.0 → A₄₀₅ for released p-nitrophenol)</li>
+        <li>LPMO10A activity: requires an electron donor (1 mM gallic acid or 0.1 mM ascorbic acid) → DNS method for reducing sugar</li>
+      </ul>
+
+      <h3>1.4 Synergistic degradation DOE</h3>
+      <ul>
+        <li>Substrate pretreatment: waste cotton fabric → 10% NaOH alkaline swelling (RT, 2 h) → mechanical fibrillation → Wiley-mill grinding (40 mesh)</li>
+        <li>Initial enzyme ratio (e.g. Cel5A:Cel6B:BglC:LPMO10A = 2:2:1:1), later optimized by RSM</li>
+        <li>Box–Behnken DOE variables: pH (5–8), temperature (37–55 °C), substrate load (1–5% w/v), enzyme dose (0.1–1.0 mg/g substrate), time (0–72 h)</li>
+        <li>DNS assay every 6 h for reducing-sugar concentration</li>
+        <li>HPLC to confirm glucose fraction (Aminex HPX-87H column, 5 mM H₂SO₄ mobile phase, 65 °C, RID detector)</li>
+      </ul>
+
+      <h3>1.5 Compatibility testing</h3>
+      <ul>
+        <li>Prepare degradation supernatant (centrifuge + 0.22 μm sterile filter)</li>
+        <li><em>K. xylinus</em> cultured in HS medium supplemented with 10/25/50/100% degradation supernatant</li>
+        <li>Compared against pure-HS control: BC membrane dry weight, growth curve</li>
+        <li>GC-MS or HPLC to check for inhibitory by-products (furfural, HMF, acetic acid) in the degradation liquor</li>
+      </ul>
+
+      <h3>1.6 Strain B, independent construction (for Module 3)</h3>
+      <p>pET-Cel5A alone (endoglucanase only) → transformed into BL21(DE3) → banked separately for the enzymatic CNC route.</p>
+    </section>
+
+    <section>
+      <h2>Module 2: Pigment-cellulose film</h2>
+
+      <h3>2.1 <em>K. xylinus</em> BC fermentation</h3>
+      <ul>
+        <li><em>K. xylinus</em> DSM 2325 streak-activated (HS agar, 30 °C, 3 days)</li>
+        <li>Seed culture: single colony → HS liquid medium → 30 °C static, 3 days</li>
+        <li>Production fermentation: 5–10% seed inoculum → HS liquid medium → 30 °C static, 4–7 days</li>
+        <li>BC harvest: lifted from the air–liquid interface → 0.1 M NaOH, 80 °C, 2 h (removes cells and protein) → washed with ddH₂O to neutral</li>
+        <li>Wet weight recorded → freeze-dried → dry weight recorded → yield (g/L) calculated</li>
+      </ul>
+
+      <h3>2.2 Indigo-producing engineered strain</h3>
+      <ul>
+        <li>tnaA (tryptophanase) PCR-amplified from <em>E. coli</em> K-12 genomic DNA</li>
+        <li>FMO (flavin-containing monooxygenase, sourced per literature, e.g. from <em>Methylophaga</em> sp.) synthesized as a complete gene</li>
+        <li>Constructed pETDuet-tnaA-FMO (MCS1: tnaA, MCS2: FMO)</li>
+        <li>Transformed into <em>E. coli</em> BL21(DE3), Amp selection</li>
+      </ul>
+
+      <h3>2.3 Indigo production &amp; verification</h3>
+      <ul>
+        <li>Colony → LB+Amp → 37 °C → OD₆₀₀ = 0.6 → 0.5 mM IPTG + 1–5 mM tryptophan → 30 °C induction, 16 h</li>
+        <li>Visual check: successful cultures turn blue (oxidised indigo precipitate)</li>
+        <li>Extraction: centrifuge to collect precipitate → dissolve in DMSO → UV-Vis scan (characteristic peak ~610–620 nm)</li>
+        <li>Quantification: standard-indigo calibration curve in DMSO → measure A₆₁₂</li>
+      </ul>
+
+      <h3>2.4 Pigment loading, Strategy A (in-situ leuco-indigo)</h3>
+      <ul>
+        <li>Indigo precipitate reduced with alkaline Na₂S₂O₄ (sodium dithionite) → water-soluble leuco-indigo (yellow-green)</li>
+        <li>Leuco-indigo solution (0.1–1.0 mg/mL) added to HS medium</li>
+        <li><em>K. xylinus</em> inoculated → 30 °C static fermentation → leuco-indigo diffuses into the BC fibre network</li>
+        <li>BC membrane harvested → air-exposed 2–4 h to oxidise → indigo precipitates in place, membrane turns blue</li>
+      </ul>
+
+      <h3>2.5 Pigment loading, Strategy B (soak adsorption, backup)</h3>
+      <p>Purified BC membrane soaked in leuco-indigo solution (0.5–5 mg/mL) → shaken, 30 °C, 2–6 h → removed → air-oxidised → water-washed to remove surface-free pigment.</p>
+
+      <h3>2.6 Pigment film characterization</h3>
+      <ul>
+        <li>UV-Vis diffuse-reflectance spectrum (integrating sphere, 300–800 nm)</li>
+        <li>Pigment leaching test: membrane soaked in water / ethanol / PBS → timed sampling of A₆₁₂ → release curve</li>
+        <li>Photostability: strong-light exposure (simulated sunlight) 0–72 h → colour difference ΔE measured every 12 h</li>
+        <li>SEM cross-section: indigo distribution within the BC nanofibre network</li>
+        <li>Colorimeter CIE Lab* (average of 5 random points)</li>
+      </ul>
+
+      <h3>2.7 Alternative pigments (optional extension)</h3>
+      <p>Prodigiosin (synthesize <em>pig</em> gene cluster → pET vector → BL21 expression) and violacein (synthesize <em>vioABCDE</em> operon → pET vector → BL21 expression), held as stretch goals.</p>
+    </section>
+
+    <section>
+      <h2>Module 3: CNC iridescent film</h2>
+
+      <h3>3.1 BC yield, metabolic-engineering optimization</h3>
+      <ul>
+        <li>Synthesize <em>pgm</em>, <em>galU</em>, <em>ndp</em> (<em>K. xylinus</em> codon-optimized)</li>
+        <li>Construct RBS-library plasmid pDHJC_pgm_galU_ndp (multiple RBS variants, referencing the Hur 2020 R15 sequence)</li>
+        <li>Transform into <em>K. xylinus</em> → FACS screen for high-BC-yield clones (or conventional plate screening + yield comparison)</li>
+        <li>Best clone validated by fermentation → dry weight → compared against WT (target: 4.15× improvement)</li>
+      </ul>
+
+      <h3>3.2 Cel5A enzymatic CNC preparation, Route 1 (priority)</h3>
+      <ul>
+        <li>Module 1 Strain B cultured: BL21 + pET-Cel5A → LB+Amp → OD₆₀₀ = 0.6 → IPTG induction</li>
+        <li>Crude Cel5A enzyme prep: sonication → centrifuge, take supernatant (or Ni-NTA purify if His-tagged) → measure CMCase activity</li>
+        <li>BC membrane cut into 1×1 cm pieces → treated with Cel5A enzyme solution (buffer: 50 mM NaOAc, pH 5.5)</li>
+        <li>Hydrolysis DOE: enzyme dose (1–50 U/g BC), temperature (37–50 °C), time (1–24 h), BC pretreatment (untreated / freeze-dried / homogenized)</li>
+        <li>Reaction stopped by boiling 10 min → centrifuge (10 000 rpm, 15 min) to collect pellet</li>
+        <li>ddH₂O washed ×3 → sonicated to disperse → 0.22 μm filtered → CNC suspension</li>
+      </ul>
+
+      <h3>3.3 Acid CNC preparation, Route 2 (baseline control)</h3>
+      <ul>
+        <li>Freeze-dried BC membrane → 64% (w/w) H₂SO₄ pre-cooled to 4 °C → 45 °C water bath, 60 min (continuous stirring)</li>
+        <li>Quenched with 10× volume of ice water → 10 000 rpm centrifuge, 15 min × 5 rounds (discard supernatant, resuspend in ddH₂O each round)</li>
+        <li>Dialysis tubing (MWCO 12–14 kDa) → ddH₂O dialysis, 3–5 days (water changed 2×/day) → until dialysate pH 5–6</li>
+        <li>Ice-bath probe sonication, 10–20 min (pulse mode, avoid overheating) → 0.45 μm filtered → CNC suspension</li>
+      </ul>
+
+      <h3>3.4 CNC characterization (enzymatic and acid routes run in parallel)</h3>
+      <ul>
+        <li><strong>AFM:</strong> CNC suspension dropped on mica → dried → tapping-mode scan → ImageJ for length/width statistics</li>
+        <li><strong>TEM:</strong> 1% phosphotungstic-acid negative stain → copper grid → dried → observe nanorod morphology</li>
+        <li><strong>XRD:</strong> freeze-dried CNC powder → 2θ 5–40° scan → Segal method for crystallinity index (CrI)</li>
+        <li><strong>Zeta potential:</strong> CNC suspension diluted to 0.1 wt% → Malvern Zetasizer or equivalent</li>
+        <li><strong>DLS:</strong> same sample → particle-size distribution and PDI</li>
+        <li><strong>Concentration:</strong> 1 mL aliquot → 105 °C to constant weight → weighed</li>
+      </ul>
+
+      <h3>3.5 EISA film formation</h3>
+      <ul>
+        <li>CNC suspension concentrated/diluted to target 3 wt% (enzymatic-CNC and acid-CNC prepared separately)</li>
+        <li>Poured into polystyrene dishes (35 / 60 / 90 mm diameter) → degassed by sonication, 5 min</li>
+        <li>Placed in a temperature/humidity-controlled environment (target 25 °C / 50% RH, self-built environmental chamber)</li>
+        <li>Left undisturbed 3–7 days until fully dry</li>
+        <li>DOE matrix (≥16 runs, reducible via RSM): CNC concentration 1.5/3/5/8 wt%; temperature 20/25/35/50 °C; RH 30/50/70/90%; NaCl 0/5/10/15 mM</li>
+        <li>Film gently lifted after casting → outer ~1 cm trimmed for uniformity</li>
+      </ul>
+
+      <h3>3.6 Iridescent film characterization</h3>
+      <ul>
+        <li>UV-Vis reflectance (integrating-sphere mode, 300–800 nm), recording λmax and reflectance R</li>
+        <li>SEM cross-section (liquid-N₂ freeze-fracture, gold-coated), measuring pitch P (half-period distance × 2)</li>
+        <li>Polarized-light microscopy (transmission mode), checked for fingerprint texture (chiral-nematic signature)</li>
+        <li>Angle-resolved spectroscopy, 0–60° in 5° steps, recording λmax per angle to quantify the colour shift</li>
+        <li>CIE Lab* coordinates computed from the reflectance spectrum</li>
+        <li>Photography on a standardized rig (RPi HQ Camera + standard light source + colour card)</li>
+      </ul>
+
+      <h3>3.7 Wood-pulp CNC baseline</h3>
+      <p>Commercial wood-pulp CNC (e.g. CelluForce, or self-prepared: wood pulp + 64% H₂SO₄ hydrolysis) processed under the same EISA conditions and characterized identically, to compare BC-CNC (Iα) vs. wood-pulp CNC (Iβ) film quality.</p>
+    </section>
+
+    <section>
+      <h2>Module 4: Reflectin layer</h2>
+
+      <h3>4.1 Gene synthesis &amp; cloning</h3>
+      <ul>
+        <li>EsRef1a sequence obtained from UniProt Q6WDN8 → C+B+A tri-domain extracted → refCBA (~64 aa)</li>
+        <li>Codon-optimized for <em>Y. lipolytica</em> → synthesized as a complete gene (with 5′/3′ cloning sites)</li>
+        <li>Cloned into pTEF-SP2-His6 vector (downstream of the SP2 signal peptide, His6 tag retained for detection)</li>
+        <li>Sequencing verification</li>
+      </ul>
+
+      <h3>4.2 <em>Y. lipolytica</em> transformation &amp; screening</h3>
+      <ul>
+        <li><em>Y. lipolytica</em> Po1f competent cells prepared (lithium-acetate or electroporation method)</li>
+        <li>NotI or SwaI-linearized plasmid → electroporated → YNB-leucine plate selection</li>
+        <li>10–20 positive clones picked → colony PCR to verify integration</li>
+      </ul>
+
+      <h3>4.3 Secretion-expression verification <span class="req-badge">Week-12 Go/No-Go node</span></h3>
+      <ul>
+        <li>Positive clone → YPD medium → 28 °C shake flask, 48 h (pTEF is constitutive, no inducer needed)</li>
+        <li>Supernatant centrifuged → concentrated 10–20× via ultrafiltration (3 kDa MWCO) → SDS-PAGE + Coomassie/Western blot (anti-His6)</li>
+        <li>If undetectable: TCA-precipitate the supernatant protein for enrichment → SDS-PAGE</li>
+      </ul>
+      <div class="callout">
+        <p><strong>LLPS assembly test (key checkpoint):</strong> supernatant dialysed into assembly buffer (50 mM NaOAc, pH 4.0, 150 mM NaCl) → check turbidity by eye and by OD₆₀₀ increase → DLS to verify particle size (target ~30 nm) → TEM to observe nanoparticle morphology (phosphotungstic-acid negative stain).<br><strong>Pass criteria:</strong> protein band detected in supernatant + solution turns turbid after pH adjustment to 4.0 + DLS shows 20–50 nm particles.</p>
+      </div>
+
+      <h3>4.4 Expression-condition optimization</h3>
+      <ul>
+        <li>Carbon source comparison: YPD vs. YNB+glucose vs. YNB+glycerol</li>
+        <li>Culture-time gradient: 24/48/72/96 h → supernatant protein concentration at each time point</li>
+        <li>Temperature comparison: 20/25/28/30 °C</li>
+        <li>If yield remains low: try a <em>pah1Δ</em> strain (expanded ER membrane area) or add a KDEL tag</li>
+      </ul>
+
+      <h3>4.5 Assembly-condition DOE (LLPS phase diagram)</h3>
+      <p>Concentrated secreted supernatant dialysed into a matrix of buffer conditions:</p>
+      <ul>
+        <li>pH: 3.0 / 3.5 / 4.0 / 4.5 / 5.0 / 5.5 / 6.0 / 7.0 / 8.0 / 9.0</li>
+        <li>NaCl: 0 / 50 / 100 / 150 / 200 / 300 / 500 mM</li>
+        <li>Imidazole: 0 / 10 / 50 / 100 / 200 mM</li>
+        <li>Protein concentration: 0.1 / 0.5 / 1.0 / 2.0 / 5.0 mg/mL (A₂₈₀ or Bradford)</li>
+      </ul>
+      <p>Each condition measured for OD₆₀₀ (turbidity), DLS (particle size) and TEM (morphology); results plotted as a phase diagram of protein concentration against pH, marking soluble, LLPS, and precipitate regions.</p>
+
+      <h3>4.6 Film-formation testing</h3>
+      <ul>
+        <li>Nanoparticle suspension under optimal assembly conditions → drop-cast onto glass/silicon (10–50 μL) → dried naturally or under controlled humidity</li>
+        <li>AFM for film surface morphology and roughness</li>
+        <li>UV-Vis reflectance (any reflection peak? angle-dependent?)</li>
+        <li>SEM cross-section for film thickness</li>
+      </ul>
+
+      <h3>4.7 Protein-engineering experiments (after the Module-4 primary checkpoint passes)</h3>
+      <ul>
+        <li><strong>Truncation comparison:</strong> synthesize refB (~25 aa), YMDMSGYQ (8 aa) and full-length RfA1; clone each into pTEF-SP2-His6 → transform into <em>Y. lipolytica</em> → same secretion + assembly verification; compare expression level and assembly activity across all four constructs</li>
+        <li><strong>Two-domain split:</strong> synthesize refSAD-linker-refCBD fusion (refSAD = refCBA, refCBD = charged short peptide/CBM fragment, linker = GGGGS×3) → secretion expression → assembly → CNC-interaction test; compare CNC-binding efficiency of single-domain refCBA vs. two-domain refSAD-refCBD (SDS-PAGE measuring supernatant protein depletion)</li>
+        <li><strong>Mutant panel:</strong> refCBA-6E (six inserted Glu residues, via site-directed mutagenesis or full gene synthesis) and refCBA-RR (N-terminal MRRRR tag) → same secretion + assembly + CNC-binding verification</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Integration &amp; wearable prototype</h2>
+      <h3>Route A: sequential deposition (recommended)</h3>
+      <ul>
+        <li>Module 3 output: EISA-formed CNC iridescent film (5×5 cm)</li>
+        <li>Module 4 output: refCBA nanoparticle suspension (optimal assembly condition, ~30 nm, 1–5 mg/mL)</li>
+        <li>CNC film immersed in the nanoparticle suspension → 25 °C, static, 1–6 h → removed → gently rinsed with ddH₂O → dried</li>
+        <li>Reflectance spectrum, CIE Lab*, and SEM cross-section compared before vs. after infusion</li>
+      </ul>
+      <h3>Route B: low-loading co-assembly (backup)</h3>
+      <p>CNC suspension (3 wt%) + refCBA nanoparticles (&lt;5 wt%) → mixed → single EISA run; spectrum and structure compared against a pure-CNC film.</p>
+
+      <h3>Integrated characterization</h3>
+      <ul>
+        <li>Integrating-sphere total reflectance (target R_peak ≥ 15–20%)</li>
+        <li>CIE Lab (5-point sampling within a 5×5 cm area, ΔE ≤ 5)</li>
+        <li>Angle-scan spectroscopy (0–60°, 5° steps, colour shift ≤ 80 nm)</li>
+        <li>Bend-fatigue test: colour difference measured after 10/50/100 bending cycles</li>
+        <li>Accelerated ageing: 60 °C / 80% RH / UV exposure, 48 h → colour difference measured</li>
+      </ul>
+
+      <h3>Wearable prototype fabrication</h3>
+      <p>Composite film cut/stamped into target shapes (hairpin inlay, earring drop, brooch panel) → mounted on a metal base with adhesive or mechanical fixing → photographed from multiple angles under natural light and standard illumination.</p>
+      <div class="ph-row">
+        <div class="ph-image square"><div class="ph-label">Prototype photo</div></div>
+        <div class="ph-image square"><div class="ph-label">SEM cross-section</div></div>
+        <div class="ph-image square"><div class="ph-label">Reflectance spectrum</div></div>
+      </div>
+    </section>
+
+    <section id="validation">
+      <h2>Validation checkpoints</h2>
+      <p>Individual modules can each look successful in isolation. This table tracks the checkpoints that prove they work <em>together</em>: module-to-module handoffs and pass/fail criteria for each build. Model-side validation (checking a prediction against this data) lives on <a href="Project-Description.html#validation">Project: Results</a>.</p>
+      <table>
+        <tr><th>Module</th><th>Checkpoint</th><th>Pass criteria</th><th>Status</th></tr>
+        <tr><td>Module 1: Cellulose recovery</td><td>Four-enzyme synergistic degradation</td><td>Waste-cotton hydrolysate reaches target glucose titre; HPLC-confirmed glucose fraction</td><td><span class="status">Planned</span></td></tr>
+        <tr><td>Module 1: Compatibility</td><td>Degradation supernatant feeds <em>K. xylinus</em></td><td>BC dry weight in supernatant-fed culture ≥ pure-HS control</td><td><span class="status">Planned</span></td></tr>
+        <tr><td>Module 2: Pigment</td><td>Indigo engineered strain</td><td>Culture visibly blues; A₆₁₂ above baseline; UV-Vis peak at 610–620 nm</td><td><span class="status">Planned</span></td></tr>
+        <tr><td>Module 3: BC yield</td><td>RBS-library FACS screen</td><td>Best clone ≥ 4.15× WT BC dry weight (Hur 2020 benchmark)</td><td><span class="status">Planned</span></td></tr>
+        <tr><td>Module 3: CNC film</td><td>EISA self-assembly</td><td>Fingerprint texture under polarized light; reflectance λmax in 450–530 nm target band</td><td><span class="status">Planned</span></td></tr>
+        <tr><td>Module 4: Secretion &amp; assembly</td><td><strong>Week-12 Go/No-Go</strong></td><td>His6-tagged band detected in supernatant + solution turns turbid at pH 4.0 + DLS shows 20–50 nm particles</td><td><span class="status">Planned</span></td></tr>
+        <tr><td>Integration</td><td>Route A infusion</td><td>Reflectance / CIE Lab* measurably shifts after CNC-film infusion vs. before</td><td><span class="status">Planned</span></td></tr>
+      </table>
+    </section>
+
+    <section id="roadmap">
+      <h2>Near-term roadmap, by module</h2>
+      <table>
+        <tr><th>Module</th><th>Build</th><th>Test</th></tr>
+        <tr><td>Module 1: Cellulose recovery</td><td>Synthesize the four enzyme genes → dual-plasmid construction → transform into BL21(DE3)</td><td>Enzyme-activity verification (CMC plate, pNPG, DNS assays)</td></tr>
+        <tr><td>Module 2: Pigment film</td><td>Establish <em>K. xylinus</em> BC fermentation; construct the indigo-producing strain</td><td>Pigment-loading test (Strategy A vs. B)</td></tr>
+        <tr><td>Module 3: CNC iridescent film</td><td>BC fermentation scale-up; Cel5A enzymatic CNC preparation</td><td>CNC characterization (AFM/TEM/XRD/Zeta/DLS) → EISA film formation</td></tr>
+        <tr><td>Module 4: Reflectin layer</td><td>refCBA gene synthesis; <em>Y. lipolytica</em> transformation</td><td>Secreted-supernatant LLPS verification (Week-12 Go/No-Go)</td></tr>
+      </table>
+      <p>See <a href="Project-Description.html#engineering-cycle">Project: Engineering Cycle</a> for the model-guided design work behind this roadmap.</p>
+    </section>
+
+    <section id="parts">
+      <h2>Parts used in this work</h2>
+      <p>Registry (BBa_) IDs are intentionally left blank below rather than guessed; they'll be filled in once each part is actually submitted. Everything else (gene identity, source organism, construct, role) is real.</p>
+
+      <h3>Module 1: Cellulose recovery</h3>
+      <table>
+        <tr><th>Part</th><th>Description</th><th>Source</th><th>Registry ID</th></tr>
+        <tr><td>Cel5A</td><td>Endoglucanase</td><td><em>Thermobifida fusca</em> YX (M19373.1)</td><td class="pending">submission pending</td></tr>
+        <tr><td>Cel6B</td><td>Exoglucanase / cellobiohydrolase</td><td><em>Thermobifida fusca</em> YX</td><td class="pending">submission pending</td></tr>
+        <tr><td>BglC</td><td>β-glucosidase</td><td><em>Thermobifida fusca</em> YX (AJ132386.1)</td><td class="pending">submission pending</td></tr>
+        <tr><td>LPMO10A</td><td>Lytic polysaccharide monooxygenase</td><td><em>Thermobifida fusca</em> YX</td><td class="pending">submission pending</td></tr>
+        <tr><td>pETDuet-Cel5A-Cel6B</td><td>Composite: degradation strain, MCS1/MCS2</td><td>Constructed</td><td class="pending">submission pending</td></tr>
+        <tr><td>pCDFDuet-BglC-LPMO10A</td><td>Composite: degradation strain, MCS1/MCS2</td><td>Constructed</td><td class="pending">submission pending</td></tr>
+        <tr><td>pET-Cel5A (Strain B)</td><td>Cel5A alone, used for selective CNC-route hydrolysis</td><td>Constructed</td><td class="pending">submission pending</td></tr>
+      </table>
+
+      <h3>Module 2: Pigment film</h3>
+      <table>
+        <tr><th>Part</th><th>Description</th><th>Source</th><th>Registry ID</th></tr>
+        <tr><td>tnaA</td><td>Tryptophanase (Trp → indole)</td><td><em>E. coli</em> K-12 genomic</td><td class="pending">submission pending</td></tr>
+        <tr><td>FMO</td><td>Flavin-containing monooxygenase (indole → indigo)</td><td>e.g. <em>Methylophaga</em> sp.</td><td class="pending">submission pending</td></tr>
+        <tr><td>pETDuet-tnaA-FMO</td><td>Composite: indigo-producing strain</td><td>Constructed</td><td class="pending">submission pending</td></tr>
+      </table>
+
+      <h3>Module 3: CNC iridescent film</h3>
+      <table>
+        <tr><th>Part</th><th>Description</th><th>Source</th><th>Registry ID</th></tr>
+        <tr><td>pgm</td><td>Phosphoglucomutase (G6P → G1P)</td><td><em>K. xylinus</em>-codon-optimized</td><td class="pending">submission pending</td></tr>
+        <tr><td>galU</td><td>UTP–glucose-1-phosphate uridylyltransferase (G1P → UDP-glucose)</td><td><em>K. xylinus</em>-codon-optimized</td><td class="pending">submission pending</td></tr>
+        <tr><td>ndp</td><td>Nucleoside diphosphate kinase (maintains NTP pool)</td><td><em>K. xylinus</em>-codon-optimized</td><td class="pending">submission pending</td></tr>
+        <tr><td>pDHJC_pgm_galU_ndp RBS library</td><td>Composite: BC-yield metabolic-engineering library (RBS variants around the Hur 2020 R15 reference)</td><td>Constructed</td><td class="pending">submission pending</td></tr>
+      </table>
+
+      <h3>Module 4: Reflectin layer</h3>
+      <table>
+        <tr><th>Part</th><th>Description</th><th>Source</th><th>Registry ID</th></tr>
+        <tr><td>refCBA</td><td>Reflectin C+B+A tri-domain fragment (~64 aa), primary self-assembling unit</td><td><em>Euprymna scolopes</em> reflectin 1a (UniProt Q6WDN8)</td><td class="pending">submission pending</td></tr>
+        <tr><td>refB</td><td>B-domain only (~25 aa), truncation-series comparator</td><td><em>E. scolopes</em> reflectin 1a</td><td class="pending">submission pending</td></tr>
+        <tr><td>YMDMSGYQ</td><td>8-aa reflectin protopeptide</td><td>Dias et al. 2023</td><td class="pending">submission pending</td></tr>
+        <tr><td>RfA1</td><td>Full-length reflectin A1 (350 aa), positive control</td><td><em>Doryteuthis pealeii</em></td><td class="pending">submission pending</td></tr>
+        <tr><td>refCBA-6E</td><td>Mutant: 6 inserted Glu, lowers net charge density</td><td>Designed</td><td class="pending">submission pending</td></tr>
+        <tr><td>refCBA-RR</td><td>Mutant: N-terminal MRRRR tag, raises net charge density</td><td>Designed</td><td class="pending">submission pending</td></tr>
+        <tr><td>refCBA-CBD</td><td>Fusion: cellulose-binding domain for directed CNC binding</td><td>Designed</td><td class="pending">submission pending</td></tr>
+        <tr><td>refSAD–GGGGS×3–refCBD</td><td>Two-domain split design, independent assembly &amp; CNC-binding domains</td><td>Designed</td><td class="pending">submission pending</td></tr>
+        <tr><td>pTEF-SP2-His6 (backbone)</td><td>Constitutive secretion-expression vector</td><td>Lab platform, existing</td><td class="pending">submission pending</td></tr>
+      </table>
+
+      <h3>Biosafety</h3>
+      <table>
+        <tr><th>Part</th><th>Description</th><th>Registry ID</th></tr>
+        <tr><td>cI857/λPR → mazF kill switch</td><td>Temperature-controlled containment circuit; pSB1C3 backbone</td><td class="pending">submission pending</td></tr>
+      </table>
+    </section>
+
+    <section id="safety">
+      <h2>Biosafety &amp; responsible AI use</h2>
+
+      <h3>Biocontainment: kill switch</h3>
+      <p>Every engineered chassis carries a temperature-controlled kill switch from the outset: <strong>cI857/λPR → mazF</strong>, on a pSB1C3 backbone, transformed into all engineered strains alongside their functional constructs.</p>
+      <h4 style="margin-top:1em;">Validation protocol</h4>
+      <ul>
+        <li><strong>Temperature-gradient CFU assay:</strong> cultures grown 24 h at 25 / 28 / 30 / 33 / 37 / 42 °C, then plated and counted (CFU).</li>
+        <li><strong>Kill efficiency</strong> = (CFU at 37 °C − CFU at test temperature) / CFU at 37 °C × 100%.</li>
+        <li><strong>Environmental-leak simulation:</strong> engineered strains added to sterilized soil or river water; 0.1 mL plated daily for 7 consecutive days.</li>
+        <li><strong>Pass criterion:</strong> engineered strains cannot survive beyond 48 h under natural environmental conditions (&lt;30 °C).</li>
+      </ul>
+      <div class="ph-row">
+        <div class="ph-image wide"><div class="ph-label">CFU vs. temperature curve</div></div>
+        <div class="ph-image wide"><div class="ph-label">Environmental-leak survival curve (7-day)</div></div>
+      </div>
+
+      <h3>Standard biosafety practice</h3>
+      <table>
+        <tr><th>Chassis</th><th>Risk group</th><th>Notes</th></tr>
+        <tr><td><em>E. coli</em> BL21(DE3)</td><td>Risk Group 1</td><td>K-12-derived, non-pathogenic; carries the cellulase (Module 1) and indigo-pathway (Module 2) constructs</td></tr>
+        <tr><td><em>Komagataeibacter xylinus</em></td><td>Risk Group 1</td><td>Food/industrial-fermentation organism (bacterial cellulose production)</td></tr>
+        <tr><td><em>Yarrowia lipolytica</em> Po1f</td><td>Risk Group 1</td><td>GRAS oleaginous yeast; secretes the refCBA reflectin fragment</td></tr>
+      </table>
+      <p>Reagent-specific hazards (e.g. concentrated H₂SO₄ in the acid-CNC route, §3.3; Na₂S₂O₄ reducing agent, §2.4) are flagged inline in the protocol sections above.</p>
+
+      <h3>How we used AI &amp; computational tools</h3>
+      <p>This project leans heavily on computational modelling (see <a href="Project-Description.html#modelling">Project: Model</a>) and, during planning, on AI-assisted literature review, protocol drafting, and modelling-code scaffolding. We treat every AI-assisted output the same way we treat a first-pass model prediction: as a hypothesis to be checked, not a result to be trusted outright.</p>
+      <ul>
+        <li><strong>Literature &amp; protocol drafting:</strong> AI tools were used to accelerate literature search and first-draft protocol writing; every cited claim was traced back to and verified against the primary source before being relied on for a design decision (see citations throughout <a href="Project-Description.html#design-rationale">Project: Design Rationale</a>).</li>
+        <li><strong>Modelling code:</strong> AI coding assistants helped scaffold simulation and analysis scripts (FBA, Bragg/TMM optics, MD trajectory analysis); outputs were validated against wet-lab data wherever possible. See the model↔experiment cross-checks on <a href="Project-Description.html#validation">Project: Results</a>.</li>
+        <li><strong>What we did not do:</strong> we did not treat any AI-generated prediction (sequence design, phase-diagram prediction, yield estimate) as final without either a literature cross-check or a wet-lab validation step.</li>
+        <li><strong>Structural predictions:</strong> AlphaFold2 was used for initial protein structure prediction ahead of MD simulation (<a href="Project-Description.html#modelling">Project: Model §3</a>), a standard and disclosed use of a public structure-prediction model rather than a novel or undisclosed AI application.</li>
+      </ul>
+      <div class="callout">
+        <p>We are documenting this disclosure honestly and expect to refine it as the project's actual AI usage, and our own thinking about where it's appropriate, develops further before the wiki freeze.</p>
+      </div>
+    </section>
+
+    <section id="notebook">
+      <h2>Live notebook</h2>
+      <p>Real dated entries, transcribed as recorded rather than cleaned up or reinterpreted. New entries get appended here as the project runs.</p>
+
+      <h3>07-08-2026 (1): Protein film casting attempt</h3>
+      <ol>
+        <li>25 μL of a previously-concentrated protein solution (imidazole and NaCl <em>not</em> yet removed) drop-cast onto a cleaned glass slide, oven-dried 37 °C, 25 min.<br><strong>Observation:</strong> a film formed but with an extremely faint colour (almost invisible) and visible crack lines; suspected protein concentration too low.</li>
+        <li>The same pre-concentration protein solution run on SDS-PAGE.<br><strong>Observation:</strong> an extremely faint band, confirming the protein concentration is indeed low.</li>
+        <li>Protein re-concentration by ultrafiltration: two spin-filter columns, each loaded with 1 mL protein solution + 500 μL imidazole, 5000 rpm, 4 °C, 30 min, repeated once; filtrate/retentate combined to a 2 mL sample.<br><strong>Observation:</strong> ~350 μL of concentrated protein solution obtained, no precipitate observed.</li>
+        <li>Film casting: glass slide soaked in isopropanol, sonicated 15 min (60% power), rinsed with pure water, blotted dry with lens tissue. 25 μL and 50 μL of the concentrated solution pipetted onto separate slides, oven-dried 37 °C overnight.<br><strong>Observation:</strong> <em>pending</em></li>
+      </ol>
+
+      <h3>07-08-2026 (2): HS medium preparation for <em>K. xylinus</em> (KX) culture</h3>
+      <ol>
+        <li>Recipe (1 L): D-glucose monohydrate 6.8 g + yeast extract 5.0 g + peptone 5.0 g + citric acid monohydrate 1.5 g + disodium hydrogen phosphate 20.0 g</li>
+        <li>Aliquoted: 2 × 200 mL, 6 × 100 mL</li>
+        <li>Sterilized: 115 °C, 20 min</li>
+      </ol>
+      <div class="ph-row">
+        <div class="ph-image"><div class="ph-label">Photo: cast protein film</div></div>
+        <div class="ph-image"><div class="ph-label">Photo: SDS-PAGE gel</div></div>
+        <div class="ph-image"><div class="ph-label">Photo: HS medium bottles</div></div>
+      </div>
+    </section>
+
+  </div>
+</div>

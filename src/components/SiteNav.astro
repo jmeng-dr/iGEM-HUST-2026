@@ -1,0 +1,13 @@
+---
+// Shared top navigation. Markup is the exact inner HTML of <header class="site-nav">
+// from the original static pages (sliced once into src/partials/_nav.html), injected
+// verbatim. Only the wrapper class changes: the home page uses the dark, fixed variant.
+import navInner from '../partials/_nav.html?raw';
+
+interface Props {
+  variant?: 'home' | 'default';
+}
+const { variant = 'default' } = Astro.props;
+const cls = variant === 'home' ? 'site-nav on-dark home-topbar' : 'site-nav';
+---
+<header class={cls}><Fragment set:html={navInner} /></header>

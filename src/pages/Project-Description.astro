@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import body from '../partials/Project-Description.body.html?raw';
+import headExtra from '../partials/Project-Description.head.html?raw';
+---
+<BaseLayout title="Project | Diǎn Cuì iGEM Wiki" headExtra={headExtra}>
+  <Fragment set:html={body} />
+</BaseLayout>

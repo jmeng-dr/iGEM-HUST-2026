@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import body from '../partials/Attributions.body.html?raw';
+import headExtra from '../partials/Attributions.head.html?raw';
+import bodyEnd from '../partials/Attributions.end.html?raw';
+---
+<BaseLayout title="Team | Diǎn Cuì iGEM Wiki" headExtra={headExtra}>
+  <Fragment set:html={body} />
+  <Fragment slot="body-end" set:html={bodyEnd} />
+</BaseLayout>

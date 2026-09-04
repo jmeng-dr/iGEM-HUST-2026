@@ -1,0 +1,117 @@
+<!-- ============ 1. PREFACE — scroll-driven glow ============ -->
+<section id="preface">
+  <div class="preface-sticky">
+    <div class="glow-circle">
+      <div class="quote-mark">
+        <!-- EDIT ME: swap for your own project epigraph / Diǎn Cuì-heritage quote -->
+        <h2>"Colour that needs<br>no pigment at all."</h2>
+        <p class="attribution">— on Diǎn Cuì, and the physics we borrowed from it</p>
+      </div>
+    </div>
+    <div class="scroll-cue"><span>scroll</span><span class="chevron"></span></div>
+  </div>
+</section>
+
+<!-- ============ 2. INTRO WHEEL — the four modules, scroll-driven ============ -->
+<section id="intro-wheel">
+  <div class="wheel-scroll-track">
+   <div class="wheel-sticky">
+    <div class="container">
+    <div class="eyebrow">Introduction</div>
+    <h2>Four modules, one supply chain</h2>
+    <div class="wheel-layout">
+      <div class="wheel-track" aria-hidden="true">
+        <button class="wheel-stop active" tabindex="-1"
+          data-title="Module 1: Cellulose Recovery"
+          data-tagline="Upstream · safety-net"
+          data-what="Waste cotton fabric is broken down by a four-enzyme cocktail (Cel5A, Cel6B, BglC, LPMO10A from Thermobifida fusca YX) into glucose, the project's feedstock."
+          data-methods="Two-plasmid E. coli BL21(DE3) system (pETDuet-Cel5A-Cel6B + pCDFDuet-BglC-LPMO10A); Box–Behnken RSM optimizes pH, temperature, substrate load, enzyme dose and time."
+          data-consequence="Even if the protein-assembly modules lag, this module alone supports the fallback story: waste cotton → sugar → bacterial cellulose → photonic film.">
+          <span class="n">01</span><span class="label">Cellulose Recovery</span>
+        </button>
+        <button class="wheel-stop" tabindex="-1"
+          data-title="Module 2: Pigment Film"
+          data-tagline="Midstream · undertone"
+          data-what="An engineered indigo-producing E. coli feeds a blue-violet undertone into the bacterial-cellulose scaffold, suppressing stray wavelengths and boosting color saturation."
+          data-methods="tnaA + FMO pathway (tryptophan → indole → indigo) in BL21(DE3); leuco-indigo diffused in-situ into HS-medium-grown Komagataeibacter xylinus cellulose, then air-oxidized."
+          data-consequence="Provides the dark 'underpainting' that traditional Diǎn Cuì gets from a lacquer base; without it, the structural-color layer alone can look washed out.">
+          <span class="n">02</span><span class="label">Pigment Film</span>
+        </button>
+        <button class="wheel-stop" tabindex="-1"
+          data-title="Module 3: CNC Iridescent Film"
+          data-tagline="Midstream · core structural color"
+          data-what="Cellulose nanocrystals self-assemble into a chiral-nematic liquid crystal that Bragg-reflects a single color, the project's primary source of structural color and a stand-in for the kingfisher feather itself."
+          data-methods="Bacterial cellulose hydrolyzed by acid or by the Module 1 Cel5A enzyme, then evaporation-induced self-assembly (EISA) under controlled humidity, temperature and [NaCl]."
+          data-consequence="This module alone reproduces the full 'waste cotton → BC → iridescent film → wearable' arc, our fallback if the reflectin module is delayed.">
+          <span class="n">03</span><span class="label">CNC Iridescent Film</span>
+        </button>
+        <button class="wheel-stop" tabindex="-1"
+          data-title="Module 4: Reflectin Layer"
+          data-tagline="Innovation layer"
+          data-what="A truncated squid reflectin (refCBA) secreted by Yarrowia lipolytica self-assembles into nanoparticles under pH/salt control, layering a second, tunable structural-color contribution onto the CNC film."
+          data-methods="pTEF-SP2-refCBA-His6 in Y. lipolytica Po1f; pH/NaCl-triggered LLPS assembly; sequential infusion into the pre-formed CNC film (Route A)."
+          data-consequence="The hardest, highest-reward module: if it lands, it turns 'a nice iridescent film' into an engineered, tunable echo of real reflectin biology.">
+          <span class="n">04</span><span class="label">Reflectin Layer</span>
+        </button>
+      </div>
+
+      <div class="wheel-panel">
+        <div class="wp-content">
+          <h3 class="wp-title">Module 1: Cellulose Recovery</h3>
+          <p class="tagline wp-tagline">Upstream · safety-net</p>
+          <div class="wp-row"><div class="wp-k">What is it</div><div class="wp-v wp-what"></div></div>
+          <div class="wp-row"><div class="wp-k">Methods</div><div class="wp-v wp-methods"></div></div>
+          <div class="wp-row"><div class="wp-k">Consequence</div><div class="wp-v wp-consequence"></div></div>
+        </div>
+      </div>
+    </div>
+    </div>
+   </div>
+  </div>
+</section>
+
+<!-- ============ 3. TABLE OF CONTENTS — hover totems ============ -->
+<section id="toc">
+  <div class="container">
+    <div class="eyebrow">Explore the wiki</div>
+    <h2>Hover a totem, then step inside</h2>
+
+    <div class="toc-stage">
+      <div class="totem-display-wrap">
+        <div class="totem-display" aria-hidden="true">
+          <div class="totem-display-label">Project</div>
+        </div>
+
+        <div class="toc-preview idle">
+          <span class="req-badge tp-badge" style="display:none"></span>
+          <h3 class="tp-title">Project</h3>
+          <p class="tp-desc"></p>
+          <a class="go tp-link" href="Project-Description.html">Open Project →</a>
+        </div>
+
+        <div class="toc-totems">
+          <a class="totem" href="Project-Description.html" aria-label="Project"
+            data-title="Project" data-badge=""
+            data-desc="The full story: from landfill-bound cotton to a wearable Diǎn Cuì-inspired photonic film. Four modules, one supply chain, plus the modelling and results behind it.">
+            <span class="totem-figure"></span>
+          </a>
+          <a class="totem" href="Wet-Lab-Experiments.html" aria-label="Wet Lab"
+            data-title="Wet Lab" data-badge=""
+            data-desc="Every plasmid, strain, buffer and DOE matrix across all four modules: the bench-level record, including live notebook entries.">
+            <span class="totem-figure"></span>
+          </a>
+          <a class="totem" href="Human-Practices.html" aria-label="Human Practices"
+            data-title="Human Practices" data-badge=""
+            data-desc="Why Diǎn Cuì, why now: stakeholder conversations shaping a cruelty-free, sustainable alternative to a feather-based craft.">
+            <span class="totem-figure"></span>
+          </a>
+          <a class="totem" href="Attributions.html" aria-label="Team"
+            data-title="Team" data-badge=""
+            data-desc="Who built what: wet lab, dry lab, human practices, advisors, and PIs, with individual contributions.">
+            <span class="totem-figure"></span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

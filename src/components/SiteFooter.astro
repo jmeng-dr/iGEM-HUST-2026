@@ -1,0 +1,15 @@
+---
+// Shared footer, identical to the original static pages. The only per-page difference
+// in the source was the "AI & Safety" target: every page points at
+// Wet-Lab-Experiments.html#safety except the Wet Lab page itself, which uses #safety.
+interface Props {
+  safetyHref?: string;
+}
+const { safetyHref = 'Wet-Lab-Experiments.html#safety' } = Astro.props;
+---
+<footer class="site-footer">
+  <div class="container">
+    <div>© <span id="year"></span> Team Diǎn Cuì · iGEM</div>
+    <div><a href="Attributions.html">Attributions</a> · <a href={safetyHref}>AI &amp; Safety</a></div>
+  </div>
+</footer>

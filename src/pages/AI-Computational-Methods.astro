@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import body from '../partials/AI-Computational-Methods.body.html?raw';
+import headExtra from '../partials/AI-Computational-Methods.head.html?raw';
+---
+<BaseLayout title="Dry Lab | Diǎn Cuì iGEM Wiki" headExtra={headExtra}>
+  <Fragment set:html={body} />
+</BaseLayout>

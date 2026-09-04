@@ -1,0 +1,57 @@
+---
+// The single shared shell for every page. Reproduces the original <head> order and
+// the original end-of-body script order:
+//   <script> year </script>  ->  nav.js  ->  (home.js | Attributions card script)
+//
+// `headExtra` is raw HTML sliced from each source page's <head> (the home.css <link>
+// on the home page; the page-scoped <style> block on Project / Wet Lab / Attributions;
+// the <meta refresh> on the two AI redirect stubs). It is injected untouched so those
+// styles are NOT run through Astro's scoping/bundling.
+import SiteNav from '../components/SiteNav.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import RingNav from '../components/RingNav.astro';
+
+interface Props {
+  title: string;
+  description?: string | null;
+  bodyClass?: string;
+  navVariant?: 'home' | 'default';
+  safetyHref?: string;
+  headExtra?: string;
+}
+const {
+  title,
+  description = null,
+  bodyClass = '',
+  navVariant = 'default',
+  safetyHref = 'Wet-Lab-Experiments.html#safety',
+  headExtra = '',
+} = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title set:html={title}></title>
+  {description && <meta name="description" content={description} />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  {headExtra && <Fragment set:html={headExtra} />}
+</head>
+<body class={bodyClass || undefined}>
+  <slot name="body-top" />
+  <SiteNav variant={navVariant} />
+  <slot />
+  <SiteFooter safetyHref={safetyHref} />
+  <RingNav />
+  <script is:inline>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  <script is:inline src="/assets/js/nav.js"></script>
+  <slot name="body-end" />
+</body>
+</html>

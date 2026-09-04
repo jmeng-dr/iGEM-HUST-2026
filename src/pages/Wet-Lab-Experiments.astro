@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import body from '../partials/Wet-Lab-Experiments.body.html?raw';
+import headExtra from '../partials/Wet-Lab-Experiments.head.html?raw';
+---
+<BaseLayout
+  title="Wet Lab | Diǎn Cuì iGEM Wiki"
+  headExtra={headExtra}
+  safetyHref="#safety"
+>
+  <Fragment set:html={body} />
+</BaseLayout>

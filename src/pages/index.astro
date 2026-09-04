@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import body from '../partials/index.body.html?raw';
+import headExtra from '../partials/index.head.html?raw';
+---
+<BaseLayout
+  title="Diǎn Cuì | iGEM Team Wiki"
+  description="An engineered, cruelty-free echo of Diǎn Cuì (点翠) kingfisher-feather structural color, built from waste cotton, bacterial cellulose, and reflectin protein."
+  bodyClass="home"
+  navVariant="home"
+  headExtra={headExtra}
+>
+  <Fragment slot="body-top">
+    <div id="cursor-orb" aria-hidden="true"></div>
+    <div id="bg-wash" aria-hidden="true"></div>
+  </Fragment>
+
+  <Fragment set:html={body} />
+
+  <Fragment slot="body-end">
+    <script is:inline src="/assets/js/home.js"></script>
+  </Fragment>
+</BaseLayout>

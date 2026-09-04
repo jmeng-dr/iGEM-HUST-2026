@@ -1,0 +1,323 @@
+/* ===========================================================
+   点翠 (Diǎn Cuì) iGEM Wiki — Shared Design System
+   Palette: ink-black + kingfisher blue-green (structural color)
+             + warm cream glow + mural ink-brown accent
+   =========================================================== */
+
+:root{
+  /* -- core palette -- */
+  --ink:            #0b0f10;   /* near-black, preface background */
+  --ink-soft:       #141a1c;
+  --paper:          #faf6ee;   /* warm paper, plain content pages */
+  --paper-dim:      #f1ebdd;
+  --cream-glow:     #f4ecd8;   /* the glowing arch */
+  --cream-glow-lit: #fff9ea;   /* brighter glow, scroll state */
+  --ink-brown:      #7a5236;   /* mural accent */
+  --ink-brown-dim:  #5c3d28;
+  --kingfisher-1:   #0e6e6a;   /* deep teal */
+  --kingfisher-2:   #17a398;   /* peacock green-blue */
+  --kingfisher-3:   #2f8fd6;   /* jewel blue */
+  --kingfisher-glow: rgba(23,163,152,0.55);
+  --text-dark:      #23201a;
+  --text-mid:       #4c463c;
+  --text-on-dark:   #efe7d6;
+  --text-on-dark-dim: #b9b0a0;
+  --gold:           #c9a24b;
+
+  /* -- placeholder system (visible, unmistakable, easy to strip later) -- */
+  --ph-bg:          repeating-linear-gradient(135deg, rgba(23,163,152,0.10) 0 10px, rgba(23,163,152,0.04) 10px 20px);
+  --ph-border:      #17a398;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 26px;
+  --shadow-1: 0 6px 24px rgba(0,0,0,0.14);
+  --shadow-2: 0 18px 60px rgba(0,0,0,0.35);
+
+  --font-display: 'Cormorant Garamond', Georgia, 'Songti SC', serif;
+  --font-body: 'Inter', -apple-system, 'Segoe UI', 'PingFang SC', sans-serif;
+
+  /* Width of the main content column: headings, body text, tables, callouts on every
+     interior page all share this one value (via .container below), so adjusting it here
+     changes all of them together and keeps their left/right edges aligned with each other. */
+  --content-width: 1080px;
+}
+
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; background: var(--paper); }
+
+/* Cross-document view transition: smooth crossfade between pages instead of a hard
+   cut, in browsers that support it. No-op (plain navigation) elsewhere. */
+@view-transition{
+  navigation: auto;
+}
+
+body{
+  margin:0;
+  font-family: var(--font-body);
+  color: var(--text-dark);
+  background: var(--paper);
+  line-height: 1.65;
+}
+h1,h2,h3,h4{
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 0 0 0.5em;
+}
+a{ color: var(--kingfisher-1); text-decoration: none; }
+a:hover{ color: var(--kingfisher-2); text-decoration: underline; }
+img{ max-width: 100%; display:block; }
+.container{ max-width: var(--content-width); margin: 0 auto; padding: 0 clamp(20px, 5vw, 64px); }
+
+/* ---------- shared top nav (all pages) ---------- */
+.site-nav{
+  position: sticky; top: 0; z-index: 500;
+  background: rgba(250,246,238,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  view-transition-name: site-nav; /* held stable across page navigations instead of crossfading */
+}
+.site-nav.on-dark{
+  background: rgba(11,15,16,0.82);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.site-nav .container{
+  max-width: 1400px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding-top:12px; padding-bottom:12px; gap: 18px;
+}
+.site-nav .brand{
+  font-family: var(--font-display); font-size: 1.3rem; font-weight:700;
+  color: var(--kingfisher-1); display:flex; align-items:center; gap:8px;
+}
+.site-nav.on-dark .brand{ color: var(--cream-glow-lit); }
+.site-nav .brand .swatch{
+  width:14px; height:14px; border-radius:50%;
+  background: linear-gradient(135deg, var(--kingfisher-2), var(--kingfisher-3));
+  box-shadow: 0 0 10px var(--kingfisher-glow);
+}
+.site-nav nav{ display:flex; flex-wrap:wrap; gap: 4px 28px; font-size: 0.86rem; }
+.site-nav nav a{
+  color: var(--text-mid); padding: 6px 4px; border-bottom: 2px solid transparent;
+}
+.site-nav.on-dark nav a{ color: var(--text-on-dark-dim); }
+.site-nav nav a:hover, .site-nav nav a.active{
+  color: var(--kingfisher-1); text-decoration:none; border-bottom-color: var(--kingfisher-2);
+}
+.site-nav.on-dark nav a:hover, .site-nav.on-dark nav a.active{ color: var(--cream-glow-lit); border-bottom-color: var(--kingfisher-3); }
+.nav-toggle{ display:none; }
+@media (max-width: 860px){
+  .site-nav nav{ display:none; width:100%; flex-direction:column; }
+  .site-nav.nav-open nav{ display:flex; }
+  .nav-toggle{ display:block; background:none; border:1px solid currentColor; border-radius:6px; padding:6px 10px; cursor:pointer; color:inherit; font-size:0.85rem; }
+}
+
+/* ---------- "Lab", "Project", "Human Practices" dropdowns (icon+title+subtitle) ---------- */
+.nav-dropdown{ position:relative; }
+.nav-drop-trigger{
+  all:unset; cursor:pointer; color: var(--text-mid); padding: 6px 4px; border-bottom: 2px solid transparent;
+  font-size: 0.86rem; display:inline-flex; align-items:center; gap:4px;
+}
+.site-nav.on-dark .nav-drop-trigger{ color: var(--text-on-dark-dim); }
+.nav-drop-trigger::after{ content:""; width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.2s; }
+.nav-drop-trigger:hover, .nav-drop-trigger.active{ color: var(--kingfisher-1); border-bottom-color: var(--kingfisher-2); }
+.site-nav.on-dark .nav-drop-trigger:hover, .site-nav.on-dark .nav-drop-trigger.active{ color: var(--cream-glow-lit); border-bottom-color: var(--kingfisher-3); }
+.nav-dropdown.open .nav-drop-trigger::after{ transform: rotate(225deg) translateY(2px); }
+
+/* Icon + title + subtitle, two columns — each dropdown item is a small self-contained card
+   rather than a plain text link, so a section's one-line description is visible before you
+   click into it. */
+.nav-drop-menu{
+  position:absolute; top: 100%; left:50%; transform: translateX(-50%);
+  background: #fff; border-radius: var(--radius-md); box-shadow: var(--shadow-2);
+  padding: 18px; display:none; grid-template-columns: 1fr 1fr; gap: 2px 30px; min-width: 420px; z-index:600;
+}
+.nav-dropdown.open .nav-drop-menu,
+.nav-dropdown:hover .nav-drop-menu,
+.nav-dropdown:focus-within .nav-drop-menu{ display:grid; }
+.nav-drop-item{
+  display:flex; align-items:flex-start; gap:12px; padding:9px 8px; border-radius:8px;
+  color: inherit !important; text-decoration:none !important; border-bottom:none !important;
+}
+.nav-drop-item:hover{ background: var(--paper-dim); }
+.nav-drop-item .ndi-icon{ font-size:1.25rem; line-height:1.2; }
+.nav-drop-item .ndi-text{ flex:1; min-width:0; }
+.nav-drop-item .ndi-title{ display:block; font-weight:700; color: var(--text-dark); font-size:0.92rem; white-space:nowrap; }
+.nav-drop-item .ndi-sub{ display:block; color: var(--kingfisher-1); font-size:0.76rem; margin-top:2px; }
+
+@media (max-width: 860px){
+  .nav-dropdown{ width:100%; }
+  .nav-drop-trigger{ width:100%; justify-content:space-between; padding:8px 0; }
+  .nav-drop-menu{ position:static; transform:none; box-shadow:none; background:transparent; padding: 4px 0 4px 14px; display:flex; flex-direction:column; min-width:0; gap:0; }
+  .nav-drop-item{ color: inherit !important; padding:8px 4px; }
+  .nav-drop-item .ndi-title{ white-space:normal; }
+}
+
+/* ---------- required-page badge ---------- */
+.req-badge{
+  display:inline-block; font-size:0.7rem; font-weight:700; letter-spacing:0.06em;
+  text-transform:uppercase; color:#fff; background: var(--ink-brown);
+  padding: 3px 9px; border-radius: 999px; margin-left:10px; vertical-align:middle;
+}
+
+/* ---------- ring navigator: floating bubble + full-screen ring menu (every page) ---------- */
+.ring-nav-trigger{
+  position:fixed; right:26px; bottom:26px; z-index:1999;
+  width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+  background: linear-gradient(135deg, var(--kingfisher-2), var(--kingfisher-3));
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  display:flex; align-items:center; justify-content:center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ring-nav-trigger:hover, .ring-nav-trigger:focus-visible{
+  transform: scale(1.08);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.4), 0 0 22px 4px var(--kingfisher-glow);
+}
+.ring-nav-trigger .rnt-dot{ width:16px; height:16px; border-radius:50%; background: var(--cream-glow-lit); }
+
+.ring-nav{
+  position:fixed; inset:0; z-index:2000;
+  background: var(--ink);
+  display:flex; align-items:center; justify-content:center;
+  padding: 60px 24px;
+  opacity:0; visibility:hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+.ring-nav.open{ opacity:1; visibility:visible; }
+
+.ring-nav-close{
+  position:absolute; top:26px; right:26px;
+  width:42px; height:42px; border-radius:50%; border:1px solid rgba(255,255,255,0.25);
+  background:transparent; color: var(--text-on-dark); font-size:1.5rem; line-height:1;
+  cursor:pointer; transition: background 0.2s;
+}
+.ring-nav-close:hover{ background: rgba(255,255,255,0.08); }
+
+.ring-nav-stage{
+  position:relative; width:min(64vmin, 620px); height:min(64vmin, 620px);
+}
+.ring-nav-circle{
+  position:absolute; inset:0; border-radius:50%;
+  border:1px solid rgba(255,255,255,0.22);
+}
+.ring-nav-center{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  text-align:center; max-width:74%;
+}
+.rnc-brand{
+  font-family: var(--font-display); font-weight:700; font-size:1.4rem; color: var(--cream-glow-lit);
+  display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:16px;
+}
+.rnc-brand .swatch{
+  width:14px; height:14px; border-radius:50%;
+  background: linear-gradient(135deg, var(--kingfisher-2), var(--kingfisher-3));
+  box-shadow: 0 0 10px var(--kingfisher-glow);
+}
+.rnc-tagline{ font-family: var(--font-display); font-style:italic; font-size:1.1rem; color: var(--text-on-dark); margin-bottom:12px; }
+.rnc-hint{ font-size:0.85rem; color: var(--text-on-dark-dim); }
+
+/* Each node's dot sits exactly on the ring circle's circumference (5 points evenly spaced,
+   starting at top); the label flips to the outward side (above for the top node, opposite
+   the circle centre for the side nodes) via flex-direction per position. */
+.ring-node{
+  position:absolute; display:flex; align-items:center; gap:10px;
+  color: var(--cream-glow-lit); text-decoration:none !important; border-bottom:none !important;
+}
+.ring-node .rn-dot{
+  width:14px; height:14px; border-radius:50%; flex-shrink:0;
+  background: var(--kingfisher-3); box-shadow: 0 0 12px var(--kingfisher-glow);
+  transition: transform 0.25s, background 0.25s;
+}
+.ring-node .rn-label{
+  font-family: var(--font-display); font-weight:700; font-size:1.15rem; white-space:nowrap;
+  transition: color 0.25s;
+}
+.ring-node:hover .rn-dot, .ring-node:focus-visible .rn-dot{ transform:scale(1.35); background: var(--cream-glow-lit); }
+.ring-node:hover .rn-label, .ring-node:focus-visible .rn-label{ color: var(--kingfisher-3); }
+.ring-node.active .rn-dot{ background: var(--cream-glow-lit); }
+.ring-node.active .rn-label{ color: var(--kingfisher-3); }
+
+.ring-node.pos-top{ left:50%; top:0%; transform:translate(-50%,-50%); flex-direction:column-reverse; text-align:center; }
+.ring-node.pos-upper-right{ left:97.5%; top:34.5%; transform:translate(-50%,-50%); flex-direction:row; }
+.ring-node.pos-lower-right{ left:79.4%; top:90.5%; transform:translate(-50%,-50%); flex-direction:row; }
+.ring-node.pos-lower-left{ left:20.6%; top:90.5%; transform:translate(-50%,-50%); flex-direction:row-reverse; }
+.ring-node.pos-upper-left{ left:2.45%; top:34.5%; transform:translate(-50%,-50%); flex-direction:row-reverse; }
+
+@media (max-width:640px){
+  .ring-nav-stage{ width:82vmin; height:82vmin; }
+  .rnc-brand{ font-size:1.15rem; }
+  .rnc-tagline{ font-size:0.95rem; }
+  .ring-node .rn-label{ font-size:0.95rem; }
+}
+
+/* ---------- generic page header (plain interior pages) ---------- */
+.page-hero{
+  padding: 72px 0 40px;
+  background: linear-gradient(180deg, var(--paper-dim), var(--paper));
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.page-hero .eyebrow{
+  font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase;
+  color: var(--kingfisher-1); font-weight:700; margin-bottom:10px;
+}
+.page-hero h1{ font-size: clamp(2rem, 4vw, 3rem); color: var(--text-dark); }
+.page-hero p.lede{ color: var(--text-mid); font-size:1.05rem; }
+
+/* plain pages (Wet-Lab, Dry-Lab): flat solid background, no interaction, text+images only */
+.page-hero.plain{ background: var(--paper-dim); border-bottom: 1px solid rgba(0,0,0,0.08); }
+.page-body.plain{ background: var(--paper); }
+
+.page-body{ padding: 48px 0 100px; }
+.page-body section{ margin-bottom: 56px; }
+.page-body h2{
+  font-size: 1.6rem; color: var(--ink-brown-dim);
+  border-bottom: 2px solid var(--kingfisher-2); display:inline-block; padding-bottom:4px;
+}
+.page-body h3{ font-size: 1.15rem; color: var(--text-dark); margin-top: 1.4em; }
+.page-body p{ color: var(--text-mid); }
+.page-body ul, .page-body ol{ color: var(--text-mid); }
+.page-body table{ border-collapse: collapse; width:100%; margin: 18px 0; font-size:0.92rem; }
+.page-body th, .page-body td{ border:1px solid rgba(0,0,0,0.12); padding:8px 12px; text-align:left; vertical-align:top; }
+.page-body th{ background: var(--paper-dim); font-family: var(--font-display); font-weight:700; }
+
+.credit-tags{ display:flex; flex-wrap:wrap; gap:6px; margin: 6px 0 18px; }
+.credit-tag{
+  font-size:0.78rem; background: rgba(23,163,152,0.12); color: var(--kingfisher-1);
+  padding:3px 10px; border-radius:999px; font-weight:600;
+}
+
+.callout{
+  border-left: 4px solid var(--kingfisher-2); background: rgba(23,163,152,0.06);
+  padding: 14px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 18px 0;
+}
+.callout.fallback{ border-left-color: var(--gold); background: rgba(201,162,75,0.08); }
+.callout p{ margin:0; }
+
+/* ---------- PLACEHOLDER blocks: for missing images / assets ---------- */
+.ph-image, .ph-block{
+  background: var(--ph-bg);
+  border: 2px dashed var(--ph-border);
+  border-radius: var(--radius-md);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; color: var(--kingfisher-1); font-size:0.85rem; padding: 22px;
+  min-height: 160px; gap:6px;
+}
+.ph-image .ph-label{ font-weight:700; letter-spacing:0.03em; }
+.ph-image .ph-hint{ color: var(--text-mid); font-size:0.78rem; max-width: 320px; }
+.ph-image.tall{ min-height: 320px; }
+.ph-image.square{ aspect-ratio: 1/1; min-height:unset; }
+.ph-image.wide{ aspect-ratio: 16/9; min-height:unset; }
+.ph-row{ display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); margin: 18px 0; }
+
+/* ---------- footer ---------- */
+.site-footer{
+  background: var(--ink); color: var(--text-on-dark-dim);
+  padding: 22px 0; font-size: 0.85rem;
+}
+.site-footer a{ color: var(--text-on-dark); }
+.site-footer .container{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+
+/* ---------- utility ---------- */
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+.tag-required{ color: var(--ink-brown); font-weight:700; }
