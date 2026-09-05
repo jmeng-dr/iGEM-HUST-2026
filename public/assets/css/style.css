@@ -180,7 +180,14 @@ img{ max-width: 100%; display:block; }
 .nav-drop-menu{
   position:absolute; top: 100%; left:50%; transform: translateX(-50%);
   background: #fff; border-radius: var(--radius-md); box-shadow: var(--shadow-2);
-  padding: 18px; display:none; grid-template-columns: 1fr 1fr; gap: 2px 34px; min-width: 380px; z-index:600;
+  padding: 16px 18px; display:none; grid-template-columns: 1fr; gap: 0;
+  /* One item per row, and inside each row the title and its teal subtitle sit side
+     by side rather than stacked. Two item-columns meant each subtitle had only
+     ~155-250px and broke mid-phrase; given a whole row, none of them wrap at all
+     (the longest, "Optical, synbio & protein modelling", is 35 characters).
+     max-width keeps the menu inside the viewport when its trigger is near the
+     right edge. */
+  min-width: 540px; max-width: calc(100vw - 32px); z-index:600;
 }
 .nav-dropdown.open .nav-drop-menu,
 .nav-dropdown:hover .nav-drop-menu,
@@ -190,9 +197,12 @@ img{ max-width: 100%; display:block; }
   color: inherit !important; text-decoration:none !important; border-bottom:none !important;
 }
 .nav-drop-item:hover{ background: var(--paper-dim); }
-.nav-drop-item .ndi-text{ flex:1; min-width:0; }
+.nav-drop-item .ndi-text{
+  flex:1; min-width:0;
+  display:grid; grid-template-columns: 170px 1fr; align-items:baseline; gap:16px;
+}
 .nav-drop-item .ndi-title{ display:block; font-weight:700; color: var(--text-dark); font-size:0.92rem; white-space:nowrap; }
-.nav-drop-item .ndi-sub{ display:block; color: var(--kingfisher-1); font-size:0.76rem; margin-top:2px; }
+.nav-drop-item .ndi-sub{ display:block; color: var(--kingfisher-1); font-size:0.78rem; }
 
 @media (max-width: 860px){
   .nav-dropdown{ width:100%; }
@@ -200,6 +210,7 @@ img{ max-width: 100%; display:block; }
   .nav-drop-menu{ position:static; transform:none; box-shadow:none; background:transparent; padding: 4px 0 4px 14px; display:flex; flex-direction:column; min-width:0; gap:0; }
   .nav-drop-item{ color: inherit !important; padding:8px 4px; }
   .nav-drop-item .ndi-title{ white-space:normal; }
+  .nav-drop-item .ndi-text{ display:block; }
 }
 
 /* ---------- required-page badge ---------- */
@@ -560,10 +571,13 @@ pre code{
     left: calc((100vw - var(--content-width)) / 2 - 250px);
     width: 210px;
     max-height: calc(100vh - 200px);
+    /* 0.85rem rather than 0.9: fits ~27 characters per line, so the longest rail
+       label ("2 · Pigment-cellulose film", 26) stays on one line without widening
+       the rail, which would have pushed the gutter breakpoint higher. */
     overflow-y: auto;
     overscroll-behavior: contain;
-    font-size: 0.9rem;
-    line-height: 1.4;
+    font-size: 0.85rem;
+    line-height: 1.45;
     border-left: 2px solid rgba(0,0,0,0.10);
     padding-left: 16px;
   }
