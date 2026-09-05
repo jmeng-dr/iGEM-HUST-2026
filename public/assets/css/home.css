@@ -290,7 +290,10 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 /* Same dark, transparent treatment as the sections above it — #bg-wash carries
    through. The frame holds a 16:9 box so the iframe never causes a layout shift
    while it loads, and the video is served from iGEM's own Video Universe. */
-#promo-video{ padding: 0 0 340px; color: var(--text-on-dark); }
+/* Only enough breathing room to separate the frame from the footer. The 340px that
+   used to be here was inherited from when #toc was the last section on the page and
+   needed a long tail; with the footer directly underneath it was just a hole. */
+#promo-video{ padding: 0 0 60px; color: var(--text-on-dark); }
 #promo-video .eyebrow{
   color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em;
   text-transform:uppercase; font-weight:700;

@@ -381,11 +381,15 @@ img{ max-width: 100%; display:block; }
 .footer-nav li{ margin-bottom: 10px; }
 .footer-copy{ font-weight:700; color: var(--text-on-dark); }
 
+/* No tint band behind the seals. One was tried, on the reasoning that two of the
+   three are dark-on-white and the third is the inverse, so a shared ground would
+   stop them reading as three unrelated logos. With real footer content above them
+   that ground instead reads as a seam and splits the footer into two blocks. A
+   hairline is enough separation. */
 .footer-institutions-band{
-  background: rgba(255,255,255,0.045);
-  border-top: 1px solid rgba(255,255,255,0.10);
-  margin-bottom: -22px;   /* cancel .site-footer's bottom padding so the band is flush */
-  padding: 22px 0 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: -22px;   /* cancel .site-footer's bottom padding so it sits flush */
+  padding: 26px 0 22px;
 }
 .site-footer .footer-institutions{
   display:flex; flex-wrap:wrap;
