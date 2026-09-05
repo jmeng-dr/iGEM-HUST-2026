@@ -57,6 +57,12 @@
        point. */
     function shorten(text) {
       var t = text.trim();
+      /* "Module 1: Cellulose recovery" -> "1 · Cellulose recovery". Four consecutive
+         entries all starting "Module" repeat a word that carries no distinguishing
+         information in a rail; the number alone keeps the ordering and the sequence
+         is obvious from the list itself. */
+      var numbered = t.match(/^(?:module|part|step)\s*(\d+)\s*[:—–]\s*(.+)$/i);
+      if (numbered) return numbered[1] + " · " + numbered[2];
       if (!/^(module|part|step|strategy|route)\s*\d/i.test(t)) {
         t = t.split(/\s*[:—–]\s+/)[0];
       }

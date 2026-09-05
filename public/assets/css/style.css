@@ -14,6 +14,11 @@
   --cream-glow-lit: #fff9ea;   /* brighter glow, scroll state */
   --ink-brown:      #7a5236;   /* mural accent */
   --ink-brown-dim:  #5c3d28;
+  /* Section headings. Perceptually the same darkness as --text-dark (#23201a):
+     both land around 32 on a 0-255 perceived-luminance scale, so the h2 never reads
+     as weaker than the h3 beneath it, while staying unmistakably warm. #3d2a1c was
+     tried first and measured 46 — still visibly lighter than the body ink. */
+  --ink-brown-deep: #2b1e14;
   --kingfisher-1:   #0e6e6a;   /* deep teal */
   --kingfisher-2:   #17a398;   /* peacock green-blue */
   --kingfisher-3:   #2f8fd6;   /* jewel blue */
@@ -328,7 +333,12 @@ img{ max-width: 100%; display:block; }
   font-size: 2.15rem;
   font-weight: 700;
   letter-spacing: -0.005em;
-  color: var(--ink-brown-dim);
+  /* Depth must read MONOTONICALLY: h2 darkest, then h3, then h4, then h5. The old
+     scheme alternated — h2 brown, h3 near-black, h4 the SAME brown as h2 — so colour
+     said h4 was a peer of h2 while size said otherwise, which is what made the
+     hierarchy confusing. The section heading keeps the warm brown for identity but
+     goes deep enough that it is no longer the lighter of the two. */
+  color: var(--ink-brown-deep);
   border-bottom: 3px solid var(--kingfisher-2);
   display: inline-block;
   padding-bottom: 6px;
@@ -348,7 +358,7 @@ img{ max-width: 100%; display:block; }
   margin-top: 2.3em; margin-bottom: 0.55em;
 }
 .page-body h4{
-  font-size: 1.06rem; color: var(--ink-brown-dim);
+  font-size: 1.06rem; color: var(--text-mid);
   margin-top: 1.9em; margin-bottom: 0.45em;
 }
 .page-body h5{
