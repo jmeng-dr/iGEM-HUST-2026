@@ -117,11 +117,49 @@
       content.querySelector(".wp-consequence").textContent = d.consequence;
     }
 
+    /* The dial's entrance. It already scrolls up with the section, because the wrap is
+       an ordinary absolutely-positioned child of .wheel-sticky; this adds a spin and a
+       zoom on TOP of that, both about the same point the module steps already turn
+       about, so the centre of rotation never moves relative to the section.
+
+       That the anchor holds still is a property of the transform list, not something
+       that needs maintaining. transform-origin is the dial's own centre, and for
+       `translate(-50%,-50%) rotate(a) scale(s)` a point maps as translate(rotate(scale(p))):
+       the centre is a fixed point of both the rotation and the scale, so whatever a and
+       s are, the translate still lands that centre on the wrap's left:0/top:50% anchor.
+       Scale and spin therefore cannot drift it.
+
+       ENTRY_SPIN is a full 90deg — the same step the wheel takes between modules — and
+       it unwinds to 0 as module 1 arrives, so the entrance reads as one more click of
+       the same wheel rather than a separate flourish. It starts positive and runs down
+       to zero, i.e. anticlockwise, the direction module 2 will continue in. */
+    var ENTRY_SPIN = 90;        // deg of wind-up, unwound to 0 by the time module 1 lands
+    var ENTRY_SCALE = 0.55;     // starting size, grown to 1
+    var ENTRY_FRACTION = 0.75;  // of viewport height: the scroll distance the entrance spans
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    /* progress is 0 while the section is a screen below, 1 the moment the track pins and
+       module 1 is in place. Quadratic ease-OUT so the dial decelerates into position
+       rather than snapping the last few degrees. */
+    function renderDial(index, progress) {
+      if (!dial) return;
+      var e = reduceMotion.matches ? 1 : 1 - (1 - progress) * (1 - progress);
+      var rot = -index * 90 + ENTRY_SPIN * (1 - e);
+      var scale = ENTRY_SCALE + (1 - ENTRY_SCALE) * e;
+      /* The 0.75s transition exists for the 90deg module steps. While the entrance is
+         being driven frame by frame off the scroll position it has to be off, or the
+         dial trails the scroll by three quarters of a second. Clearing the inline value
+         hands it back to the stylesheet for the steps. */
+      dial.style.transition = e < 1 ? "none" : "";
+      dial.style.transform =
+        "translate(-50%, -50%) rotate(" + rot + "deg) scale(" + scale + ")";
+    }
+
     // Turn the dial 90 degrees per module. The arcs ride along, so marking arc
     // [index] active keeps the highlighted marker at a fixed screen angle while the
-    // artwork rotates beneath it.
+    // artwork rotates beneath it. The transform itself is written by renderDial, which
+    // has to fold in the entrance as well.
     function turnDial(index) {
-      if (dial) dial.style.transform = "translate(-50%, -50%) rotate(" + (-index * 90) + "deg)";
       for (var i = 0; i < arcs.length; i++) {
         arcs[i].classList.toggle("active", i === index);
       }
@@ -144,10 +182,23 @@
       var scrolledIntoTrack = top > 0 ? 0 : -top;
       var index = Math.min(stops.length - 1, Math.max(0, Math.floor(scrolledIntoTrack / WHEEL_STEP_PX)));
       applyStep(index);
+      /* top === 0 is the pin, which is also the moment module 1 is in place, so that is
+         where the entrance has to finish: progress 1. It cannot go past 1 once pinned
+         (top only goes negative from there) and is clamped at 0 before the section is
+         within ENTRY_FRACTION of a screen. renderDial runs on every scroll event, not
+         only on a step change, because applyStep returns early when the index is
+         unchanged and the entrance moves continuously. */
+      var span = (window.innerHeight || 800) * ENTRY_FRACTION;
+      var entry = top <= 0 ? 1 : Math.max(0, 1 - top / span);
+      renderDial(index, entry);
     }
     writeContent(0);
     turnDial(0);
+    renderDial(0, 0);
     currentIndex = 0; // module 1 is already in the markup on load — no fade-in needed for it
+    /* Run once before listening: a reload that restores a mid-page scroll position would
+       otherwise leave the dial at its entry size until the reader happened to scroll. */
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
   }
