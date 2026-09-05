@@ -116,7 +116,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 #intro-wheel .eyebrow{
   color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em; text-transform:uppercase; font-weight:700;
 }
-#intro-wheel h2{ color: var(--text-on-dark); font-size: clamp(1.6rem,3vw,2.3rem); margin-bottom: 36px; }
+#intro-wheel h2{ color: var(--text-on-dark); font-size: clamp(1.95rem,3.5vw,2.8rem); font-weight:700; letter-spacing:-0.005em; margin-bottom: 36px; }
 
 .wheel-scroll-track{ position: relative; height: calc(100vh + 1200px); height: calc(100dvh + 1200px); }
 .wheel-sticky{
@@ -200,7 +200,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    to #promo-video. */
 #toc{ padding: 40px 0 56px; }
 #toc .eyebrow{ color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; }
-#toc h2{ font-size: clamp(1.6rem,3vw,2.3rem); color: var(--text-on-dark); margin-bottom: 40px; }
+#toc h2{ font-size: clamp(1.95rem,3.5vw,2.8rem); font-weight:700; letter-spacing:-0.005em; color: var(--text-on-dark); margin-bottom: 40px; }
 
 .toc-stage{
   background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
@@ -301,7 +301,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   text-transform:uppercase; font-weight:700;
 }
 #promo-video h2{
-  color: var(--text-on-dark); font-size: clamp(1.6rem,3vw,2.3rem); margin-bottom: 28px;
+  color: var(--text-on-dark); font-size: clamp(1.95rem,3.5vw,2.8rem); font-weight:700; letter-spacing:-0.005em; margin-bottom: 28px;
 }
 .promo-frame{
   position:relative; width:100%; aspect-ratio: 16 / 9;

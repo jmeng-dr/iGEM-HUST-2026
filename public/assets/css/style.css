@@ -305,7 +305,7 @@ img{ max-width: 100%; display:block; }
   font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase;
   color: var(--kingfisher-1); font-weight:700; margin-bottom:10px;
 }
-.page-hero h1{ font-size: clamp(2rem, 4vw, 3rem); color: var(--text-dark); }
+.page-hero h1{ font-size: clamp(2.4rem, 4.4vw, 3.4rem); font-weight: 700; letter-spacing: -0.01em; color: var(--text-dark); }
 .page-hero p.lede{ color: var(--text-mid); font-size:1.05rem; }
 
 /* plain pages (Wet-Lab, Dry-Lab): flat solid background, no interaction, text+images only */
@@ -317,9 +317,23 @@ img{ max-width: 100%; display:block; }
 /* Cormorant Garamond is a small-x-height serif: at a given nominal size it reads
    noticeably smaller than a sans at the same number. The headings are nudged up to
    compensate rather than because the scale itself was wrong. */
+/* The section heading has to out-rank the h3s under it, and three things were
+   working against it at once: Cormorant Garamond has a very small x-height, so at a
+   given nominal size it reads a size or two down from a sans; at 600 it is still a
+   high-contrast serif with thin strokes, so an Inter 600 h3 put MORE ink on the page
+   than it did; and it is brown against the h3s near-black, so it lost on value too.
+   Fixed by giving the serif the size and weight it needs to carry a display role,
+   rather than by abandoning it. */
 .page-body h2{
-  font-size: 1.66rem; color: var(--ink-brown-dim);
-  border-bottom: 2px solid var(--kingfisher-2); display:inline-block; padding-bottom:4px;
+  font-size: 2.15rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--ink-brown-dim);
+  border-bottom: 3px solid var(--kingfisher-2);
+  display: inline-block;
+  padding-bottom: 6px;
+  margin-top: 2.6em;
+  margin-bottom: 0.6em;
 }
 /* Heading rhythm. The global rule above sets margin: 0 0 0.5em — no TOP margin —
    and only h3 used to override it, so every h4 and h5 sat flush against the
