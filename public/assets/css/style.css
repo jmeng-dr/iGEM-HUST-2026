@@ -60,13 +60,31 @@ body{
   font-family: var(--font-body);
   color: var(--text-dark);
   background: var(--paper);
-  line-height: 1.65;
+  line-height: 1.72;
 }
 h1,h2,h3,h4{
-  font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: 0.01em;
   margin: 0 0 0.5em;
+}
+/* The display serif is kept for the large, few, decorative headings.
+   font-variant-numeric: lining-nums because Cormorant Garamond ships OLD-STYLE
+   figures by default — they sit at x-height with descenders, which turns
+   "Module 1" and "2.8.3" into small mismatched glyphs. Charming in a novel,
+   wrong in a lab record. */
+h1,h2{
+  font-family: var(--font-display);
+  font-variant-numeric: lining-nums;
+}
+/* Working sub-headings almost all carry a numbered technical label — "1.1 Gene
+   synthesis", "2.8.3 Y. lipolytica FBA", "4.7 Protein-engineering experiments".
+   At ~20px the serif is measurably harder to scan than the body sans, so these
+   switch to it: the page stays academic where it is being READ, and keeps the
+   serif where it is being LOOKED AT. */
+h3,h4{
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0;
 }
 a{ color: var(--kingfisher-1); text-decoration: none; }
 a:hover{ color: var(--kingfisher-2); text-decoration: underline; }
@@ -301,28 +319,14 @@ img{ max-width: 100%; display:block; }
 .page-body p{ color: var(--text-mid); }
 .page-body ul, .page-body ol{ color: var(--text-mid); }
 
-/* MEASURE. At 1080px the text column ran ~119 characters per line, well past the
-   60–80 that reads comfortably. Capping the paragraphs alone fixed the line length
-   but left them ending a long way short of the full-width tables, so the right edge
-   went ragged and the whole page leaned left.
+/* One column width for everything. Prose, headings, callouts and tables all share
+   the same left AND right edge — an earlier attempt capped the paragraphs, and then
+   narrowed the column and broke the tables back out of it, and both made the page
+   read as lopsided. The table width is the width.
 
-   So the COLUMN is narrowed instead, and the few things that genuinely need more
-   room — tables, figure rows — break back out of it symmetrically. Everything then
-   shares one left edge, and the wide elements overhang evenly on both sides. */
-.page-hero .container,
-.page-body .container{ max-width: 780px; }
-
-.page-body .table-wrap,
-.page-body .ph-row,
-.page-body .ph-image.wide{
-  width: min(var(--content-width), calc(100vw - 2 * clamp(20px, 5vw, 64px)));
-  margin-left: 50%;
-  transform: translateX(-50%);
-}
-/* children of a broken-out row must not break out a second time */
-.page-body .ph-row .ph-image{
-  width: auto; margin-left: 0; transform: none;
-}
+   The trade-off is a long line (~110 characters), so the leading is opened up a
+   little to compensate: at a wide measure the extra line spacing is what keeps the
+   eye from losing its place on the return sweep. */
 /* Every table is wrapped in .table-wrap. At desktop widths this changes nothing;
    on a narrow viewport the table scrolls inside its own box instead of forcing the
    whole page sideways (QA round 1: Project-Description overflowed at 375px). */
@@ -330,7 +334,7 @@ img{ max-width: 100%; display:block; }
 .table-wrap > table{ margin: 0; }
 .page-body table{ border-collapse: collapse; width:100%; margin: 18px 0; font-size:0.92rem; }
 .page-body th, .page-body td{ border:1px solid rgba(0,0,0,0.12); padding:8px 12px; text-align:left; vertical-align:top; }
-.page-body th{ background: var(--paper-dim); font-family: var(--font-display); font-weight:700; }
+.page-body th{ background: var(--paper-dim); font-family: var(--font-body); font-weight:700; font-size:0.95em; letter-spacing:0.01em; }
 
 .credit-tags{ display:flex; flex-wrap:wrap; gap:6px; margin: 6px 0 18px; }
 .credit-tag{

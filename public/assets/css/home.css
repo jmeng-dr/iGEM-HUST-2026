@@ -181,7 +181,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   transition: opacity 0.32s ease, transform 0.32s ease;
 }
 .wheel-panel .wp-content.fade-out{ opacity: 0; transform: translateY(10px); }
-.wheel-panel h3{ color: var(--cream-glow-lit); font-size:1.5rem; margin-bottom:0.2em; }
+.wheel-panel h3{ font-family: var(--font-display); color: var(--cream-glow-lit); font-size:1.5rem; margin-bottom:0.2em; }
 .wheel-panel .tagline{ color: var(--kingfisher-3); font-size:0.85rem; margin-bottom:20px; }
 .wheel-panel .wp-row{ margin-bottom: 16px; }
 .wheel-panel .wp-row .wp-k{
@@ -276,7 +276,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 }
 .toc-preview:not(.idle){ opacity: 1; }
 .toc-preview .req-badge{ align-self:flex-start; }
-.toc-preview h3{ color: var(--cream-glow-lit); font-size: 1.6rem; margin: 6px 0 8px; transition: color 0.25s ease; }
+.toc-preview h3{ font-family: var(--font-display); color: var(--cream-glow-lit); font-size: 1.6rem; margin: 6px 0 8px; transition: color 0.25s ease; }
 .toc-preview p{ color: var(--text-on-dark-dim); margin: 0 0 14px; max-width: 46ch; }
 .toc-preview .go{
   align-self:flex-start; color: var(--kingfisher-3); font-weight:700; font-size:0.88rem;
