@@ -414,23 +414,86 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    only moves it INWARD (43% maps to 46.1% at the 50deg extreme) and nothing from
    outside crosses in, so the strip's edge never exposes a seam or a gap. */
 .bf-wing{
-  transform-origin: 50% 50%;
+  position: absolute; inset: 0;
   animation: bf-flap-l 0.85s ease-in-out infinite;
   will-change: transform;
 }
-.bf-wing-l{ clip-path: inset(0 50% 0 0); }
-.bf-wing-r{ clip-path: inset(0 0 0 50%); animation-name: bf-flap-r; }
+/* THE HINGE IS ON THE SEAM, not on the midline. A rotation leaves its own axis fixed,
+   so putting each wing's transform-origin exactly on the edge it shares with the body
+   makes the alignment there exact by construction — zero displacement, at any angle,
+   with the foreshortening pushed entirely outboard where there is nothing to line up
+   against.
+
+   Hinging both wings on the midline instead, with the body strip 7% away from it, left
+   the seam geometrically gapless but pictorially wrong: at 50deg the wing pixel landing
+   on the strip's edge is the one drawn 2.5% of the image further out, so the gold work
+   flowing from wing into body stepped sideways by ~5px at render size.
+
+   It is also the anatomy. Wings attach at the sides of the thorax, not down the centre
+   line, so two hinges 14% apart is what the animal actually has.
+
+   Each wing is clipped 1% PAST its hinge and the body strip covers 43%-57%, so that
+   sliver always sits underneath the body: content at 44% maps between 43% and 44% for
+   every angle. It exists only to absorb sub-pixel rounding at the boundary — it can
+   never become visible, so it cannot misalign. Near the hinge the perspective depth is
+   ~0 and the vertical magnification ~1, so the seam matches in both axes. */
+.bf-wing-l{ clip-path: inset(0 56% 0 0);  transform-origin: 43% 50%; }
+.bf-wing-r{ clip-path: inset(0 0 0 56%);  transform-origin: 57% 50%; animation-name: bf-flap-r; }
 /* 43%/57% clears the widest part of the thorax (44.3%-55.7% measured off the artwork)
-   with a little margin. */
+   with a little margin, and is what sets where the hinges go. */
 .bf-body{ clip-path: inset(0 43% 0 43%); }
 
 @keyframes bf-flap-l{
-  0%, 100%{ transform: perspective(420px) rotateY(-14deg); filter: brightness(1); }
-  50%     { transform: perspective(420px) rotateY(50deg);  filter: brightness(0.74); }
+  0%, 100%{ transform: perspective(420px) rotateY(-14deg); }
+  50%     { transform: perspective(420px) rotateY(50deg); }
 }
 @keyframes bf-flap-r{
-  0%, 100%{ transform: perspective(420px) rotateY(14deg);  filter: brightness(1); }
-  50%     { transform: perspective(420px) rotateY(-50deg); filter: brightness(0.74); }
+  0%, 100%{ transform: perspective(420px) rotateY(14deg); }
+  50%     { transform: perspective(420px) rotateY(-50deg); }
+}
+
+/* The shading. This replaced a filter:brightness() on the whole wing, which dimmed it
+   uniformly — and since the body strip does not animate, that left a hard brightness
+   step down each edge of the strip. It was also the wrong physics: a rigid flat wing
+   hinged on a vertical axis turns every point through the same angle, so its normal
+   deviates from the light by the same amount everywhere and the shading is FLAT. A
+   gradient can only come from the wing twisting, and a real wing twists most at the
+   outer edge, which lags the base through the stroke. So the darkening belongs at the
+   TIP, deepest where the wing has turned furthest from the light.
+
+   Darkening toward the AXIS is the other defensible reading — the two wings folding
+   toward each other make a valley that occludes itself — but it puts the darkest
+   pixels exactly where the wing meets the un-animated body strip, which is to say it
+   recreates the seam this is removing, and it buries the densest gold work in shadow.
+
+   Shading toward the tip leaves brightness untouched at the axis, so there is nothing
+   for the body strip to step against.
+
+   A masked overlay rather than a filter: the mask is the artwork's own alpha, so the
+   tint lands only on the butterfly and not on the transparent box around it, the mask
+   itself never changes, and only opacity animates — which stays on the compositor,
+   where a per-frame filter would not. */
+.bf-shade{
+  position: absolute; inset: 0;
+  -webkit-mask-image: url("../img/butterfly.webp");
+          mask-image: url("../img/butterfly.webp");
+  -webkit-mask-size: contain;      mask-size: contain;
+  -webkit-mask-position: center;   mask-position: center;
+  -webkit-mask-repeat: no-repeat;  mask-repeat: no-repeat;
+  opacity: 0;
+  animation: bf-shade 0.85s ease-in-out infinite;
+  will-change: opacity;
+}
+/* Transparent at the hinge, ramping to the far tip. `to left` measures from the right
+   edge, so its 57% is x = 43% — the left wing's hinge; `to right` measures from the
+   left, so its 57% is x = 57%, the right wing's. A deep blue-black rather than a
+   neutral one, which against this artwork reads as soot. */
+.bf-wing-l .bf-shade{ background: linear-gradient(to left,  rgba(3,12,20,0) 57%, rgba(3,12,20,0.82) 96%); }
+.bf-wing-r .bf-shade{ background: linear-gradient(to right, rgba(3,12,20,0) 57%, rgba(3,12,20,0.82) 96%); }
+
+@keyframes bf-shade{
+  0%, 100%{ opacity: 0.10; }
+  50%     { opacity: 1; }
 }
 /* On a phone the same path crosses a much narrower column, so the butterfly ends up
    sitting on the text. Shrink it there. */
@@ -440,6 +503,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 @media (prefers-reduced-motion: reduce){
   #butterfly{ opacity: 0 !important; }
   .bf-wing{ animation: none; transform: none; }
+  .bf-shade{ animation: none; opacity: 0; }
 }
 
 /* ---------------- 8. INTRO-WHEEL DIAL ---------------- */
