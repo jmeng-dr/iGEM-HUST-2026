@@ -57,6 +57,10 @@ body{
   font-family: var(--font-body);
   color: var(--text-dark);
   background: var(--paper);
+  /* 17px, not the 16px default. Inter has a smaller x-height than the system CJK
+     faces this design is often seen next to, so at 16 it reads a size down from
+     where it should. */
+  font-size: 17px;
   line-height: 1.65;
 }
 h1,h2,h3,h4{
@@ -283,13 +287,27 @@ img{ max-width: 100%; display:block; }
 
 .page-body{ padding: 48px 0 100px; }
 .page-body section{ margin-bottom: 56px; }
+/* Cormorant Garamond is a small-x-height serif: at a given nominal size it reads
+   noticeably smaller than a sans at the same number. The headings are nudged up to
+   compensate rather than because the scale itself was wrong. */
 .page-body h2{
-  font-size: 1.6rem; color: var(--ink-brown-dim);
+  font-size: 1.75rem; color: var(--ink-brown-dim);
   border-bottom: 2px solid var(--kingfisher-2); display:inline-block; padding-bottom:4px;
 }
-.page-body h3{ font-size: 1.15rem; color: var(--text-dark); margin-top: 1.4em; }
+.page-body h3{ font-size: 1.25rem; color: var(--text-dark); margin-top: 1.4em; }
 .page-body p{ color: var(--text-mid); }
 .page-body ul, .page-body ol{ color: var(--text-mid); }
+
+/* MEASURE. The container is 1080px wide, which at this body size is ~119 characters
+   per line — well past the 60–80 that reads comfortably. Prose is capped so lines
+   stay in range, while tables, figures and placeholder blocks keep the full column
+   width they actually need. This matters more for readability than the font size
+   does. */
+.page-body p,
+.page-body ul,
+.page-body ol{ max-width: 68ch; }
+.page-body .table-wrap p,
+.page-body table p{ max-width: none; }
 /* Every table is wrapped in .table-wrap. At desktop widths this changes nothing;
    on a narrow viewport the table scrolls inside its own box instead of forcing the
    whole page sideways (QA round 1: Project-Description overflowed at 375px). */

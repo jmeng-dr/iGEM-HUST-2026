@@ -151,6 +151,15 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 }
 .wheel-stop .n{ font-family: var(--font-display); font-size:1.4rem; opacity:0.6; transition: opacity 0.3s, color 0.3s; }
 .wheel-stop .label{ font-weight:600; }
+/* The module list now sits on top of a fully-lit medallion. A shadow keeps it
+   legible over the busy artwork without dimming the artwork itself; over the plain
+   dark background where there is no dial (mobile, narrow) it is invisible. */
+.wheel-stop .n, .wheel-stop .label{
+  text-shadow: 0 1px 3px rgba(0,0,0,0.92), 0 0 14px rgba(0,0,0,0.65);
+}
+#intro-wheel h2, #intro-wheel .eyebrow{
+  text-shadow: 0 1px 3px rgba(0,0,0,0.85), 0 0 16px rgba(0,0,0,0.5);
+}
 .wheel-stop.active{ color: var(--text-on-dark); }
 .wheel-stop.active::before{ background: var(--kingfisher-2); box-shadow: 0 0 12px var(--kingfisher-glow); }
 .wheel-stop.active .n{ opacity: 1; color: var(--kingfisher-3); }
@@ -372,7 +381,11 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   transform-origin: 50% 50%;
   transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
-  opacity: 0.5;   /* the module list sits over this — keep it readable */
+  /* Full brightness, like the reference. Readability of the module list that sits
+     over it is handled by the text-shadow on .wheel-stop below, rather than by
+     dimming the artwork — halving its opacity against the near-black page just
+     turned the medallion muddy. */
+  opacity: 0.92;
 }
 .dial-core{
   position: absolute; inset: 0;
