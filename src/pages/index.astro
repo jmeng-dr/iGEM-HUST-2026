@@ -13,7 +13,15 @@ import headExtra from '../partials/index.head.html?raw';
   <Fragment slot="body-top">
     <div id="cursor-orb" aria-hidden="true"></div>
     <div id="bg-wash" aria-hidden="true"></div>
-    <div id="butterfly" aria-hidden="true"><img src="/assets/img/butterfly.webp" alt="" width="800" height="747" decoding="async"></div>
+    <!-- Three copies of one file (one request, one decode), each clipped to a different
+         part of the artwork so the wings can hinge independently of the body. The body
+         is last so it paints over the wings' inner edges. See "9. BUTTERFLY WING FLAP"
+         in home.css for the geometry. -->
+    <div id="butterfly" aria-hidden="true">
+      <img class="bf-wing bf-wing-l" src="/assets/img/butterfly.webp" alt="" width="800" height="747" decoding="async">
+      <img class="bf-wing bf-wing-r" src="/assets/img/butterfly.webp" alt="" width="800" height="747" decoding="async">
+      <img class="bf-body" src="/assets/img/butterfly.webp" alt="" width="800" height="747" decoding="async">
+    </div>
   </Fragment>
 
   <Fragment set:html={body} />

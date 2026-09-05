@@ -380,9 +380,57 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   contain: layout style paint;
 }
 #butterfly img{
+  position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: contain;
   display: block;
+}
+
+/* ---------------- 9. BUTTERFLY WING FLAP ---------------- */
+/* The artwork is a single raster, so the wings are separated by stacking three copies
+   of the same file and clipping each to a different part. One request, one decode.
+
+   The measurement that makes this work: the drawing is a dead-on dorsal view whose
+   axis of bilateral symmetry sits at x = 399.5 of 800, half a pixel off the geometric
+   centre — 0.12px at the size this renders. So the split is simply 50%, and each wing's
+   default transform-origin (50% 50%) is already the hinge.
+
+   WHY rotateY AND NOT scaleX + skew. Squeezing the width alone is the orthographic
+   answer: a wing hinged on a vertical axis and rotated out of plane projects to
+   scaleX(cos t), a narrower rectangle. Adding a skew would make it a parallelogram,
+   which is what a rotation about a HORIZONTAL axis looks like, not a wing hinge. Under
+   perspective the whole outer edge moves toward the camera together — uniformly, since
+   it is parallel to the axis of rotation — so it is magnified as a unit and the wing
+   projects to a TRAPEZOID: inner edge unchanged, outer edge taller. perspective() +
+   rotateY() computes exactly that projection, so the correct shape falls out of the
+   physics instead of being approximated by hand.
+
+   The left wing occupies -X, and rotateY(positive) brings -X toward the viewer, so the
+   two wings take opposite signs to fold toward each other. They dim as they fold, which
+   is what less area facing the light does; a cast drop-shadow would be invisible on a
+   near-black hero anyway.
+
+   The wing content between 43% and 50% is always underneath the body strip: rotating
+   only moves it INWARD (43% maps to 46.1% at the 50deg extreme) and nothing from
+   outside crosses in, so the strip's edge never exposes a seam or a gap. */
+.bf-wing{
+  transform-origin: 50% 50%;
+  animation: bf-flap-l 0.85s ease-in-out infinite;
+  will-change: transform;
+}
+.bf-wing-l{ clip-path: inset(0 50% 0 0); }
+.bf-wing-r{ clip-path: inset(0 0 0 50%); animation-name: bf-flap-r; }
+/* 43%/57% clears the widest part of the thorax (44.3%-55.7% measured off the artwork)
+   with a little margin. */
+.bf-body{ clip-path: inset(0 43% 0 43%); }
+
+@keyframes bf-flap-l{
+  0%, 100%{ transform: perspective(420px) rotateY(-14deg); filter: brightness(1); }
+  50%     { transform: perspective(420px) rotateY(50deg);  filter: brightness(0.74); }
+}
+@keyframes bf-flap-r{
+  0%, 100%{ transform: perspective(420px) rotateY(14deg);  filter: brightness(1); }
+  50%     { transform: perspective(420px) rotateY(-50deg); filter: brightness(0.74); }
 }
 /* On a phone the same path crosses a much narrower column, so the butterfly ends up
    sitting on the text. Shrink it there. */
@@ -391,6 +439,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 }
 @media (prefers-reduced-motion: reduce){
   #butterfly{ opacity: 0 !important; }
+  .bf-wing{ animation: none; transform: none; }
 }
 
 /* ---------------- 8. INTRO-WHEEL DIAL ---------------- */
