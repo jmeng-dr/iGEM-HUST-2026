@@ -305,3 +305,40 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    nav stays position:sticky (style.css), which is correct there since they have no full-bleed
    section underneath it. */
 .home-topbar{ position: fixed; top: 0; left: 0; right: 0; z-index: 501; }
+
+/* ---------------- 7. BUTTERFLY ORNAMENT ---------------- */
+/* Positioned entirely by JS (butterfly.js) via one transform: translate3d + rotate +
+   scale. The negative margins make the transform address the butterfly's CENTRE, so
+   the waypoint fractions mean what they say and scaling happens about the middle
+   rather than the top-left corner.
+
+   Deliberately BELOW the nav (.home-topbar is z-index 501) — the reference version
+   put its butterfly at z-index 600 and it flew over the menu bar, which reads as an
+   obstruction rather than an ornament. Above page content, under the chrome.
+
+   Only transform and opacity are ever written, so every frame stays on the
+   compositor. Nothing here sets width/height at runtime. */
+#butterfly{
+  position: fixed;
+  left: 0; top: 0;
+  width: 150px; height: 150px;
+  margin-left: -75px; margin-top: -75px;
+  z-index: 6;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  contain: layout style paint;
+}
+#butterfly img{
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+}
+/* On a phone the same path crosses a much narrower column, so the butterfly ends up
+   sitting on the text. Shrink it there. */
+@media (max-width: 760px){
+  #butterfly{ width: 96px; height: 96px; margin-left: -48px; margin-top: -48px; }
+}
+@media (prefers-reduced-motion: reduce){
+  #butterfly{ opacity: 0 !important; }
+}

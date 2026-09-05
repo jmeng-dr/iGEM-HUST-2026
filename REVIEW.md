@@ -154,3 +154,58 @@ E home totems interaction — PASS/FAIL
 <per page>
 --- NOTES ---
 ```
+
+---
+
+## Round 2 — ADDENDUM: butterfly ornament (item 12)
+
+A butterfly now flies a fixed curve across the home page as you scroll. It is
+adapted from a reference implementation the team had, but rebuilt, because that one
+stalled — most visibly while the pinned intro-wheel was stepping through its four
+modules.
+
+**The cause, and what changed.** The reference keys its waypoints to section offsets
+and gives every leg of the path the same parametric range. The sections are very
+different scroll lengths — the pinned intro-wheel spends roughly three times the
+scroll of a plain section on one leg — so the same screen distance costs three times
+the scrolling and the butterfly crawls there and darts elsewhere. This version
+parameterises the path by **arc length**: the curve is sampled into a polyline with
+cumulative pixel distances, and scroll progress maps to distance along it. One pixel
+of scroll buys the same travel everywhere. Also: Catmull-Rom instead of linear legs
+(no velocity kink at the corners), an exponential follower so wheel bursts glide
+instead of stepping, and transform/opacity only from one rAF loop that parks when
+idle — the reference wrote `width`/`height` on every scroll event, which forces
+layout and cannot be composited.
+
+**Please test the scroll feel specifically** — this is the part I most need eyes on:
+
+1. **Uniform speed.** Scroll the whole home page at a steady rate, top to bottom.
+   Does the butterfly travel at a visibly constant speed, or does it still slow down
+   somewhere? The old failure point was the "Four modules" section — watch it there
+   in particular, and also across the boundary from the module wheel into the totems.
+2. **No stalling.** Scroll in single wheel notches. Each notch should move it a
+   similar amount. It should glide and settle, never jump or freeze.
+3. **Direction.** It should point along its direction of travel (head first) and
+   bank gently. Check it does not spin wildly or point backwards.
+4. **Layering.** It must pass *under* the top nav bar, not over it. It should be
+   above the page content. `pointer-events` is none — confirm you can still click a
+   link the butterfly is sitting on top of.
+5. **Fade.** Absent at the very top of the page, fades in after ~260px of scroll,
+   fades back out approaching the footer.
+6. **Performance.** With DevTools Performance open, scroll the home page for a few
+   seconds. Are frames dropping? Is anything triggering layout/reflow during scroll?
+   The intent is compositor-only (transform + opacity).
+7. **Resize.** Resize the window mid-page. The path is rebuilt on resize; the
+   butterfly should re-place itself sensibly, not jump off-screen.
+8. **Reduced motion.** With `prefers-reduced-motion: reduce` emulated, the butterfly
+   should be hidden entirely and no rAF loop should run.
+
+**Aesthetic question F:** is the flight path good? It currently goes centre → top →
+right edge → down the right → along the bottom → across to the left → up the left →
+settles top-left. Does it feel like it belongs to the page, or like it wanders? Is
+80% opacity right over the content, and is the size sensible at 1321 and at 768?
+If the path is wrong, say roughly where it should go instead — the waypoints are a
+plain list of viewport fractions at the top of `/assets/js/butterfly.js` and are cheap
+to change.
+
+Report as item `12 butterfly` plus aesthetic `F`.

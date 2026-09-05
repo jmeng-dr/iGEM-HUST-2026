@@ -13,11 +13,13 @@ import headExtra from '../partials/index.head.html?raw';
   <Fragment slot="body-top">
     <div id="cursor-orb" aria-hidden="true"></div>
     <div id="bg-wash" aria-hidden="true"></div>
+    <div id="butterfly" aria-hidden="true"><img src="/assets/img/butterfly.webp" alt="" width="800" height="747" decoding="async"></div>
   </Fragment>
 
   <Fragment set:html={body} />
 
   <Fragment slot="body-end">
     <script is:inline src="/assets/js/home.js"></script>
+    <script is:inline src="/assets/js/butterfly.js"></script>
   </Fragment>
 </BaseLayout>
