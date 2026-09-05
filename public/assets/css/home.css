@@ -342,3 +342,72 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 @media (prefers-reduced-motion: reduce){
   #butterfly{ opacity: 0 !important; }
 }
+
+/* ---------------- 8. INTRO-WHEEL DIAL ---------------- */
+/* The medallion hung off the page's left edge. The wrap is pinned to left:0 /
+   top:50% of .wheel-sticky, and .dial's translate(-50%,-50%) pulls it back by half
+   its own size — so the artwork's CENTRE lands exactly on x=0 and only its right
+   half is ever visible. .wheel-sticky already has overflow:hidden, which does the
+   clipping for free.
+
+   The four arcs live at fixed rotations inside the dial. Because the whole dial
+   turns by -index*90deg, whichever arc is active always ends up at the same screen
+   angle — the marker holds still while the artwork rotates under it.
+
+   Purely decorative: pointer-events:none, aria-hidden, and the wheel-stop list
+   remains the actual progress indicator. */
+.wheel-dial-wrap{
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: min(92dvh, 860px);
+  height: min(92dvh, 860px);
+  z-index: 0;
+  pointer-events: none;
+}
+.dial{
+  position: absolute;
+  inset: 0;
+  transform: translate(-50%, -50%) rotate(0deg);
+  transform-origin: 50% 50%;
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  opacity: 0.5;   /* the module list sits over this — keep it readable */
+}
+.dial-core{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.dial-arcs{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+.dial-arc{
+  fill: none;
+  stroke: var(--kingfisher-2);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 22 78;   /* pathLength=100, so this is a ~79-degree arc */
+  opacity: 0.4;
+  transition: stroke 0.4s ease, opacity 0.4s ease, stroke-width 0.4s ease;
+}
+.dial-arc.active{
+  opacity: 1;
+  stroke: var(--cream-glow-lit);
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 8px var(--kingfisher-glow));
+}
+
+/* The heading and module list must sit above the dial. */
+.wheel-sticky > .container{ position: relative; z-index: 2; }
+
+/* On a phone the dial would cover the whole (single-column) layout. */
+@media (max-width: 760px){
+  .wheel-dial-wrap{ display: none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .dial{ transition: none; }
+}

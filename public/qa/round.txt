@@ -209,3 +209,42 @@ plain list of viewport fractions at the top of `/assets/js/butterfly.js` and are
 to change.
 
 Report as item `12 butterfly` plus aesthetic `F`.
+
+---
+
+## Round 2 — ADDENDUM 2: intro-wheel dial (item 13)
+
+The "Four modules" section now has a large medallion hanging off the **left edge of
+the page**, rotating **90° per module**. Adapted from the reference build, with one
+deliberate change: there the disc is pulled back 75% of its width, here it is pulled
+back exactly **50%** — so the artwork's centre sits on x = 0 and precisely half of it
+is on screen.
+
+The four thin arcs around it are fixed at 90° intervals *inside* the dial, and the
+dial turns by `-index * 90deg`, so the highlighted arc always ends up at the same
+screen angle: the marker holds still while the artwork rotates underneath it.
+
+It is decorative — `aria-hidden`, `pointer-events: none`, `z-index: 0` behind the
+heading and module list. The wheel-stop list is still the real progress indicator.
+
+**Check:**
+1. Exactly half the medallion is visible; its centre is on the page's left edge, and
+   it is vertically centred in the pinned section.
+2. Scrolling through the four modules turns it 0° → −90° → −180° → −270°, one step
+   per module, in sync with the module list highlight and the panel text.
+3. The rotation eases (0.75s) rather than snapping, and does not fight the scroll if
+   you move quickly through several modules.
+4. The active arc stays at a **fixed screen angle** across all four steps while the
+   artwork spins beneath it.
+5. The heading "Four modules, one supply chain" and the numbered module list are
+   **readable on top of it** — the dial is at opacity 0.5 for this reason. If the
+   list is hard to read, say so; that opacity is the knob.
+6. Hidden entirely below 760px, and it must not create a horizontal scrollbar at any
+   width (the left half hangs outside the viewport and is clipped by
+   `.wheel-sticky { overflow: hidden }`).
+
+**Aesthetic question G:** is the size right? It is `min(92dvh, 860px)` in diameter,
+so roughly half a viewport-height protrudes. Too dominant, too timid, or right? And
+is opacity 0.5 the right balance between "visible ornament" and "readable text"?
+
+Report as item `13 dial` plus aesthetic `G`.

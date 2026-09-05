@@ -95,6 +95,11 @@
     var content = panel && panel.querySelector(".wp-content");
     if (!track || !stops.length || !panel || !content) return;
 
+    // The medallion dial hanging off the left edge (see home.css section 8). Optional:
+    // every page that lacks it still runs the wheel exactly as before.
+    var dial = document.getElementById("wheelDial");
+    var arcs = document.querySelectorAll(".dial-arc");
+
     var WHEEL_STEP_PX = 300; // must match "1200px" (= this * stops.length) in home.css
     var FADE_MS = 160;       // must be <= the transition duration set on .wp-content in home.css
     var currentIndex = -1;
@@ -112,9 +117,20 @@
       content.querySelector(".wp-consequence").textContent = d.consequence;
     }
 
+    // Turn the dial 90 degrees per module. The arcs ride along, so marking arc
+    // [index] active keeps the highlighted marker at a fixed screen angle while the
+    // artwork rotates beneath it.
+    function turnDial(index) {
+      if (dial) dial.style.transform = "translate(-50%, -50%) rotate(" + (-index * 90) + "deg)";
+      for (var i = 0; i < arcs.length; i++) {
+        arcs[i].classList.toggle("active", i === index);
+      }
+    }
+
     function applyStep(index) {
       if (index === currentIndex) return;
       currentIndex = index;
+      turnDial(index);
       pendingIndex = index;
       content.classList.add("fade-out");
       setTimeout(function () {
@@ -130,6 +146,7 @@
       applyStep(index);
     }
     writeContent(0);
+    turnDial(0);
     currentIndex = 0; // module 1 is already in the markup on load — no fade-in needed for it
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
