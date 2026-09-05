@@ -336,9 +336,14 @@ img{ max-width: 100%; display:block; }
 .page-hero h1{ font-size: clamp(2.4rem, 4.4vw, 3.4rem); font-weight: 700; letter-spacing: -0.01em; color: var(--text-dark); }
 .page-hero p.lede{ color: var(--text-mid); font-size:1.05rem; }
 
-/* plain pages (Wet-Lab, Dry-Lab): flat solid background, no interaction, text+images only */
-.page-hero.plain{ background: var(--paper-dim); border-bottom: 1px solid rgba(0,0,0,0.08); }
-.page-body.plain{ background: var(--paper); }
+/* .plain used to give Wet-Lab and the AI stubs a FLAT --paper-dim hero while Project,
+   Human Practices and Attributions got the gradient — the original site's way of
+   marking "pure record, no interactive elements". A reader cannot see that
+   distinction as a distinction; all it produced was three intro blocks that look
+   unfinished next to each other, plus a hard colour seam at the bottom of the flat
+   ones for the sidenav rail to cut across. One hero treatment everywhere now. The
+   class is left in the markup: .page-body.plain was already the same --paper the
+   body has, so it never painted anything. */
 
 .page-body{ padding: 48px 0 100px; }
 .page-body section{ margin-bottom: 56px; }
@@ -392,6 +397,10 @@ img{ max-width: 100%; display:block; }
 }
 /* A heading that directly follows its parent heading should not get the full gap. */
 .page-body h2 + h3, .page-body h3 + h4, .page-body h4 + h5{ margin-top: 0.9em; }
+/* h2's 2.6em top margin is section SEPARATION; the first one separates nothing, and
+   the ~95px it left under the hero read as the page failing to start — worse still
+   with the rail's ten entries already filling the margin beside that gap. */
+.page-body .container > section:first-child > h2:first-child{ margin-top: 0; }
 .page-body p{ color: var(--text-mid); }
 .page-body ul, .page-body ol{ color: var(--text-mid); }
 
@@ -570,12 +579,15 @@ pre code{
    that the gutter can hold it without crowding the text.
 
    The gate: the container is --content-width (1080px) centred, so each gutter is
-   (100vw - 1080px) / 2. A 210px rail plus breathing room needs roughly 250px of
-   gutter, i.e. a viewport of about 1580px. Below that the rail is simply absent —
-   the top-nav dropdowns still carry the same anchors. */
+   (100vw - 1080px) / 2. The rail needs the gutter to hold three things, not one:
+   a margin from the window edge (30px), the rail itself (210px), and a gap before
+   the prose (40px) = 280px, i.e. a viewport of 1640px. The old 1580px gate only
+   counted the rail and the gap, so at the breakpoint the rail sat flush against
+   the left edge of the window. Below the gate the rail is simply absent — the
+   top-nav dropdowns still carry the same anchors. */
 .page-sidenav-rail{ display: none; }
 
-@media (min-width: 1580px){
+@media (min-width: 1640px){
   /* The rail's containing block. Absolutely positioned inside .page-body and
      stretched top-to-bottom, so the rail is bounded by the prose it indexes: it
      cannot appear beside the hero above nor over the footer below. The rail used
@@ -589,6 +601,10 @@ pre code{
     top: 0; bottom: 0;
     left: calc((100vw - var(--content-width)) / 2 - 250px);
     width: 210px;
+    /* top:0 is the padding-box edge, i.e. the very top of .page-body, so without
+       this the rail's title sat hard on the boundary with the hero. 56px puts it
+       just below the first h2's cap line instead, inside the body band. */
+    padding-top: 56px;
   }
   .page-sidenav{
     display: block;

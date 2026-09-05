@@ -336,11 +336,18 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 
    Only transform and opacity are ever written, so every frame stays on the
    compositor. Nothing here sets width/height at runtime. */
+/* 196px, i.e. 1.31x the original 150. The art is 800x747, so object-fit:contain in a
+   square box renders it 196 wide x 183 tall and it is still downscaled 4x — every bit
+   of the pink ribbon and the wing veining survives, which it did not really at 150.
+   Not the full 1.5x (225px): body line-height is 1.72 x 17px = 29px, so 225 spans
+   nearly eight lines of prose and the butterfly stops being an ornament crossing the
+   page and starts reading as a figure competing with the section headings. 196 spans
+   about six and a half. */
 #butterfly{
   position: fixed;
   left: 0; top: 0;
-  width: 150px; height: 150px;
-  margin-left: -75px; margin-top: -75px;
+  width: 196px; height: 196px;
+  margin-left: -98px; margin-top: -98px;
   z-index: 6;
   opacity: 0;
   pointer-events: none;
@@ -355,7 +362,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 /* On a phone the same path crosses a much narrower column, so the butterfly ends up
    sitting on the text. Shrink it there. */
 @media (max-width: 760px){
-  #butterfly{ width: 96px; height: 96px; margin-left: -48px; margin-top: -48px; }
+  #butterfly{ width: 124px; height: 124px; margin-left: -62px; margin-top: -62px; }
 }
 @media (prefers-reduced-motion: reduce){
   #butterfly{ opacity: 0 !important; }
