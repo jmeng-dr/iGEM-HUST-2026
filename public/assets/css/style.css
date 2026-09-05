@@ -73,9 +73,16 @@ body{
   background: var(--paper);
   line-height: 1.72;
 }
-h1,h2,h3,h4{
+/* Headings had NO line-height of their own and inherited the body's 1.72. That is
+   reading leading, sized for a 17px measure of 70-ish characters; on a 58px display
+   serif it put 99px between baselines, so any h1 that wrapped — and a 46-character
+   title in a 952px column always will — broke into two lines that read as two
+   separate headings. Leading tightens as type grows: the bigger the face, the less
+   space it needs between lines to hold together as one block. */
+h1,h2,h3,h4,h5{
   font-weight: 600;
   letter-spacing: 0.01em;
+  line-height: 1.2;
   margin: 0 0 0.5em;
 }
 /* The display serif is kept for the large, few, decorative headings.
@@ -333,7 +340,11 @@ img{ max-width: 100%; display:block; }
   font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase;
   color: var(--kingfisher-1); font-weight:700; margin-bottom:10px;
 }
-.page-hero h1{ font-size: clamp(2.4rem, 4.4vw, 3.4rem); font-weight: 700; letter-spacing: -0.01em; color: var(--text-dark); }
+.page-hero h1{
+  font-size: clamp(2.4rem, 4.4vw, 3.4rem); font-weight: 700;
+  letter-spacing: -0.01em; color: var(--text-dark);
+  line-height: 1.08;
+}
 .page-hero p.lede{ color: var(--text-mid); font-size:1.05rem; }
 
 /* .plain used to give Wet-Lab and the AI stubs a FLAT --paper-dim hero while Project,
@@ -358,6 +369,7 @@ img{ max-width: 100%; display:block; }
    Fixed by giving the serif the size and weight it needs to carry a display role,
    rather than by abandoning it. */
 .page-body h2{
+  line-height: 1.18;
   font-size: 2.15rem;
   font-weight: 700;
   letter-spacing: -0.005em;
@@ -382,10 +394,12 @@ img{ max-width: 100%; display:block; }
    groups with the content BELOW it; a real size step; and a colour step, because
    at these sizes weight and size alone are not enough separation. */
 .page-body h3{
+  line-height: 1.35;
   font-size: 1.24rem; color: var(--text-dark);
   margin-top: 2.3em; margin-bottom: 0.55em;
 }
 .page-body h4{
+  line-height: 1.4;
   font-size: 1.06rem; color: var(--text-mid);
   margin-top: 1.9em; margin-bottom: 0.45em;
 }
@@ -580,8 +594,8 @@ pre code{
 
    The gate: the container is --content-width (1080px) centred, so each gutter is
    (100vw - 1080px) / 2. The rail needs the gutter to hold three things, not one:
-   a margin from the window edge (30px), the rail itself (210px), and a gap before
-   the prose (40px) = 280px, i.e. a viewport of 1640px. The old 1580px gate only
+   a margin from the window edge (26px), the rail itself (224px), and a gap before
+   the prose (30px) = 280px, i.e. a viewport of 1640px. The old 1580px gate only
    counted the rail and the gap, so at the breakpoint the rail sat flush against
    the left edge of the window. Below the gate the rail is simply absent — the
    top-nav dropdowns still carry the same anchors. */
@@ -599,8 +613,8 @@ pre code{
     display: block;
     position: absolute;
     top: 0; bottom: 0;
-    left: calc((100vw - var(--content-width)) / 2 - 250px);
-    width: 210px;
+    left: calc((100vw - var(--content-width)) / 2 - 254px);
+    width: 224px;
     /* top:0 is the padding-box edge, i.e. the very top of .page-body, so without
        this the rail's title sat hard on the boundary with the hero. 56px puts it
        just below the first h2's cap line instead, inside the body band. */
@@ -611,26 +625,30 @@ pre code{
     position: sticky;
     /* 100px clears the 77px sticky nav with room to spare. */
     top: 100px;
-    width: 210px;
+    width: 224px;
     max-height: calc(100vh - 150px);
-    /* 0.85rem rather than 0.9: fits ~27 characters per line, so the longest rail
-       label ("2 · Pigment-cellulose film", 26) stays on one line without widening
-       the rail, which would have pushed the gutter breakpoint higher. */
+    /* 0.92rem (15.6px) against the body's 17px. At the old 0.85rem/14.45px the rail
+       read as fine print rather than as navigation — clearly smaller than the prose
+       it indexes, when it only needs to be subordinate to it. The rail widened
+       210 -> 224px to pay for the larger type: the longest label,
+       "2 · Pigment-cellulose film" at 26 characters, needs ~200px and the rail's
+       inner width is now 208. The gutter budget is unchanged (26 + 224 + 30 = 280),
+       so the 1640px gate does not move. */
     overflow-y: auto;
     overscroll-behavior: contain;
-    font-size: 0.85rem;
-    line-height: 1.45;
+    font-size: 0.92rem;
+    line-height: 1.5;
     border-left: 2px solid rgba(0,0,0,0.10);
     padding-left: 16px;
   }
   .page-sidenav .psn-title{
-    margin: 0 0 12px;
-    font-size: 0.72rem; font-weight: 700;
+    margin: 0 0 16px;
+    font-size: 0.76rem; font-weight: 700;
     letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--ink-brown);
   }
   .page-sidenav ul{ list-style: none; margin: 0; padding: 0; }
-  .page-sidenav li{ margin: 0 0 10px; }
+  .page-sidenav li{ margin: 0 0 13px; }
   .page-sidenav a{
     display: -webkit-box;
     -webkit-line-clamp: 2;      /* safety net for a label the shortener cannot trim */
