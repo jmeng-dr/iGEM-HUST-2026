@@ -135,15 +135,36 @@
        to zero, i.e. anticlockwise, the direction module 2 will continue in. */
     var ENTRY_SPIN = 90;        // deg of wind-up, unwound to 0 by the time module 1 lands
     var ENTRY_SCALE = 0.55;     // starting size, grown to 1
-    var ENTRY_FRACTION = 0.75;  // of viewport height: the scroll distance the entrance spans
+
+    /* ENTRY_FRACTION is of viewport height, and it is what decides when the entrance
+       BEGINS, counted back from the pin. Getting it wrong is invisible in the code and
+       obvious on screen, so the geometry, writing V for viewport height:
+
+         the dial's centre sits at track_top + V/2 (the wrap is left:0/top:50% of a
+         viewport-tall .wheel-sticky), and the dial is min(0.92V, 860)px across, so at
+         scale s its top edge is at  track_top + V/2 - 430s  and it first crosses the
+         bottom of the screen when  track_top < V/2 + 430s.
+
+       At 0.75 the entrance started at track_top = 0.75V, i.e. scrollY ~= 562 on a 990px
+       screen — only 112px after the preface's colour effect released (EFFECT_DISTANCE_PX
+       is 450) and with the glow circle still whole in the middle of the screen. The dial
+       was still below the fold, and worse, the quadratic ease-out was front-loaded: by
+       p = 0.5 it was already 75% grown. So the dial did its growing off-screen and by
+       the time it was actually readable it was at ~0.8 and barely moving.
+
+       0.45 starts it at track_top = 0.45V, where the dial's top edge is ~285px above the
+       bottom of the screen — already visible — so the whole of the growth happens where
+       it can be seen. */
+    var ENTRY_FRACTION = 0.45;
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    /* progress is 0 while the section is a screen below, 1 the moment the track pins and
-       module 1 is in place. Quadratic ease-OUT so the dial decelerates into position
-       rather than snapping the last few degrees. */
+    /* progress is 0 where the entrance begins, 1 the moment the track pins and module 1
+       is in place. Smoothstep rather than a plain ease-out: it eases IN as well, so the
+       growth is centred in the window where the dial is on screen instead of being spent
+       in the first third of it, and still decelerates into position at the end. */
     function renderDial(index, progress) {
       if (!dial) return;
-      var e = reduceMotion.matches ? 1 : 1 - (1 - progress) * (1 - progress);
+      var e = reduceMotion.matches ? 1 : progress * progress * (3 - 2 * progress);
       var rot = -index * 90 + ENTRY_SPIN * (1 - e);
       var scale = ENTRY_SCALE + (1 - ENTRY_SCALE) * e;
       /* The 0.75s transition exists for the 90deg module steps. While the entrance is
