@@ -112,7 +112,32 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    swapping text instantly or scrolling an overflow box. */
 /* no background here either — same reasoning as #preface above: #bg-wash + body.home's
    base black carry through continuously instead of intro-wheel having its own flat tone. */
-#intro-wheel{ color: var(--text-on-dark); }
+/* The handoff from the preface to the modules used to leave roughly a full screen of
+   empty dark between them, because BOTH sections centre their content in a viewport-tall
+   sticky box: you scrolled past the empty bottom half of the preface and then waited
+   through the empty top half of the wheel before the modules appeared.
+
+   The wheel is pulled up so that it pins at exactly the scroll position where the glow
+   circle finishes leaving the top of the screen. Writing V for the viewport height:
+
+     the preface's sticky releases at scrollY = 450 (EFFECT_DISTANCE_PX), after which
+     the circle's centre sits at 450 - scrollY + V/2, and its visible extent is 310px
+     (240px radius + the 60/10 box-shadow), so the circle is gone at
+         scrollY = V/2 + 760
+     the wheel pins when its track reaches the top, at
+         scrollY = V + 450 + margin
+     equate them:  margin = 360px - V/2       (360, not 310, to clear the soft glow)
+
+   The two never overlap on the way there: the wheel's content stays below the circle's
+   lower edge for any V greater than 280px. position/z-index only fix paint order — the
+   circle is z-index 2 and stays above the wheel if a future change ever does overlap
+   them. */
+#intro-wheel{
+  color: var(--text-on-dark);
+  position: relative; z-index: 1;
+  margin-top: calc(360px - 50vh);
+  margin-top: calc(360px - 50dvh);
+}
 #intro-wheel .eyebrow{
   color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em; text-transform:uppercase; font-weight:700;
 }
