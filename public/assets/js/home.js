@@ -133,39 +133,40 @@
        it unwinds to 0 as module 1 arrives, so the entrance reads as one more click of
        the same wheel rather than a separate flourish. It starts positive and runs down
        to zero, i.e. anticlockwise, the direction module 2 will continue in. */
-    /* A full turn, not the 90deg of a single module step. Still an exact multiple of 90,
-       so the arcs inside the dial land at precisely the angle they hold for module 1 —
-       the flourish cannot leave the marker off by a degree. Runs positive down to zero,
+    /* A turn and a half. The landing is exact for any value — the term is
+       ENTRY_SPIN * (1 - e) and e is exactly 1 at the pin, so it vanishes — but keeping
+       it a multiple of 90 means the entrance is indistinguishable from six more clicks
+       of the same wheel rather than an unrelated flourish. Runs positive down to zero,
        i.e. anticlockwise, the direction module 2 then continues in. */
-    var ENTRY_SPIN = 360;
+    var ENTRY_SPIN = 540;
     /* 0.05 of 860px is a ~43px speck, and only its right half is ever on screen, so it
        starts as a glint at the left edge and opens out of nothing. Interpolated linearly
        rather than geometrically: pow(0.05, 1-e) keeps it tiny until very late and then
        blooms, which reads as a pop rather than as growth. */
     var ENTRY_SCALE = 0.05;
 
-    /* ENTRY_FRACTION is of viewport height, and it is what decides when the entrance
-       BEGINS, counted back from the pin. Getting it wrong is invisible in the code and
-       obvious on screen, so the geometry, writing V for viewport height:
+    /* ENTRY_FRACTION is of viewport height, and it decides when the entrance BEGINS,
+       counted back from the pin. It is not tuned — it is the one value that makes the
+       spin start at the instant the point it spins about crosses into view.
 
-         the dial's centre sits at track_top + V/2 (the wrap is left:0/top:50% of a
-         viewport-tall .wheel-sticky), and the dial is min(0.92V, 860)px across, so at
-         scale s its top edge is at  track_top + V/2 - 430s  and it first crosses the
-         bottom of the screen when  track_top < V/2 + 430s.
+       .wheel-sticky is the first child of .wheel-scroll-track, so track.top is also the
+       sticky's top; the wrap is left:0/top:50% of it and .dial's translate(-50%,-50%)
+       puts the centre of rotation on that anchor. Writing V for viewport height, the
+       centre therefore sits at
 
-       At 0.75 the entrance started at track_top = 0.75V, i.e. scrollY ~= 562 on a 990px
-       screen — only 112px after the preface's colour effect released (EFFECT_DISTANCE_PX
-       is 450) and with the glow circle still whole in the middle of the screen. The dial
-       was still below the fold, and worse, the quadratic ease-out was front-loaded: by
-       p = 0.5 it was already 75% grown. So the dial did its growing off-screen and by
-       the time it was actually readable it was at ~0.8 and barely moving.
+           y = track_top + V/2
 
-       0.45 starts it at track_top = 0.45V. At the entry scale the dial is only a speck,
-       so what matters there is its centre rather than its top edge: the centre sits at
-       track_top + V/2 = 0.95V, just inside the bottom of the screen at x = 0. The whole
-       of the growth therefore happens where it can be seen. Starting any earlier only
-       spends ramp on a speck that is still below the fold. */
-    var ENTRY_FRACTION = 0.45;
+       and crosses the bottom edge of the screen when y < V, i.e. when
+
+           track_top < V/2      =>   ENTRY_FRACTION = 0.5
+
+       For the record, what the earlier values were doing. 0.75 started it at scrollY
+       ~= 562 on a 990px screen — 112px after the preface's colour effect released
+       (EFFECT_DISTANCE_PX is 450), with the glow circle still whole in the middle of the
+       screen and the dial's centre still half a screen below the fold. 0.45 was the
+       opposite error, if a small one: it began 0.05V after the centre had already
+       entered. 0.5 is the boundary itself. */
+    var ENTRY_FRACTION = 0.5;
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     /* progress is 0 where the entrance begins, 1 the moment the track pins and module 1
