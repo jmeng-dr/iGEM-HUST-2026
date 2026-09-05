@@ -301,16 +301,28 @@ img{ max-width: 100%; display:block; }
 .page-body p{ color: var(--text-mid); }
 .page-body ul, .page-body ol{ color: var(--text-mid); }
 
-/* MEASURE. The container is 1080px wide, which at this body size is ~119 characters
-   per line — well past the 60–80 that reads comfortably. Prose is capped so lines
-   stay in range, while tables, figures and placeholder blocks keep the full column
-   width they actually need. This matters more for readability than the font size
-   does. */
-.page-body p,
-.page-body ul,
-.page-body ol{ max-width: 68ch; }
-.page-body .table-wrap p,
-.page-body table p{ max-width: none; }
+/* MEASURE. At 1080px the text column ran ~119 characters per line, well past the
+   60–80 that reads comfortably. Capping the paragraphs alone fixed the line length
+   but left them ending a long way short of the full-width tables, so the right edge
+   went ragged and the whole page leaned left.
+
+   So the COLUMN is narrowed instead, and the few things that genuinely need more
+   room — tables, figure rows — break back out of it symmetrically. Everything then
+   shares one left edge, and the wide elements overhang evenly on both sides. */
+.page-hero .container,
+.page-body .container{ max-width: 780px; }
+
+.page-body .table-wrap,
+.page-body .ph-row,
+.page-body .ph-image.wide{
+  width: min(var(--content-width), calc(100vw - 2 * clamp(20px, 5vw, 64px)));
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+/* children of a broken-out row must not break out a second time */
+.page-body .ph-row .ph-image{
+  width: auto; margin-left: 0; transform: none;
+}
 /* Every table is wrapped in .table-wrap. At desktop widths this changes nothing;
    on a narrow viewport the table scrolls inside its own box instead of forcing the
    whole page sideways (QA round 1: Project-Description overflowed at 375px). */
