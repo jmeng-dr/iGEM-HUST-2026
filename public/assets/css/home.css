@@ -141,7 +141,11 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 .wheel-track{ display:flex; flex-direction:column; gap: 4px; border-left: 2px solid rgba(255,255,255,0.12); }
 .wheel-stop{
   all:unset; display:flex; align-items:baseline; gap:12px;
-  padding: 14px 0 14px 22px; position:relative; color: var(--text-on-dark-dim);
+  padding: 14px 0 14px 22px; position:relative;
+  /* Inactive rows read as "quieter", not "greyed out". --text-on-dark-dim (#b9b0a0)
+     is a warm grey that goes muddy against the dark teal; the active cream at 74%
+     alpha keeps the same hue family and stays clearly legible. */
+  color: rgba(239,231,214,0.74);
   transition: color 0.3s;
 }
 .wheel-stop::before{
@@ -149,7 +153,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   width:12px; height:12px; border-radius:50%; background: var(--ink-soft);
   border: 2px solid var(--kingfisher-3); transition: all 0.3s;
 }
-.wheel-stop .n{ font-family: var(--font-display); font-size:1.4rem; opacity:0.6; transition: opacity 0.3s, color 0.3s; }
+.wheel-stop .n{ font-family: var(--font-display); font-size:1.4rem; opacity:0.78; transition: opacity 0.3s, color 0.3s; }
 .wheel-stop .label{ font-weight:600; }
 /* The module list now sits on top of a fully-lit medallion. A shadow keeps it
    legible over the busy artwork without dimming the artwork itself; over the plain
@@ -401,17 +405,19 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 .dial-arc{
   fill: none;
   stroke: var(--kingfisher-2);
-  stroke-width: 2.5;
+  stroke-width: 1.6;
   stroke-linecap: round;
   stroke-dasharray: 22 78;   /* pathLength=100, so this is a ~79-degree arc */
   opacity: 0.4;
   transition: stroke 0.4s ease, opacity 0.4s ease, stroke-width 0.4s ease;
 }
+/* Marker, not headline: at 3.5 in a 200 viewBox scaled to 860px this rendered as a
+   ~15px cream band that outshouted the medallion it was meant to annotate. */
 .dial-arc.active{
-  opacity: 1;
-  stroke: var(--cream-glow-lit);
-  stroke-width: 3.5;
-  filter: drop-shadow(0 0 8px var(--kingfisher-glow));
+  opacity: 0.9;
+  stroke: var(--kingfisher-3);
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 6px var(--kingfisher-glow));
 }
 
 /* The heading and module list must sit above the dial. */

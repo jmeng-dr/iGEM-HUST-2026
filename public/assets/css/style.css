@@ -44,7 +44,10 @@
 }
 
 *{ box-sizing: border-box; }
-html{ scroll-behavior: smooth; background: var(--paper); }
+/* 17px on the ROOT, not on body: rem resolves against <html>, so setting it on body
+   scaled the prose but left every rem-sized element (nav, tables, badges) at the old
+   16px scale. This lifts the whole type scale by one step, uniformly. */
+html{ font-size: 17px; scroll-behavior: smooth; background: var(--paper); }
 
 /* Cross-document view transition: smooth crossfade between pages instead of a hard
    cut, in browsers that support it. No-op (plain navigation) elsewhere. */
@@ -57,10 +60,6 @@ body{
   font-family: var(--font-body);
   color: var(--text-dark);
   background: var(--paper);
-  /* 17px, not the 16px default. Inter has a smaller x-height than the system CJK
-     faces this design is often seen next to, so at 16 it reads a size down from
-     where it should. */
-  font-size: 17px;
   line-height: 1.65;
 }
 h1,h2,h3,h4{
@@ -113,7 +112,7 @@ img{ max-width: 100%; display:block; }
   height: var(--brand-mark-size); width: auto; display:block; flex-shrink:0;
   object-fit: contain;
 }
-.site-nav nav{ display:flex; flex-wrap:wrap; gap: 4px 28px; font-size: 0.86rem; }
+.site-nav nav{ display:flex; flex-wrap:wrap; gap: 4px 30px; font-size: 0.95rem; }
 .site-nav nav a{
   color: var(--text-mid); padding: 6px 4px; border-bottom: 2px solid transparent;
 }
@@ -133,7 +132,7 @@ img{ max-width: 100%; display:block; }
 .nav-dropdown{ position:relative; }
 .nav-drop-trigger{
   all:unset; cursor:pointer; color: var(--text-mid); padding: 6px 4px; border-bottom: 2px solid transparent;
-  font-size: 0.86rem; display:inline-flex; align-items:center; gap:4px;
+  font-size: 0.95rem; display:inline-flex; align-items:center; gap:4px;
 }
 .site-nav.on-dark .nav-drop-trigger{ color: var(--text-on-dark-dim); }
 .nav-drop-trigger::after{ content:""; width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.2s; }
@@ -291,10 +290,10 @@ img{ max-width: 100%; display:block; }
    noticeably smaller than a sans at the same number. The headings are nudged up to
    compensate rather than because the scale itself was wrong. */
 .page-body h2{
-  font-size: 1.75rem; color: var(--ink-brown-dim);
+  font-size: 1.66rem; color: var(--ink-brown-dim);
   border-bottom: 2px solid var(--kingfisher-2); display:inline-block; padding-bottom:4px;
 }
-.page-body h3{ font-size: 1.25rem; color: var(--text-dark); margin-top: 1.4em; }
+.page-body h3{ font-size: 1.2rem; color: var(--text-dark); margin-top: 1.4em; }
 .page-body p{ color: var(--text-mid); }
 .page-body ul, .page-body ol{ color: var(--text-mid); }
 
@@ -352,32 +351,60 @@ img{ max-width: 100%; display:block; }
   padding: 22px 0; font-size: 0.85rem;
 }
 .site-footer a{ color: var(--text-on-dark); }
-.site-footer .container{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+/* Three columns of real footer content, with the institution seals on a tint band
+   underneath. The band is full-bleed and the seals sit ON it rather than floating on
+   bare near-black: two of the three are dark-on-white and the third is the inverse,
+   so without a shared ground they read as three unrelated logos. */
+.site-footer .footer-main{
+  display:grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: clamp(28px, 5vw, 72px);
+  align-items:start;
+  padding-top: 14px;
+  padding-bottom: 34px;
+}
+.footer-h{
+  font-family: var(--font-display);
+  font-size: 1.32rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+  color: var(--text-on-dark); margin: 0 0 12px;
+  padding-bottom: 10px; position:relative;
+}
+.footer-h::after{
+  content:''; position:absolute; left:0; bottom:0;
+  width: 34px; height: 3px; border-radius:2px; background: var(--kingfisher-3);
+}
+.site-footer .footer-col p{ margin: 0 0 10px; }
+.footer-addr{ line-height: 1.75; }
+.footer-mail{ color: var(--kingfisher-3) !important; font-weight:600; }
+.footer-nav{ display:grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; }
+.footer-nav ul{ list-style:none; margin:0; padding:0; }
+.footer-nav li{ margin-bottom: 10px; }
+.footer-copy{ font-weight:700; color: var(--text-on-dark); }
 
-/* Institution seals: a centred row above the copyright line.
-   The row sits on a full-bleed tint band rather than directly on the near-black
-   footer. Two of the three seals are blue line-art on white grounds and the third
-   is the inverse (a solid blue disc); against bare #0b0f10 the white pair punched
-   and the blue one receded, so the row read as three unrelated logos. The band
-   gives all three a common ground — the white discs stop floating and the dark one
-   reads as deliberate contrast. Negative top margin cancels .site-footer's own top
-   padding so the band is flush with the footer's top edge. */
 .footer-institutions-band{
   background: rgba(255,255,255,0.045);
-  border-bottom: 1px solid rgba(255,255,255,0.10);
-  margin-top: -22px;
-  padding: 18px 0 16px;
-  margin-bottom: 18px;
+  border-top: 1px solid rgba(255,255,255,0.10);
+  margin-bottom: -22px;   /* cancel .site-footer's bottom padding so the band is flush */
+  padding: 22px 0 24px;
 }
 .site-footer .footer-institutions{
-  justify-content:center; gap: clamp(20px, 4vw, 46px);
+  display:flex; flex-wrap:wrap;
+  justify-content:center; align-items:center;
+  gap: clamp(24px, 5vw, 60px);
 }
 .footer-seal{
-  height: 58px; width:auto; display:block;
+  height: 84px; width:auto; display:block;
   opacity: 0.92; transition: opacity 0.25s;
 }
 .footer-seal:hover{ opacity: 1; }
-@media (max-width: 600px){ .footer-seal{ height: 44px; } }
+
+@media (max-width: 860px){
+  .site-footer .footer-main{ grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px){
+  .site-footer .footer-main{ grid-template-columns: 1fr; gap: 26px; }
+  .footer-seal{ height: 60px; }
+}
 
 /* ---------- utility ---------- */
 .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }

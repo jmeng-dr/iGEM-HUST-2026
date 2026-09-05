@@ -1,13 +1,59 @@
 ---
-// Shared footer, identical to the original static pages. The only per-page difference
-// in the source was the "AI & Safety" target: every page points at
-// Wet-Lab-Experiments.html#safety except the Wet Lab page itself, which uses #safety.
+/* Three-column footer — contact, navigation, legal — over the institution seals.
+ * Modelled on the team's other build, which carries information this site was
+ * missing: a postal address, a contact address, the licence, and the repository
+ * link (iGEM expects a repository link to be reachable from every page).
+ *
+ * Deliberately NOT copied across: the "Pipeline status: PASSED" badge. It points at
+ * a CI pipeline that builds the other site, not this one, so it would be a claim
+ * about something this build does not do.
+ */
 interface Props {
   safetyHref?: string;
 }
 const { safetyHref = 'Wet-Lab-Experiments.html#safety' } = Astro.props;
+
+const NAV_LEFT = [
+  { href: 'index.html', label: 'Home' },
+  { href: 'Wet-Lab-Experiments.html', label: 'Wet Lab' },
+  { href: 'Attributions.html', label: 'Team' },
+];
+const NAV_RIGHT = [
+  { href: 'Project-Description.html', label: 'Project' },
+  { href: 'Human-Practices.html', label: 'Human Practices' },
+  { href: safetyHref, label: 'AI & Safety' },
+];
 ---
 <footer class="site-footer">
+  <div class="container footer-main">
+
+    <section class="footer-col">
+      <h2 class="footer-h">Contact Us</h2>
+      <p class="footer-addr">
+        Huazhong University of Science and Technology<br />
+        1037 Luoyu Road, Hongshan District, Wuhan<br />
+        Hubei Province, P.R. China 430074
+      </p>
+      <p><a class="footer-mail" href="mailto:igemhustchina@163.com">igemhustchina@163.com</a></p>
+    </section>
+
+    <section class="footer-col">
+      <h2 class="footer-h">Navigate</h2>
+      <div class="footer-nav">
+        <ul>{NAV_LEFT.map((i) => <li><a href={i.href}>{i.label}</a></li>)}</ul>
+        <ul>{NAV_RIGHT.map((i) => <li><a href={i.href}>{i.label}</a></li>)}</ul>
+      </div>
+    </section>
+
+    <section class="footer-col">
+      <h2 class="footer-h">Legal</h2>
+      <p class="footer-copy">© <span id="year"></span> iGEM HUST-China</p>
+      <p>Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license noopener" target="_blank">CC BY 4.0</a></p>
+      <p><a href="https://gitlab.igem.org/2026/hust-china" rel="noopener" target="_blank">Repository on iGEM GitLab</a></p>
+    </section>
+
+  </div>
+
   <div class="footer-institutions-band">
     <div class="container footer-institutions">
       <img class="footer-seal" src="/assets/img/seal-hust.webp" width="300" height="234" loading="lazy" decoding="async"
@@ -17,9 +63,5 @@ const { safetyHref = 'Wet-Lab-Experiments.html#safety' } = Astro.props;
       <img class="footer-seal" src="/assets/img/seal-qiming.webp" width="120" height="120" loading="lazy" decoding="async"
         alt="Qiming College, HUST" />
     </div>
-  </div>
-  <div class="container">
-    <div>© <span id="year"></span> Team Diǎn Cuì · iGEM</div>
-    <div><a href="Attributions.html">Attributions</a> · <a href={safetyHref}>AI &amp; Safety</a></div>
   </div>
 </footer>
