@@ -88,7 +88,7 @@ img{ max-width: 100%; display:block; }
 .site-nav .container{
   max-width: 1400px;
   display:flex; align-items:center; justify-content:space-between;
-  padding-top:12px; padding-bottom:12px; gap: 18px;
+  padding-top:13px; padding-bottom:13px; gap: 18px;
 }
 .site-nav .brand{
   font-family: var(--font-display); font-size: 1.3rem; font-weight:700;
@@ -107,7 +107,9 @@ img{ max-width: 100%; display:block; }
    of clearance top and bottom in the 61px bar, so neither the bar height nor any
    nav item moves. object-fit:contain so a future asset with a different aspect
    ratio is letterboxed rather than stretched. */
-:root{ --brand-mark-size: 36px; }
+/* 50px. The mark is the only thing setting the bar's height, so this is also the
+   knob for how tall the nav is: 50 + 2x13px padding = a 76px bar. */
+:root{ --brand-mark-size: 50px; }
 .brand-mark{
   height: var(--brand-mark-size); width: auto; display:block; flex-shrink:0;
   object-fit: contain;
@@ -140,13 +142,16 @@ img{ max-width: 100%; display:block; }
 .site-nav.on-dark .nav-drop-trigger:hover, .site-nav.on-dark .nav-drop-trigger.active{ color: var(--cream-glow-lit); border-bottom-color: var(--kingfisher-3); }
 .nav-dropdown.open .nav-drop-trigger::after{ transform: rotate(225deg) translateY(2px); }
 
-/* Icon + title + subtitle, two columns — each dropdown item is a small self-contained card
-   rather than a plain text link, so a section's one-line description is visible before you
-   click into it. */
+/* Title + subtitle, two columns — each dropdown item is a small self-contained card
+   rather than a plain text link, so a section's one-line description is visible before
+   you click into it. The emoji that used to sit beside each title are gone: a row of
+   unrelated pictographs (thread, chart, flask, handshake...) reads as clip-art next to
+   a hand-drawn brand mark, and the subtitle already does the job the icon was there
+   for. */
 .nav-drop-menu{
   position:absolute; top: 100%; left:50%; transform: translateX(-50%);
   background: #fff; border-radius: var(--radius-md); box-shadow: var(--shadow-2);
-  padding: 18px; display:none; grid-template-columns: 1fr 1fr; gap: 2px 30px; min-width: 420px; z-index:600;
+  padding: 18px; display:none; grid-template-columns: 1fr 1fr; gap: 2px 34px; min-width: 380px; z-index:600;
 }
 .nav-dropdown.open .nav-drop-menu,
 .nav-dropdown:hover .nav-drop-menu,
@@ -156,7 +161,6 @@ img{ max-width: 100%; display:block; }
   color: inherit !important; text-decoration:none !important; border-bottom:none !important;
 }
 .nav-drop-item:hover{ background: var(--paper-dim); }
-.nav-drop-item .ndi-icon{ font-size:1.25rem; line-height:1.2; }
 .nav-drop-item .ndi-text{ flex:1; min-width:0; }
 .nav-drop-item .ndi-title{ display:block; font-weight:700; color: var(--text-dark); font-size:0.92rem; white-space:nowrap; }
 .nav-drop-item .ndi-sub{ display:block; color: var(--kingfisher-1); font-size:0.76rem; margin-top:2px; }
@@ -229,7 +233,7 @@ img{ max-width: 100%; display:block; }
   background: linear-gradient(135deg, var(--kingfisher-2), var(--kingfisher-3));
   box-shadow: 0 0 10px var(--kingfisher-glow);
 }
-.rnc-brand .brand-mark{ height: 38px; }
+.rnc-brand .brand-mark{ height: 56px; }  /* scaled with the nav mark */
 .rnc-tagline{ font-family: var(--font-display); font-style:italic; font-size:1.1rem; color: var(--text-on-dark); margin-bottom:12px; }
 .rnc-hint{ font-size:0.85rem; color: var(--text-on-dark-dim); }
 
@@ -422,5 +426,5 @@ img{ max-width: 100%; display:block; }
   text-decoration:none;
 }
 .skip-link:focus{ left:0; }
-#main{ scroll-margin-top: 80px; }
+#main{ scroll-margin-top: 100px; }
 .tag-required{ color: var(--ink-brown); font-weight:700; }
