@@ -198,7 +198,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 /* The generous bottom padding here used to be the end of the page; the promotion
    video now follows, so #toc only needs normal separation and the long tail moved
    to #promo-video. */
-#toc{ padding: 40px 0 120px; }
+#toc{ padding: 40px 0 56px; }
 #toc .eyebrow{ color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; }
 #toc h2{ font-size: clamp(1.6rem,3vw,2.3rem); color: var(--text-on-dark); margin-bottom: 40px; }
 
@@ -290,10 +290,12 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 /* Same dark, transparent treatment as the sections above it — #bg-wash carries
    through. The frame holds a 16:9 box so the iframe never causes a layout shift
    while it loads, and the video is served from iGEM's own Video Universe. */
-/* Only enough breathing room to separate the frame from the footer. The 340px that
-   used to be here was inherited from when #toc was the last section on the page and
-   needed a long tail; with the footer directly underneath it was just a hole. */
-#promo-video{ padding: 0 0 60px; color: var(--text-on-dark); }
+/* Most of the spacing lives on this section's TOP, not on #toc's bottom, so that
+   scrolling until the video heading sits under the nav leaves clear air above it
+   rather than the bottom edge of the TOC stage peeking through. The bottom is kept
+   short: the 340px that used to be here dated from when #toc ended the page and
+   wanted a long tail, and with the footer directly underneath it was just a hole. */
+#promo-video{ padding: 124px 0 80px; color: var(--text-on-dark); }
 #promo-video .eyebrow{
   color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em;
   text-transform:uppercase; font-weight:700;
