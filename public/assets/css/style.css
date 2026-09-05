@@ -321,7 +321,30 @@ img{ max-width: 100%; display:block; }
   font-size: 1.66rem; color: var(--ink-brown-dim);
   border-bottom: 2px solid var(--kingfisher-2); display:inline-block; padding-bottom:4px;
 }
-.page-body h3{ font-size: 1.2rem; color: var(--text-dark); margin-top: 1.4em; }
+/* Heading rhythm. The global rule above sets margin: 0 0 0.5em — no TOP margin —
+   and only h3 used to override it, so every h4 and h5 sat flush against the
+   paragraph before it. On a page whose numbered subsections are h4 (2.4, 2.5, 2.6…)
+   that is what turns the page into one undifferentiated wall.
+
+   Each level now gets: a top margin several times its bottom margin, so a heading
+   groups with the content BELOW it; a real size step; and a colour step, because
+   at these sizes weight and size alone are not enough separation. */
+.page-body h3{
+  font-size: 1.24rem; color: var(--text-dark);
+  margin-top: 2.3em; margin-bottom: 0.55em;
+}
+.page-body h4{
+  font-size: 1.06rem; color: var(--ink-brown-dim);
+  margin-top: 1.9em; margin-bottom: 0.45em;
+}
+.page-body h5{
+  font-family: var(--font-body);
+  font-size: 0.95rem; font-weight: 700; color: var(--text-mid);
+  letter-spacing: 0.03em;
+  margin-top: 1.5em; margin-bottom: 0.35em;
+}
+/* A heading that directly follows its parent heading should not get the full gap. */
+.page-body h2 + h3, .page-body h3 + h4, .page-body h4 + h5{ margin-top: 0.9em; }
 .page-body p{ color: var(--text-mid); }
 .page-body ul, .page-body ol{ color: var(--text-mid); }
 
