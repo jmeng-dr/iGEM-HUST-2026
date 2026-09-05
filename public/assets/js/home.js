@@ -133,12 +133,12 @@
        it unwinds to 0 as module 1 arrives, so the entrance reads as one more click of
        the same wheel rather than a separate flourish. It starts positive and runs down
        to zero, i.e. anticlockwise, the direction module 2 will continue in. */
-    /* A turn and a half. The landing is exact for any value — the term is
+    /* One full turn. The landing is exact for any value — the term is
        ENTRY_SPIN * (1 - e) and e is exactly 1 at the pin, so it vanishes — but keeping
-       it a multiple of 90 means the entrance is indistinguishable from six more clicks
+       it a multiple of 90 means the entrance is indistinguishable from four more clicks
        of the same wheel rather than an unrelated flourish. Runs positive down to zero,
        i.e. anticlockwise, the direction module 2 then continues in. */
-    var ENTRY_SPIN = 540;
+    var ENTRY_SPIN = 360;
     /* 0.05 of 860px is a ~43px speck, and only its right half is ever on screen, so it
        starts as a glint at the left edge and opens out of nothing. Interpolated linearly
        rather than geometrically: pow(0.05, 1-e) keeps it tiny until very late and then
