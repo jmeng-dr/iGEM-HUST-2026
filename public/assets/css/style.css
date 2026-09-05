@@ -180,27 +180,39 @@ img{ max-width: 100%; display:block; }
 .nav-drop-menu{
   position:absolute; top: 100%; left:50%; transform: translateX(-50%);
   background: #fff; border-radius: var(--radius-md); box-shadow: var(--shadow-2);
-  padding: 16px 18px; display:none; grid-template-columns: 1fr; gap: 0;
+  padding: 16px 18px; display:none; z-index:600;
   /* One item per row, and inside each row the title and its teal subtitle sit side
      by side rather than stacked. Two item-columns meant each subtitle had only
      ~155-250px and broke mid-phrase; given a whole row, none of them wrap at all
      (the longest, "Optical, synbio & protein modelling", is 35 characters).
-     max-width keeps the menu inside the viewport when its trigger is near the
-     right edge. */
-  min-width: 540px; max-width: calc(100vw - 32px); z-index:600;
+
+     The MENU owns the two columns and each item inherits them via subgrid, so the
+     title column is exactly as wide as the widest title in THIS menu and the
+     subtitle column exactly as wide as the widest subtitle. The previous version
+     sized the title column at a fixed 170px and gave the subtitle 1fr under a
+     min-width:540px menu, which meant the leftover width was all dumped into the
+     subtitle column: it stretched far past the longest subtitle and left a wide
+     dead strip down the right-hand side of the panel. Nothing here can be wider
+     than its content now.
+
+     minmax(0, max-content) on the subtitle so a narrow viewport shrinks the column
+     rather than overflowing past max-width. */
+  grid-template-columns: max-content minmax(0, max-content);
+  width: max-content; max-width: calc(100vw - 32px);
 }
 .nav-dropdown.open .nav-drop-menu,
 .nav-dropdown:hover .nav-drop-menu,
 .nav-dropdown:focus-within .nav-drop-menu{ display:grid; }
 .nav-drop-item{
-  display:flex; align-items:flex-start; gap:12px; padding:9px 8px; border-radius:8px;
+  display:grid; grid-column: 1 / -1; grid-template-columns: subgrid;
+  align-items:baseline; gap: 0 26px;
+  padding:9px 10px; border-radius:8px;
   color: inherit !important; text-decoration:none !important; border-bottom:none !important;
 }
 .nav-drop-item:hover{ background: var(--paper-dim); }
-.nav-drop-item .ndi-text{
-  flex:1; min-width:0;
-  display:grid; grid-template-columns: 170px 1fr; align-items:baseline; gap:16px;
-}
+/* The wrapper exists only to group the two spans in the markup; it must not become
+   a box, or the title and subtitle would be one grid cell instead of two. */
+.nav-drop-item .ndi-text{ display: contents; }
 .nav-drop-item .ndi-title{ display:block; font-weight:700; color: var(--text-dark); font-size:0.92rem; white-space:nowrap; }
 .nav-drop-item .ndi-sub{ display:block; color: var(--kingfisher-1); font-size:0.78rem; }
 
@@ -208,7 +220,7 @@ img{ max-width: 100%; display:block; }
   .nav-dropdown{ width:100%; }
   .nav-drop-trigger{ width:100%; justify-content:space-between; padding:8px 0; }
   .nav-drop-menu{ position:static; transform:none; box-shadow:none; background:transparent; padding: 4px 0 4px 14px; display:flex; flex-direction:column; min-width:0; gap:0; }
-  .nav-drop-item{ color: inherit !important; padding:8px 4px; }
+  .nav-drop-item{ display:block; color: inherit !important; padding:8px 4px; }
   .nav-drop-item .ndi-title{ white-space:normal; }
   .nav-drop-item .ndi-text{ display:block; }
 }
@@ -561,16 +573,30 @@ pre code{
    (100vw - 1080px) / 2. A 210px rail plus breathing room needs roughly 250px of
    gutter, i.e. a viewport of about 1580px. Below that the rail is simply absent —
    the top-nav dropdowns still carry the same anchors. */
-.page-sidenav{ display: none; }
+.page-sidenav-rail{ display: none; }
 
 @media (min-width: 1580px){
-  .page-sidenav{
+  /* The rail's containing block. Absolutely positioned inside .page-body and
+     stretched top-to-bottom, so the rail is bounded by the prose it indexes: it
+     cannot appear beside the hero above nor over the footer below. The rail used
+     to be position:fixed, which anchored it to the viewport instead — it hung at a
+     constant 150px regardless of what was behind it, so its left rule cut across
+     the hero/body colour boundary and the whole thing read as a detached overlay. */
+  .page-body{ position: relative; }
+  .page-sidenav-rail{
     display: block;
-    position: fixed;
-    top: 150px;
+    position: absolute;
+    top: 0; bottom: 0;
     left: calc((100vw - var(--content-width)) / 2 - 250px);
     width: 210px;
-    max-height: calc(100vh - 200px);
+  }
+  .page-sidenav{
+    display: block;
+    position: sticky;
+    /* 100px clears the 77px sticky nav with room to spare. */
+    top: 100px;
+    width: 210px;
+    max-height: calc(100vh - 150px);
     /* 0.85rem rather than 0.9: fits ~27 characters per line, so the longest rail
        label ("2 · Pigment-cellulose film", 26) stays on one line without widening
        the rail, which would have pushed the gutter breakpoint higher. */

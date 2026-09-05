@@ -4,11 +4,20 @@
 
    Two deliberate constraints:
 
-   1. It lives in the page's outer MARGIN, position:fixed, and never occupies a
-      grid column. The content column keeps the full width it has; the rail simply
-      does not exist below a viewport wide enough to hold it in the gutter
-      (see .page-sidenav in style.css). Squeezing the prose to make room would undo
-      the column width the page is deliberately set to.
+   1. It lives in the page's outer MARGIN and never occupies a grid column. The
+      content column keeps the full width it has; the rail simply does not exist
+      below a viewport wide enough to hold it in the gutter (see .page-sidenav in
+      style.css). Squeezing the prose to make room would undo the column width the
+      page is deliberately set to.
+
+      It is wrapped in .page-sidenav-rail, which is absolutely positioned inside
+      .page-body and stretched to its full height; the rail itself is sticky within
+      that. The rail was previously position:fixed, anchored to the VIEWPORT, which
+      gave it no relationship to the document at all: it hung at a constant 150px
+      whatever was behind it, so its left rule cut straight across the boundary
+      between the hero band and the body band and it read as a detached floating
+      panel. Bounded by .page-body, it can no longer escape above the first heading
+      or below the last one.
 
    2. Section ids come from the enclosing <section id="..."> where one exists, so
       the rail points at exactly the same anchors the top-nav dropdowns already use
@@ -102,7 +111,10 @@
       html += '<li><a href="#' + e.id + '">' + e.label.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</a></li>";
     });
     nav.innerHTML = html + "</ul>";
-    body.appendChild(nav);
+    var rail = document.createElement("div");
+    rail.className = "page-sidenav-rail";
+    rail.appendChild(nav);
+    body.appendChild(rail);
 
     var links = Array.prototype.slice.call(nav.querySelectorAll("a"));
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
