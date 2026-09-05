@@ -249,7 +249,7 @@
       <p><strong>Tool:</strong> Python SALib (<code>pip install SALib</code>). Workflow shown for the 1.1 Bragg-reflection model; the same pattern applies to every model on this page.</p>
       <ol>
         <li>Define the parameter space:
-<pre style="background:#f1ebdd;padding:10px 14px;border-radius:8px;font-size:0.82rem;overflow-x:auto;">problem = {'num_vars': 4, 'names': ['P','navg','d','theta'],
+<pre>problem = {'num_vars': 4, 'names': ['P','navg','d','theta'],
            'bounds': [[250,800],[1.50,1.60],[1,50],[0,60]]}</pre></li>
         <li>Morris method for initial screening (1000 samples, 4 parameters): <code>from SALib.sample import morris as ms; from SALib.analyze import morris as ma</code>; sample, evaluate, analyze → sort by <code>Si['mu_star']</code>, keep the top 2 parameters</li>
         <li>Sobol method for precise quantification of the top 2: <code>from SALib.sample import saltelli; from SALib.analyze import sobol</code>; S1 = first-order variance explained, ST = total effect</li>
