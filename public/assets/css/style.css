@@ -516,3 +516,53 @@ pre code{
 .skip-link:focus{ left:0; }
 #main{ scroll-margin-top: 100px; }
 .tag-required{ color: var(--ink-brown); font-weight:700; }
+
+/* ---------- "on this page" rail ---------- */
+/* Fixed in the page's left gutter. It is NOT a layout column: the content column
+   keeps its full width, and the rail only appears once the viewport is wide enough
+   that the gutter can hold it without crowding the text.
+
+   The gate: the container is --content-width (1080px) centred, so each gutter is
+   (100vw - 1080px) / 2. A 210px rail plus breathing room needs roughly 250px of
+   gutter, i.e. a viewport of about 1580px. Below that the rail is simply absent —
+   the top-nav dropdowns still carry the same anchors. */
+.page-sidenav{ display: none; }
+
+@media (min-width: 1580px){
+  .page-sidenav{
+    display: block;
+    position: fixed;
+    top: 150px;
+    left: calc((100vw - var(--content-width)) / 2 - 250px);
+    width: 210px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    border-left: 2px solid rgba(0,0,0,0.10);
+    padding-left: 16px;
+  }
+  .page-sidenav .psn-title{
+    margin: 0 0 12px;
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-brown);
+  }
+  .page-sidenav ul{ list-style: none; margin: 0; padding: 0; }
+  .page-sidenav li{ margin: 0 0 10px; }
+  .page-sidenav a{
+    display: block;
+    color: var(--text-mid);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    margin-left: -18px; padding-left: 16px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .page-sidenav a:hover{ color: var(--kingfisher-1); text-decoration: none; }
+  .page-sidenav a.active{
+    color: var(--kingfisher-1);
+    font-weight: 600;
+    border-left-color: var(--kingfisher-2);
+  }
+}
