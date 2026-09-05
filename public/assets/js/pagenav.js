@@ -30,6 +30,51 @@
         .slice(0, 48) || "section";
     }
 
+    /* Label source #1: the top-nav dropdowns already name these exact anchors
+       (#modelling -> "Model", #parts -> "Part Collection", #safety -> "Safety").
+       Reusing those keeps one vocabulary for one destination and means the rail can
+       never drift from the menu. */
+    var here = (location.pathname.split("/").pop() || "index.html");
+    var navLabels = {};
+    document.querySelectorAll(".site-nav .nav-drop-item").forEach(function (a) {
+      var href = a.getAttribute("href") || "";
+      var parts = href.split("#");
+      /* Only borrow the label when the menu entry points at THIS page. Several pages
+         reuse the same fragment — Wet Lab has #validation ("Validation checkpoints")
+         and so does Project ("Results") — and keying on the fragment alone made the
+         rail label Wet Lab's section "Results". */
+      var file = parts[0].split("/").pop();
+      if (parts[1] && (file === here || file === "")) {
+        var title = a.querySelector(".ndi-title");
+        if (title) navLabels[parts[1]] = title.textContent.trim();
+      }
+    });
+
+    /* Label source #2: the heading itself, trimmed to its keyword. Full headings
+       ("Results: model vs experiment cross-checks") are far too long for a 210px
+       rail. Drop the subtitle after a colon or dash, and the clause after a comma —
+       but NOT for "Module 1: Cellulose recovery", where the tail is the whole
+       point. */
+    function shorten(text) {
+      var t = text.trim();
+      if (!/^(module|part|step|strategy|route)\s*\d/i.test(t)) {
+        t = t.split(/\s*[:—–]\s+/)[0];
+      }
+      var head = t.split(/,\s+/)[0];
+      if (head.length >= 8) t = head;
+      head = t.split(/\s+&\s+/)[0];
+      if (head.length >= 8) t = head;
+      return t;
+    }
+
+    /* Badges live inside the headings ("Wet Lab <span class=credit-tag>11 members").
+       Strip them before reading the text. */
+    function headingText(h) {
+      var c = h.cloneNode(true);
+      c.querySelectorAll(".credit-tag, .req-badge, .tag-new, .tag-rev").forEach(function (n) { n.remove(); });
+      return c.textContent.replace(/\s+/g, " ").trim();
+    }
+
     var seen = {};
     var entries = headings.map(function (h) {
       var section = h.closest("section");
@@ -40,7 +85,7 @@
         (section || h).id = id;
       }
       seen[id] = true;
-      return { id: id, el: h, label: h.textContent.trim() };
+      return { id: id, el: h, label: navLabels[id] || shorten(headingText(h)) };
     });
 
     var nav = document.createElement("nav");

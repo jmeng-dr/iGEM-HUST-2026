@@ -566,7 +566,10 @@ pre code{
   .page-sidenav ul{ list-style: none; margin: 0; padding: 0; }
   .page-sidenav li{ margin: 0 0 10px; }
   .page-sidenav a{
-    display: block;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;      /* safety net for a label the shortener cannot trim */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     color: var(--text-mid);
     text-decoration: none;
     border-left: 2px solid transparent;
