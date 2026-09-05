@@ -133,8 +133,16 @@
        it unwinds to 0 as module 1 arrives, so the entrance reads as one more click of
        the same wheel rather than a separate flourish. It starts positive and runs down
        to zero, i.e. anticlockwise, the direction module 2 will continue in. */
-    var ENTRY_SPIN = 90;        // deg of wind-up, unwound to 0 by the time module 1 lands
-    var ENTRY_SCALE = 0.55;     // starting size, grown to 1
+    /* A full turn, not the 90deg of a single module step. Still an exact multiple of 90,
+       so the arcs inside the dial land at precisely the angle they hold for module 1 —
+       the flourish cannot leave the marker off by a degree. Runs positive down to zero,
+       i.e. anticlockwise, the direction module 2 then continues in. */
+    var ENTRY_SPIN = 360;
+    /* 0.05 of 860px is a ~43px speck, and only its right half is ever on screen, so it
+       starts as a glint at the left edge and opens out of nothing. Interpolated linearly
+       rather than geometrically: pow(0.05, 1-e) keeps it tiny until very late and then
+       blooms, which reads as a pop rather than as growth. */
+    var ENTRY_SCALE = 0.05;
 
     /* ENTRY_FRACTION is of viewport height, and it is what decides when the entrance
        BEGINS, counted back from the pin. Getting it wrong is invisible in the code and
@@ -152,9 +160,11 @@
        p = 0.5 it was already 75% grown. So the dial did its growing off-screen and by
        the time it was actually readable it was at ~0.8 and barely moving.
 
-       0.45 starts it at track_top = 0.45V, where the dial's top edge is ~285px above the
-       bottom of the screen — already visible — so the whole of the growth happens where
-       it can be seen. */
+       0.45 starts it at track_top = 0.45V. At the entry scale the dial is only a speck,
+       so what matters there is its centre rather than its top edge: the centre sits at
+       track_top + V/2 = 0.95V, just inside the bottom of the screen at x = 0. The whole
+       of the growth therefore happens where it can be seen. Starting any earlier only
+       spends ramp on a speck that is still below the fold. */
     var ENTRY_FRACTION = 0.45;
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
