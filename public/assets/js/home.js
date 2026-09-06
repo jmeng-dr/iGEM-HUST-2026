@@ -314,7 +314,7 @@
                                         it can be without intruding — and at c = 1 it is
                                         zero, so the block lands centred.
 
-       G(c) = mix(G0,G1,c) - D * sin^2(pi*c)
+       G(c) = mix(G0,G1,c) - D * sin^2(pi*c),  D = SQUEEZE * mid
                                         the gap itself. Its endpoints are forced, not
                                         chosen: G0 = V/2 - hm/2 and G1 = V/2 - ht/2 are
                                         exactly the values at which one block is flush with
@@ -364,8 +364,14 @@
     });
     if (!pairs.length) return;
 
-    var GAP_MIN = 8;   /* px: the tightest the two blocks are ever allowed to squeeze */
-    var PAD = 4;       /* px of hard clearance, for content that does not fit the viewport */
+    /* How hard the squeeze bites, as a FRACTION of the gap that pair starts with — not an
+       absolute pixel floor. The two pairs have different block heights, so they start from
+       different gaps, and one shared pixel floor made the same setting read as a light
+       nudge for one pair and as almost touching for the other. A fraction is the same
+       amount of squeeze for both by construction. */
+    var SQUEEZE = 0.75;   /* the gap closes to a quarter of what it starts at */
+    var GAP_MIN = 8;      /* px: an absolute floor as well, for a pair that starts tiny */
+    var PAD = 4;          /* px of hard clearance, for content that does not fit the viewport */
     var ticking = false;
 
     /* The footer's arrival, treated as one more hand-off. The footer normally begins where
@@ -419,7 +425,7 @@
         /* Capped so M' = V - G0 - D*b'(c) can never go negative. Uncapped, the curve asks
            the gap to close faster than scrolling closes it, and the difference has to come
            out of shoving the outgoing block backwards. */
-        var D = Math.min(Math.max(0, mid - GAP_MIN), (V - G0) / Math.PI);
+        var D = Math.min(mid * SQUEEZE, Math.max(0, mid - GAP_MIN), (V - G0) / Math.PI);
         var bump = Math.sin(Math.PI * c);
         var G = G0 + (G1 - G0) * c - D * bump * bump;
         var M = G - V * (1 - c) + (hm + ht) / 2 + T;
