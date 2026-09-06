@@ -314,13 +314,18 @@
                                         it can be without intruding — and at c = 1 it is
                                         zero, so the block lands centred.
 
-       G(c) = mix(G0,G1,c) - (mix(G0,G1,0.5) - GAP_MIN) * sin(pi*c)
+       G(c) = mix(G0,G1,c) - D * sin^2(pi*c)
                                         the gap itself. Its endpoints are forced, not
                                         chosen: G0 = V/2 - hm/2 and G1 = V/2 - ht/2 are
                                         exactly the values at which one block is flush with
                                         an edge of the screen while the other is centred.
-                                        The sine dips it to GAP_MIN in between and vanishes
-                                        at both ends, so it cannot disturb either.
+                                        The bump dips it toward GAP_MIN in between and
+                                        vanishes at both ends, so it disturbs neither.
+
+                                        sin^2, not sin: sin's slope is at its MAXIMUM at
+                                        c = 0, so the squeeze demanded its fastest closing
+                                        exactly where it had to start from nothing.
+                                        sin^2 starts and ends flat.
 
        M(c) = G(c) - V(1-c) + (hm+ht)/2 + T(c)
                                         the outgoing block's travel, SOLVED from the gap
@@ -331,9 +336,20 @@
                                         and then that one shoots away. Both endpoints fall
                                         out for free, M(0) = 0 and M(1) = V/2 + hm/2.
 
+     M must never go BACKWARDS, and differentiating says exactly when it would:
+
+         M'(c) = V - G0 - D * b'(c)
+
+     V - G0 is the rate at which scrolling closes the gap on its own; D * b'(c) is the rate
+     the curve is asking for. Ask for more than scrolling supplies and the only place the
+     difference can come from is pushing the outgoing block DOWN — which is visible as the
+     whole section sinking before it rises. So D is capped at (V - G0) / pi, pi being the
+     largest b' can be. The squeeze then goes as tight as it can without ever reversing,
+     and GAP_MIN is a floor it reaches only where the geometry allows.
+
      The overlap is still checked outright each frame. By construction it cannot go below
-     GAP_MIN, but that construction assumes both blocks fit inside the viewport and nothing
-     guarantees the content will. */
+     the minimum actually achieved, but that construction assumes both blocks fit inside
+     the viewport and nothing guarantees the content will. */
   function initStack() {
     function contentOf(el) { return el && el.querySelector(":scope > .container"); }
     var pairs = [];
@@ -400,7 +416,12 @@
         var G0 = Math.max(0, V / 2 - hm / 2);   /* outgoing centred, incoming on the fold */
         var G1 = Math.max(0, V / 2 - ht / 2);   /* incoming centred, outgoing flush at y=0 */
         var mid = (G0 + G1) / 2;
-        var G = G0 + (G1 - G0) * c - Math.max(0, mid - GAP_MIN) * Math.sin(Math.PI * c);
+        /* Capped so M' = V - G0 - D*b'(c) can never go negative. Uncapped, the curve asks
+           the gap to close faster than scrolling closes it, and the difference has to come
+           out of shoving the outgoing block backwards. */
+        var D = Math.min(Math.max(0, mid - GAP_MIN), (V - G0) / Math.PI);
+        var bump = Math.sin(Math.PI * c);
+        var G = G0 + (G1 - G0) * c - D * bump * bump;
         var M = G - V * (1 - c) + (hm + ht) / 2 + T;
 
         var inTop  = V * (1 - c) + V / 2 - T - ht / 2;
