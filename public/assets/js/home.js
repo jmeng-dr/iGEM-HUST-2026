@@ -8,6 +8,7 @@
     // initCursorOrb();  // disabled — cursor-replacement effect felt more disorienting than
     //                      delightful. Implementation kept intact below; uncomment to bring back.
     initWheel();
+    initStack();
     initTOC();
   });
 
@@ -180,26 +181,29 @@
        V when the track releases, so `1 - top/V` is 0 at the release with nothing to
        measure or keep in sync. Past that, `-top/height` carries it across the section.
 
-         q = 0    the modules have just finished
-         q = 0.5  the totems have reached the top of the screen  -> 50% opacity, and the
-                  stage (3% white) is over the dial, so it reads as passing behind them
-         q = 1    gone — EXIT_FADE_SPAN of the way through the totems, not at the end of
-                  them. Spending the whole section on the second half of the fade left it
-                  faintly visible almost to the footer. */
+         q = 0    the modules have just finished; #toc's top edge is at the bottom of
+                  the screen, which is exactly where its slide begins
+         q = 0.5  #toc's top edge has reached mid-screen — so the totem panel is over the
+                  lower half of the dial, and the dial is at 50%: partly covered, half
+                  faded, which is the effect asked for
+         q = 1    #toc covers the screen. The panel is opaque, so the dial has to be gone
+                  by then; the squared tail below has it invisible well before. */
     var EXIT_SPIN        = 200;   /* deg of further rotation across the exit */
     var EXIT_SCALE       = 2.2;   /* grown to this by the time it is gone */
-    var EXIT_FADE_SPAN   = 0.5;   /* of #toc's height: how much of it the fade-out uses */
     var EXIT_MID_OPACITY = 0.5;
     var BASE_OPACITY     = 0.92;  /* matches .dial's opacity in home.css */
 
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+    /* One expression now, where this used to be two legs joined at the totems. #toc is a
+       stacked panel: it slides its own height-of-a-viewport up over the pinned modules
+       and then sticks. So its top going V -> 0 IS the whole exit, and there is no second
+       phase to measure — nor could there be, since the panel is opaque and hides the dial
+       from the moment it covers the screen. */
     function exitProgress() {
       if (!toc) return 0;
-      var r = toc.getBoundingClientRect();
       var V = window.innerHeight || 800;
-      if (r.top > 0) return 0.5 * Math.min(1, Math.max(0, 1 - r.top / V));
-      return 0.5 + 0.5 * Math.min(1, Math.max(0, -r.top / Math.max(1, r.height * EXIT_FADE_SPAN)));
+      return Math.min(1, Math.max(0, 1 - toc.getBoundingClientRect().top / V));
     }
 
     /* progress is 0 where the entrance begins, 1 the moment the track pins and module 1
@@ -284,6 +288,42 @@
     /* Run once before listening: a reload that restores a mid-page scroll position would
        otherwise leave the dial at its entry size until the reader happened to scroll. */
     onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+  }
+
+  /* ---------------- 3b. Stacked panels: the recede under an incoming panel ---------------- */
+  /* The overlap itself is pure CSS (.stack / .stack-hold in home.css). This only supplies
+     the depth cue: --cover on the OUTGOING panel, 0 while the incoming one is still below
+     the fold and 1 once it covers the screen. CSS turns that into a small scale-down and a
+     scrim. Without it the outgoing panel is merely occluded, which reads as clipping
+     rather than as depth — occlusion alone gives the eye nothing to read the layering by.
+
+     One number per pair, and it is the same number the dial's exit uses: how far the
+     incoming panel's top edge has travelled up the screen. */
+  function initStack() {
+    var pairs = [];
+    var wheelSticky = document.querySelector(".wheel-sticky");
+    var toc = document.getElementById("toc");
+    var video = document.getElementById("promo-video");
+    if (wheelSticky && toc) pairs.push([wheelSticky, toc]);
+    if (toc && video) pairs.push([toc, video]);
+    if (!pairs.length) return;
+
+    var ticking = false;
+    function update() {
+      ticking = false;
+      var V = window.innerHeight || 800;
+      for (var i = 0; i < pairs.length; i++) {
+        var top = pairs[i][1].getBoundingClientRect().top;
+        var cover = Math.min(1, Math.max(0, 1 - top / V));
+        pairs[i][0].style.setProperty("--cover", cover.toFixed(3));
+      }
+    }
+    function onScroll() {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
   }

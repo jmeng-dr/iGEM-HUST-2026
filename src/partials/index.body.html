@@ -71,64 +71,75 @@
 </section>
 
 <!-- ============ 3. TABLE OF CONTENTS — hover totems ============ -->
-<section id="toc">
-  <div class="container">
-    <div class="eyebrow">Explore the wiki</div>
-    <h2>Hover a totem, then step inside</h2>
-
-    <div class="toc-stage">
-      <div class="totem-display-wrap">
-        <div class="totem-display" aria-hidden="true">
-          <div class="totem-display-label">Project</div>
-        </div>
-
-        <div class="toc-preview idle">
-          <span class="req-badge tp-badge" style="display:none"></span>
-          <h3 class="tp-title">Project</h3>
-          <p class="tp-desc"></p>
-          <a class="go tp-link" href="Project-Description.html">Open Project →</a>
-        </div>
-
-        <div class="toc-totems">
-          <a class="totem" href="Project-Description.html" aria-label="Project"
-            data-title="Project" data-badge=""
-            data-desc="The full story: from landfill-bound cotton to a wearable Diǎn Cuì-inspired photonic film. Four modules, one supply chain, plus the modelling and results behind it.">
-            <span class="totem-figure"><img src="/assets/img/emblem-project.webp" alt="" width="256" height="256" loading="lazy" decoding="async"></span>
-          </a>
-          <a class="totem" href="Wet-Lab-Experiments.html" aria-label="Wet Lab"
-            data-title="Wet Lab" data-badge=""
-            data-desc="Every plasmid, strain, buffer and DOE matrix across all four modules: the bench-level record, including live notebook entries.">
-            <span class="totem-figure"><img src="/assets/img/emblem-wetlab.webp" alt="" width="256" height="331" loading="lazy" decoding="async"></span>
-          </a>
-          <a class="totem" href="Human-Practices.html" aria-label="Human Practices"
-            data-title="Human Practices" data-badge=""
-            data-desc="Why Diǎn Cuì, why now: stakeholder conversations shaping a cruelty-free, sustainable alternative to a feather-based craft.">
-            <span class="totem-figure"><img src="/assets/img/emblem-hp.webp" alt="" width="256" height="166" loading="lazy" decoding="async"></span>
-          </a>
-          <a class="totem" href="Attributions.html" aria-label="Team"
-            data-title="Team" data-badge=""
-            data-desc="Who built what: wet lab, dry lab, human practices, advisors, and PIs, with individual contributions.">
-            <span class="totem-figure"><img src="/assets/img/emblem-team.webp" alt="" width="256" height="256" loading="lazy" decoding="async"></span>
-          </a>
+<!-- Stacked panels. Each .stack starts a viewport EARLY (margin-top:-100dvh in
+     home.css) so it slides up over the panel before it, which stays pinned
+     underneath. That is what removes the dead space between sections: two adjacent
+     full-height panels cannot close the gap between them while each has to own the
+     screen alone when centred, but overlapping panels never have a gap at all. -->
+<div class="stack stack-hold">
+  <section id="toc">
+    <div class="container">
+      <div class="eyebrow">Explore the wiki</div>
+      <h2>Hover a totem, then step inside</h2>
+  
+      <div class="toc-stage">
+        <div class="totem-display-wrap">
+          <div class="totem-display" aria-hidden="true">
+            <div class="totem-display-label">Project</div>
+          </div>
+  
+          <div class="toc-preview idle">
+            <span class="req-badge tp-badge" style="display:none"></span>
+            <h3 class="tp-title">Project</h3>
+            <p class="tp-desc"></p>
+            <a class="go tp-link" href="Project-Description.html">Open Project →</a>
+          </div>
+  
+          <div class="toc-totems">
+            <a class="totem" href="Project-Description.html" aria-label="Project"
+              data-title="Project" data-badge=""
+              data-desc="The full story: from landfill-bound cotton to a wearable Diǎn Cuì-inspired photonic film. Four modules, one supply chain, plus the modelling and results behind it.">
+              <span class="totem-figure"><img src="/assets/img/emblem-project.webp" alt="" width="256" height="256" loading="lazy" decoding="async"></span>
+            </a>
+            <a class="totem" href="Wet-Lab-Experiments.html" aria-label="Wet Lab"
+              data-title="Wet Lab" data-badge=""
+              data-desc="Every plasmid, strain, buffer and DOE matrix across all four modules: the bench-level record, including live notebook entries.">
+              <span class="totem-figure"><img src="/assets/img/emblem-wetlab.webp" alt="" width="256" height="331" loading="lazy" decoding="async"></span>
+            </a>
+            <a class="totem" href="Human-Practices.html" aria-label="Human Practices"
+              data-title="Human Practices" data-badge=""
+              data-desc="Why Diǎn Cuì, why now: stakeholder conversations shaping a cruelty-free, sustainable alternative to a feather-based craft.">
+              <span class="totem-figure"><img src="/assets/img/emblem-hp.webp" alt="" width="256" height="166" loading="lazy" decoding="async"></span>
+            </a>
+            <a class="totem" href="Attributions.html" aria-label="Team"
+              data-title="Team" data-badge=""
+              data-desc="Who built what: wet lab, dry lab, human practices, advisors, and PIs, with individual contributions.">
+              <span class="totem-figure"><img src="/assets/img/emblem-team.webp" alt="" width="256" height="256" loading="lazy" decoding="async"></span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
+
 
 <!-- ============ 4. PROMOTION VIDEO ============ -->
-<section id="promo-video">
-  <div class="container">
-    <div class="eyebrow">Promotion video</div>
-    <h2>See Diǎn Cuì in motion</h2>
-    <div class="promo-frame">
-      <iframe class="promo-video"
-        src="https://video.igem.org/videos/embed/47cada1c-bea1-4270-8f70-841278e34870"
-        title="Diǎn Cuì promotion video"
-        loading="lazy"
-        allowfullscreen
-        allow="fullscreen; picture-in-picture; encrypted-media"
-        referrerpolicy="no-referrer-when-downgrade"></iframe>
+<div class="stack">
+  <section id="promo-video">
+    <div class="container">
+      <div class="eyebrow">Promotion video</div>
+      <h2>See Diǎn Cuì in motion</h2>
+      <div class="promo-frame">
+        <iframe class="promo-video"
+          src="https://video.igem.org/videos/embed/47cada1c-bea1-4270-8f70-841278e34870"
+          title="Diǎn Cuì promotion video"
+          loading="lazy"
+          allowfullscreen
+          allow="fullscreen; picture-in-picture; encrypted-media"
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
+
