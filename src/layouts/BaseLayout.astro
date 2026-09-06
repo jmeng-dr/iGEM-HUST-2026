@@ -40,12 +40,22 @@ const {
   <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon-180.png" />
   <meta name="theme-color" content="#0e6e6a" />
   {description && <meta name="description" content={description} />}
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
+  {/* Self-hosted, so there is no third-party round trip before the first character can be
+      shaped — and, more to the point, no swap. Loading these from Google with display=swap
+      meant every page painted with fallback metrics and then re-laid-out when the real faces
+      arrived, which moved anchor landings out from under the reader and made every
+      measurement taken during that window describe a layout that no longer existed.
+
+      Only the four faces the first screen actually needs are preloaded: body text, the two
+      weights bold text and h3/h4 use, and the display face the h1 and h2 are set in. The
+      rest are fetched on demand, and unicode-range keeps latin-ext and greek off the wire
+      entirely unless the page contains those characters. crossorigin is required on a font
+      preload even same-origin — without it the file is fetched twice. */}
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/inter-400-latin.woff2" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/inter-600-latin.woff2" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/inter-700-latin.woff2" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/cormorant-garamond-700-latin.woff2" />
+  <link rel="stylesheet" href="assets/css/fonts.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
   {headExtra && <Fragment set:html={headExtra} />}
 </head>
