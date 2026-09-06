@@ -108,16 +108,10 @@
            the header navigate as well only cost you the ability to close it. */
         if (!mobileNav.matches && href && (canHover || isOpen)) {
           e.stopPropagation();
-          /* Already on the destination page: scroll to the top rather than reloading the
-             page to arrive at the same place. */
-          if (href.split("/").pop() === here) {
-            e.preventDefault();
-            window.scrollTo({
-              top: 0,
-              behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-            });
-          }
-          return;                       // otherwise let the link navigate
+          /* Already on the destination page? The document-level handler above owns that
+             case now — for every link on the page, not just this one — so there is nothing
+             to do here but let it through. */
+          return;
         }
 
         e.preventDefault();             // first tap on a touch device: just open the menu
@@ -384,23 +378,40 @@
         if (e.defaultPrevented || e.button !== 0 ||
             e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
-        var a = e.target.closest && e.target.closest('a[href*="#"]');
-        if (!a) { if (DIAG) D.path = "not-a-fragment-link"; return; }
-        if (a.target && a.target !== "_self") return;      // opens elsewhere; not ours
-        claimAnchor();
+        /* Any link to somewhere on THIS page, whether it names a fragment or not. Matching
+           only on a "#" in the href missed the commonest one of all: the nav entry for the
+           page you are already on, and the brand mark, which point at the page itself. Those
+           fell through to the router, which navigates to the same address and lands you at
+           the top with no movement at all — the jump this was written to animate.
 
-        var href = a.getAttribute("href") || "";
-        if (DIAG) D.href = href;
+           Compared as resolved URLs rather than by splitting filenames: that settles
+           relative paths, query strings and the origin in one step, and a mailto: or an
+           external link simply is not same-origin. */
+        var a = e.target.closest && e.target.closest("a[href]");
+        if (!a) { if (DIAG) D.path = "not-a-link"; return; }
+        if (a.target && a.target !== "_self") return;      // opens elsewhere; not ours
+        if (a.hasAttribute("download")) return;
+
+        var url;
+        try { url = new URL(a.href, location.href); } catch (err) { return; }
+        if (DIAG) D.href = a.getAttribute("href") || "";
+        if (url.origin !== location.origin) { if (DIAG) D.path = "external"; return; }
+        if (url.pathname !== location.pathname) { if (DIAG) D.path = "other page -> router"; return; }
         if (a.closest(".page-sidenav")) { if (DIAG) D.path = "sidenav (pagenav.js)"; return; }
-        var parts = href.split("#");
-        if (!parts[1]) { if (DIAG) D.path = "no fragment"; return; }
-        var file = parts[0].split("/").pop();
-        if (DIAG) D.file = file;
-        if (file && file !== here) { if (DIAG) D.path = "cross-page -> browser"; return; }
-        var target = document.getElementById(decodeURIComponent(parts[1]));
-        if (DIAG) { D.found = !!target; }
-        if (!target) { if (DIAG) D.path = "target MISSING"; return; }
-        if (DIAG) D.path = "handled here";
+        /* In the stacked menu a section header is a pure accordion toggle, and this handler
+           runs in the capture phase — so without this it would take the tap before the
+           toggle ever saw it and scroll to the top of a page you were already on instead of
+           opening the section. */
+        if (mobileNav.matches && a.classList.contains("nav-drop-trigger")) {
+          if (DIAG) D.path = "stacked-menu toggle";
+          return;
+        }
+
+        claimAnchor();
+        var frag = decodeURIComponent(url.hash.slice(1));
+        var target = frag ? document.getElementById(frag) : null;
+        if (frag && !target) { if (DIAG) D.path = "target MISSING"; return; }
+        if (DIAG) D.path = target ? "handled here" : "same page -> top";
 
         e.preventDefault();
         navEl.classList.remove("nav-open");
@@ -408,11 +419,13 @@
           d.classList.remove("open");
           d.querySelector(".nav-drop-trigger").setAttribute("aria-expanded", "false");
         });
-        history.replaceState(null, "", "#" + parts[1]);
+        history.replaceState(null, "", target ? "#" + frag : url.pathname);
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
-            jumpTo(target, true);
+            if (target) jumpTo(target, true);
+            else window.scrollTo({ top: 0, behavior: reduceMo.matches ? "auto" : "smooth" });
             claimAnchor();
+            if (!target) return;
             /* Follow the jump with FOCUS. Suppressing the default navigation also suppresses
                the focus move the browser would have made, which quietly broke the skip link
                and left every keyboard and screen-reader user still at the top of the page
