@@ -351,10 +351,24 @@
        place. Re-measured on resize, since the footer reflows. */
     var footer = document.querySelector(".site-footer");
     var lastPanel = pairs.length ? pairs[pairs.length - 1].in : null;
+    var briefStack = document.querySelector(".stack-brief");
+    var VIDEO_DWELL = 0.15;   /* of viewport height, between the panel landing and the push */
+
     function seatFooter() {
       if (!footer) return;
       footer.style.marginTop = "";
-      footer.style.marginTop = (-footer.offsetHeight) + "px";
+      var fh = footer.offsetHeight;
+      footer.style.marginTop = (-fh) + "px";
+      /* The last track's height is set here rather than in CSS because the dwell is what we
+         actually want to control, and the track has to be one viewport of slide-in, plus
+         the dwell, plus the footer's own height for the push. CSS cannot know that last
+         term, so .stack-brief's declared height could only ever be a guess at it — and the
+         dwell was whatever was left over after the guess. This makes the dwell the stated
+         quantity and lets the push take exactly as long as the footer is tall. */
+      if (briefStack) {
+        var V = window.innerHeight || 800;
+        briefStack.style.minHeight = Math.round(V * (1 + VIDEO_DWELL) + fh) + "px";
+      }
     }
     seatFooter();
 

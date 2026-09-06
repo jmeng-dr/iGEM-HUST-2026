@@ -255,9 +255,10 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    (0.5), then hold the panel pinned while the NEXT one takes over (1). */
 .stack-hold{ min-height: 250vh; min-height: 250dvh; }
 /* The last panel does not need a full viewport of dwell — nothing in it is interactive in
-   the way the totems are, and the footer arriving is itself the next event. Its tail is
-   mostly spent on that: home.js pulls the footer up by its own height so it rises into
-   view while this panel is still pinned. */
+   the way the totems are, and the footer arriving is itself the next event. home.js
+   overwrites this height at runtime with viewport * (1 + dwell) + the footer's measured
+   height, because the dwell is the quantity worth controlling and CSS cannot know how tall
+   the footer is; this value is only the fallback if the script never runs. */
 .stack-brief{ min-height: 170vh; min-height: 170dvh; }
 /* The panels are TRANSPARENT. An earlier version gave them an opaque ground so they
    could cover each other, which was wrong twice over: it hid the things that should
