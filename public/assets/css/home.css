@@ -251,9 +251,14 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   min-height: 200vh; min-height: 200dvh;
 }
 /* min-height, not height: if a panel's content ever exceeds a viewport the hold has to
-   grow with it rather than have the panel overflow its own track. Three viewports: slide
-   in, dwell, then hold the panel pinned while the NEXT one takes over. */
-.stack-hold{ min-height: 300vh; min-height: 300dvh; }
+   grow with it rather than have the panel overflow its own track. Slide in (1), dwell
+   (0.5), then hold the panel pinned while the NEXT one takes over (1). */
+.stack-hold{ min-height: 250vh; min-height: 250dvh; }
+/* The last panel does not need a full viewport of dwell — nothing in it is interactive in
+   the way the totems are, and the footer arriving is itself the next event. Its tail is
+   mostly spent on that: home.js pulls the footer up by its own height so it rises into
+   view while this panel is still pinned. */
+.stack-brief{ min-height: 170vh; min-height: 170dvh; }
 /* The panels are TRANSPARENT. An earlier version gave them an opaque ground so they
    could cover each other, which was wrong twice over: it hid the things that should
    never be interrupted — the fixed wash, the medallion, the butterfly are all page-level

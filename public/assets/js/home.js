@@ -339,6 +339,25 @@
     var PAD = 24;   /* px of clearance the two blocks must never eat into */
     var ticking = false;
 
+    /* The footer's arrival, treated as one more hand-off. The footer normally begins where
+       the last panel's track ends, so it can only appear once that panel's sticky has
+       released and the panel is already sliding away. Pulling it up by exactly its own
+       height instead makes it rise into view while the panel is STILL pinned, which is
+       what lets the panel re-centre into the space left above it rather than scroll off.
+
+       Its own height is the right amount and only the runtime knows it: at the end of the
+       document the footer's bottom is on the viewport's bottom, so with this margin the
+       panel's sticky releases at precisely the moment the footer reaches its resting
+       place. Re-measured on resize, since the footer reflows. */
+    var footer = document.querySelector(".site-footer");
+    var lastPanel = pairs.length ? pairs[pairs.length - 1].in : null;
+    function seatFooter() {
+      if (!footer) return;
+      footer.style.marginTop = "";
+      footer.style.marginTop = (-footer.offsetHeight) + "px";
+    }
+    seatFooter();
+
     function update() {
       ticking = false;
       var V = window.innerHeight || 800;
@@ -360,6 +379,19 @@
 
         p.out.style.setProperty("--shift", (-M).toFixed(1) + "px");
         p.in.style.setProperty("--shift", (-T).toFixed(1) + "px");
+        p.in.__shift = -T;
+      }
+
+      /* Re-centre the last panel in what the footer has not taken. The footer covers the
+         bottom `enc` pixels, so the free band is [0, V - enc] and its middle is enc/2
+         higher than the viewport's — hence the panel moves up by half of what the footer
+         moves in, not all of it. Added to whatever the hand-off already asked for; by the
+         time the footer is rising that term is zero anyway, but adding rather than
+         overwriting keeps the two independent. */
+      if (footer && lastPanel) {
+        var enc = Math.min(V, Math.max(0, V - footer.getBoundingClientRect().top));
+        var base = lastPanel.__shift || 0;
+        lastPanel.style.setProperty("--shift", (base - enc / 2).toFixed(1) + "px");
       }
     }
     function onScroll() {
@@ -367,7 +399,7 @@
     }
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", function () { seatFooter(); onScroll(); });
   }
 
   /* ---------------- 4. TOC totems: hover -> preview, click -> navigate ---------------- */
