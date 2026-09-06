@@ -415,6 +415,10 @@ img{ max-width: 100%; display:block; }
    the ~95px it left under the hero read as the page failing to start — worse still
    with the rail's ten entries already filling the margin beside that gap. */
 .page-body .container > section:first-child > h2:first-child{ margin-top: 0; }
+/* Gene and construct names run long — pETDuet-Cel5A-Cel6B, the 28-character worst case in
+   the tables — and a token that cannot fit the column otherwise pushes the whole line out
+   of the page. This only breaks a word that has nowhere else to go. */
+.page-body{ overflow-wrap: break-word; }
 .page-body p{ color: var(--text-mid); }
 .page-body ul, .page-body ol{ color: var(--text-mid); }
 
@@ -429,7 +433,29 @@ img{ max-width: 100%; display:block; }
 /* Every table is wrapped in .table-wrap. At desktop widths this changes nothing;
    on a narrow viewport the table scrolls inside its own box instead of forcing the
    whole page sideways (QA round 1: Project-Description overflowed at 375px). */
-.table-wrap{ overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 18px 0; }
+.table-wrap{
+  overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 18px 0;
+  /* Shadows that appear only on the side there is more table to see. Four layers: two
+     paper-coloured covers attached `local` (they scroll WITH the content, so they sit over
+     the shadow whenever that edge is already at the end) and two shadows attached `scroll`
+     (fixed to the box) underneath. A table that fits shows neither. Without this a table
+     that scrolls just looks cut off, which is the actual complaint — the scrolling was
+     already possible, it was invisible. */
+  background:
+    linear-gradient(to right, var(--paper) 30%, rgba(250,246,238,0)) left   / 34px 100% no-repeat local,
+    linear-gradient(to left,  var(--paper) 30%, rgba(250,246,238,0)) right  / 34px 100% no-repeat local,
+    radial-gradient(farthest-side at 0    50%, rgba(0,0,0,0.16), rgba(0,0,0,0)) left  / 13px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.16), rgba(0,0,0,0)) right / 13px 100% no-repeat scroll;
+}
+/* Stop squeezing, start scrolling. width:100% lets the browser shrink every column down to
+   its longest WORD before it will overflow, which is why narrow screens got columns that
+   wrapped every two or three words and still did not fit. A floor below the desktop
+   breakpoint means the table keeps a readable shape and .table-wrap does what it is for.
+   Deliberately scoped to the media query: at desktop widths the tables are already the
+   width they should be and nothing here touches them. */
+@media (max-width: 860px){
+  .page-body table{ min-width: 40rem; }
+}
 .table-wrap > table{ margin: 0; }
 .page-body table{ border-collapse: collapse; width:100%; margin: 18px 0; font-size:0.92rem; }
 .page-body th, .page-body td{ border:1px solid rgba(0,0,0,0.12); padding:8px 12px; text-align:left; vertical-align:top; }
