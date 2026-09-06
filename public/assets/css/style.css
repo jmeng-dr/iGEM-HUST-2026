@@ -79,9 +79,9 @@ html{
 
 /* Cross-document view transition: smooth crossfade between pages instead of a hard
    cut, in browsers that support it. No-op (plain navigation) elsewhere. */
-@view-transition{
-  navigation: auto;
-}
+/* No @view-transition here: <ClientRouter /> owns the transition now and declares its own.
+   Two declarations would be one too many, and the cross-document version this replaced is
+   moot anyway — with client-side routing there is no second document. */
 
 body{
   margin:0;

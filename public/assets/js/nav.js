@@ -30,7 +30,28 @@
   window.addEventListener("pagereveal", settleViewTransition);
   window.addEventListener("pageswap", settleViewTransition);
 
-  document.addEventListener("DOMContentLoaded", function () {
+  /* Split in two, because client-side routing means the document is swapped rather than
+     rebuilt and the two halves have different lifetimes:
+
+       initOnce()    everything bound to window, to document, or to .site-nav — which
+                     carries transition:persist and therefore survives every navigation.
+                     Binding any of these per page would stack a new listener each time.
+       refreshPage() everything that describes THIS page: which link is current, which
+                     sections exist to track, the nav's light/dark variant, and the state
+                     the anchor machinery starts a page with.
+
+     astro:page-load fires on the first load as well as on every navigation, so it is the
+     single entry point; boot() runs initOnce at most once and refreshPage always. */
+  var here = "";
+  var booted = false;
+  /* Assigned inside initOnce so they close over its locals; called by refreshPage. */
+  var markCurrentPage = function () {};
+  var buildSectionTracking = function () {};
+  var refreshRing = function () {};
+  var refreshNavState = function () {};
+
+  function initOnce() {
+    var resetAnchorState = function () {};   // assigned inside the `if (navEl)` block below
     var toggle = document.querySelector(".nav-toggle");
     var navEl = document.querySelector(".site-nav");
     /* Refreshed by every deliberate interaction with the menu — the Menu button and the
@@ -72,7 +93,6 @@
     var canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     /* Matches the width at which the nav becomes the stacked accordion in style.css. */
     var mobileNav = window.matchMedia("(max-width: 860px)");
-    var here = location.pathname.split("/").pop() || "index.html";
     var dropdowns = document.querySelectorAll(".nav-dropdown");
     dropdowns.forEach(function (dropdown) {
       var trigger = dropdown.querySelector(".nav-drop-trigger");
@@ -407,50 +427,70 @@
       window.addEventListener("hashchange", claimAnchor);
       mobileNav.addEventListener("change", revealNav);
 
-      /* Land on the anchor AGAIN once the web fonts have swapped in.
-         Cormorant Garamond and Inter load with display=swap, so the first paint uses
-         fallback metrics and every heading and paragraph re-measures when the real faces
-         arrive. On a phone the browser's jump to the fragment usually happens before that,
-         and the page then shifts underneath it by however much text sits above the target —
-         which is why the error was different for every anchor instead of constant.
+      /* Everything the anchor machinery must forget when a new page arrives. The bar is
+         persisted, so without this it would carry the previous page's translation, its open
+         menu and its "the reader is already scrolling" flag straight across the swap. */
+      resetAnchorState = function () {
+        readerScrolled = false;
+        anchorActive = !!location.hash;
+        pendingTarget = null;
+        relandBudget = 0;
+        clearTimeout(anchorTimer);
+        lastY = window.scrollY;
+        hidden = 0;
+        applyNav();
+        measureNav();
+        syncStickyTop();
 
-         Only while the reader has not taken over: any real input cancels it, so this can
-         never yank the page out from under someone. */
-      if (location.hash) {
+        /* Land on the anchor again once the layout has settled. The fonts are self-hosted
+           and preloaded now, so the reflow this was written for is largely gone — but the
+           browser can still apply a fragment late, and under client-side routing the router
+           restores scroll itself, so one confirming pass is still worth it.
+
+           Only while the reader has not taken over: any real input cancels it, so this can
+           never yank the page out from under someone. */
+        if (!location.hash) return;
         var reland = function () {
-          if (readerScrolled) { D.reland = "skipped: reader already scrolled"; return; }
+          if (readerScrolled) { if (DIAG) D.reland = "skipped: reader already scrolled"; return; }
           var t = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-          if (!t) { D.reland = "skipped: no target"; return; }
-          D.reland = "ran";
+          if (!t) { if (DIAG) D.reland = "skipped: no target"; return; }
+          if (DIAG) D.reland = "ran";
           measureNav();
           jumpTo(t, false);
           claimAnchor();
         };
-        var relandSoon = function () { requestAnimationFrame(function () { requestAnimationFrame(reland); }); };
-        window.addEventListener("load", relandSoon);
-        /* Two frames after the promise: fonts.ready resolves when the faces are usable, which
-           is before the reflow they cause has been laid out. Measuring on the same tick would
-           read the position the correction is supposed to be correcting. */
-        if (document.fonts && document.fonts.ready) document.fonts.ready.then(relandSoon);
-      }
+        requestAnimationFrame(function () { requestAnimationFrame(reland); });
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(function () {
+            requestAnimationFrame(function () { requestAnimationFrame(reland); });
+          });
+        }
+      };
     }
-
 
     /* Which page you are on. The dropdown trigger is a real link to its section's page, so
        it matches too — it gets the class, marking the section, while aria-current is left to
        the precise item that trackSection settles on below. Two elements both announcing
        themselves as the current page would be worse than neither. */
-    document.querySelectorAll(".site-nav nav a").forEach(function (a) {
-      var target = (a.getAttribute("href") || "").split("/").pop();
-      if (target !== here) return;
-      var parentDropdown = a.closest(".nav-dropdown");
-      if (parentDropdown) {
-        parentDropdown.querySelector(".nav-drop-trigger").classList.add("active");
-      } else {
-        a.classList.add("active");
-        a.setAttribute("aria-current", "page");
-      }
-    });
+    markCurrentPage = function () {
+      /* Clearing first is not optional: the nav is persisted, so last page's marks are
+         still on these very elements. */
+      document.querySelectorAll(".site-nav nav a, .site-nav .nav-drop-trigger").forEach(function (a) {
+        a.classList.remove("active");
+        a.removeAttribute("aria-current");
+      });
+      document.querySelectorAll(".site-nav nav a").forEach(function (a) {
+        var target = (a.getAttribute("href") || "").split("/").pop();
+        if (target !== here) return;
+        var parentDropdown = a.closest(".nav-dropdown");
+        if (parentDropdown) {
+          parentDropdown.querySelector(".nav-drop-trigger").classList.add("active");
+        } else {
+          a.classList.add("active");
+          a.setAttribute("aria-current", "page");
+        }
+      });
+    };
 
     /* Which SECTION of that page you are in, tracked live.
        The pass above matches an href against the pathname, which no entry carrying a
@@ -461,144 +501,220 @@
        Same rule as the desktop "on this page" rail in pagenav.js: the current section is the
        last one whose top has passed a line just below the bar. The fragment-less entry owns
        everything above the first anchored section, which is the page's own introduction. */
-    (function trackSection() {
-      var items = [];
+    var secItems = [], secAnchored = [], secTicking = false;
+
+    function updateSection() {
+      secTicking = false;
+      if (!secItems.length || !secAnchored.length) return;
+      var current = null;
+      for (var j = 0; j < secItems.length; j++) if (!secItems[j].target) { current = secItems[j]; break; }
+      if (!current) current = secAnchored[0];
+      for (var i = 0; i < secAnchored.length; i++) {
+        if (secAnchored[i].target.getBoundingClientRect().top <= 140) current = secAnchored[i];
+        else break;
+      }
+      /* At the very bottom the last section may be too short to ever cross the line. */
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+        current = secAnchored[secAnchored.length - 1];
+      }
+      secItems.forEach(function (i) {
+        var on = i === current;
+        i.el.classList.toggle("active", on);
+        if (on) i.el.setAttribute("aria-current", "true");
+        else i.el.removeAttribute("aria-current");
+      });
+    }
+    function onSectionScroll() {
+      if (!secTicking) { secTicking = true; requestAnimationFrame(updateSection); }
+    }
+    window.addEventListener("scroll", onSectionScroll, { passive: true });
+    window.addEventListener("resize", onSectionScroll);
+    window.addEventListener("hashchange", onSectionScroll);
+
+    buildSectionTracking = function () {
+      /* The items are persisted nav elements; their TARGETS live in the swapped body. So
+         the list is rebuilt per page while the listener above stays bound once. */
+      document.querySelectorAll(".site-nav .nav-drop-item").forEach(function (a) {
+        a.classList.remove("active");
+        a.removeAttribute("aria-current");
+      });
+      secItems = [];
       document.querySelectorAll(".site-nav .nav-drop-item").forEach(function (a) {
         var parts = (a.getAttribute("href") || "").split("#");
         var file = parts[0].split("/").pop();
         if (file !== here && file !== "") return;
         var target = parts[1] ? document.getElementById(parts[1]) : null;
         if (parts[1] && !target) return;          // a fragment with nothing to point at
-        items.push({ el: a, target: target });
+        secItems.push({ el: a, target: target });
       });
-      var anchored = items.filter(function (i) { return i.target; });
-      if (!items.length || !anchored.length) return;
+      secAnchored = secItems.filter(function (i) { return i.target; });
+      updateSection();
+    };
 
-      var LINE = 140;                             // just below the bar, as in pagenav.js
-      var secTicking = false;
 
-      function update() {
-        secTicking = false;
-        var current = null;
-        for (var j = 0; j < items.length; j++) if (!items[j].target) { current = items[j]; break; }
-        if (!current) current = anchored[0];
-        for (var i = 0; i < anchored.length; i++) {
-          if (anchored[i].target.getBoundingClientRect().top <= LINE) current = anchored[i];
-          else break;
-        }
-        /* At the very bottom the last section may be too short to ever cross the line. */
-        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
-          current = anchored[anchored.length - 1];
-        }
-        items.forEach(function (i) {
-          var on = i === current;
-          i.el.classList.toggle("active", on);
-          if (on) i.el.setAttribute("aria-current", "true");
-          else i.el.removeAttribute("aria-current");
-        });
+    /* Ring navigator: floating bubble (fixed bottom-right, every page) opens a full-screen
+       ring menu of the 5 top-level destinations. Escape / outside-click / the close button
+       all dismiss it; focus moves into the ring on open and back to the bubble on close.
+
+       Unlike the nav, this is NOT persisted — it is rebuilt with every page — so its own
+       listeners are attached fresh each time and go away with the nodes they were on. Only
+       the document-level Escape is bound once, here, or a new one would stack per page. */
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      var rn = document.getElementById("ringNav");
+      if (rn && rn.classList.contains("open")) closeRing(rn);
+    });
+
+    function closeRing(ringNav) {
+      var ringTrigger = document.getElementById("ringNavTrigger");
+      ringNav.classList.remove("open");
+      ringNav.setAttribute("aria-hidden", "true");
+      if (ringTrigger) {
+        ringTrigger.setAttribute("aria-expanded", "false");
+        ringTrigger.focus();
       }
-      function onScroll() {
-        if (!secTicking) { secTicking = true; requestAnimationFrame(update); }
-      }
-      update();
-      window.addEventListener("scroll", onScroll, { passive: true });
-      window.addEventListener("resize", onScroll);
-      window.addEventListener("hashchange", onScroll);
-    })();
+    }
 
-
-    // Ring navigator: floating bubble (fixed bottom-right, every page) opens a full-screen
-    // ring menu of the 5 top-level destinations. Escape / outside-click / the close button
-    // all dismiss it; focus moves into the ring on open and back to the bubble on close.
-    var ringTrigger = document.getElementById("ringNavTrigger");
-    var ringNav = document.getElementById("ringNav");
-    var ringClose = document.getElementById("ringNavClose");
-    if (ringTrigger && ringNav) {
-      function openRing() {
+    refreshRing = function () {
+      var ringTrigger = document.getElementById("ringNavTrigger");
+      var ringNav = document.getElementById("ringNav");
+      var ringClose = document.getElementById("ringNavClose");
+      if (!ringTrigger || !ringNav) return;
+      ringTrigger.addEventListener("click", function () {
         ringNav.classList.add("open");
         ringNav.setAttribute("aria-hidden", "false");
         ringTrigger.setAttribute("aria-expanded", "true");
         var firstNode = ringNav.querySelector(".ring-node");
         if (firstNode) firstNode.focus();
-      }
-      function closeRing() {
-        ringNav.classList.remove("open");
-        ringNav.setAttribute("aria-hidden", "true");
-        ringTrigger.setAttribute("aria-expanded", "false");
-        ringTrigger.focus();
-      }
-      ringTrigger.addEventListener("click", openRing);
-      if (ringClose) ringClose.addEventListener("click", closeRing);
-      ringNav.addEventListener("click", function (e) {
-        if (e.target === ringNav) closeRing();
       });
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape" && ringNav.classList.contains("open")) closeRing();
+      if (ringClose) ringClose.addEventListener("click", function () { closeRing(ringNav); });
+      ringNav.addEventListener("click", function (e) {
+        if (e.target === ringNav) closeRing(ringNav);
       });
       ringNav.querySelectorAll(".ring-node").forEach(function (n) {
-        var target = n.getAttribute("href").split("/").pop();
-        if (target === here) n.classList.add("active");
+        var target = (n.getAttribute("href") || "").split("/").pop();
+        n.classList.toggle("active", target === here);
       });
+    };
+
+    /* The bar is persisted, so it cannot carry a per-page class; BaseLayout puts the variant
+       on <body> and this copies it across after each swap. Without it the home page's dark,
+       full-bleed bar would follow you onto every interior page. */
+    refreshNavState = function () {
+      if (!navEl) return;
+      var home = document.body.getAttribute("data-nav") === "home";
+      navEl.classList.toggle("on-dark", home);
+      navEl.classList.toggle("home-topbar", home);
+      navEl.classList.remove("nav-open");
+      closeDropdowns();
+      resetAnchorState();
+    };
+  }
+
+  function refreshPage() {
+    here = location.pathname.split("/").pop() || "index.html";
+    refreshNavState();
+    markCurrentPage();
+    buildSectionTracking();
+    refreshRing();
+    var y = document.getElementById("year");
+    if (y) y.textContent = new Date().getFullYear();
+  }
+
+  function boot() {
+    if (!booted) { booted = true; initOnce(); }
+    /* refreshPage is per PAGE, and both DOMContentLoaded and astro:page-load fire on the
+       first one. The flag lives on <body>, which the router replaces on every swap, so it
+       clears itself per page without a timer or a guess about which event wins. */
+    if (document.body) {
+      if (document.body.dataset.navRefreshed === "1") return;
+      document.body.dataset.navRefreshed = "1";
     }
-  });
+    refreshPage();
+  }
+  /* Fires on the first load and after every client-side navigation. The readyState check is
+     the fallback for a build without <ClientRouter />, where that event never comes. */
+  document.addEventListener("astro:page-load", boot);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () { if (!booted) boot(); });
+  } else if (!booted) {
+    boot();
+  }
 })();
 
 /* ---------------------------------------------------------------------------
-   TEMPORARY diagnostic. Runs only when the URL carries ?diag=1, and prints the
-   numbers that decide where a fragment jump lands, so this can be settled by
-   measurement instead of by inference from screenshots. Delete once it has.
+   ON-DEVICE DIAGNOSTIC — inert unless the URL carries ?diag=1 (?diag=0 clears it).
+
+   Kept, rather than deleted. Every mobile defect in this file was found with it and
+   none of them were found without it: the offset that turned out to be a heading's
+   collapsed margin, the bar that was measurably present and correctly positioned while
+   sitting inside the 93px of layout viewport hidden behind Chrome's URL bar. Reasoning
+   from screenshots got the wrong answer five times running; the first reading settled it.
 
    Open e.g.  .../Project-Description.html?diag=1#modelling
    --------------------------------------------------------------------------- */
 (function () {
   if (!window.__navDiagOn) return;
-  document.addEventListener("DOMContentLoaded", function () {
-    var box = document.createElement("pre");
+
+  /* The router replaces <body> on every navigation, so a panel appended to it is discarded
+     and anything still writing into it is writing to a node nobody can see. Mounted lazily,
+     re-mounted whenever it finds itself detached; the listeners are bound once, to window,
+     which outlives all of it. */
+  var box = null;
+  function mount() {
+    if (box && box.isConnected) return;
+    if (!document.body) return;
+    box = document.createElement("pre");
     box.style.cssText =
       "position:fixed;left:0;right:0;bottom:0;z-index:99999;margin:0;padding:10px;" +
       "background:rgba(11,15,16,.93);color:#9fe;font:11px/1.45 ui-monospace,monospace;" +
       "white-space:pre-wrap;max-height:52vh;overflow:auto;pointer-events:none";
     document.body.appendChild(box);
+  }
 
-    function report() {
-      var nav = document.querySelector(".site-nav");
-      var id = decodeURIComponent(location.hash.slice(1));
-      var t = id && document.getElementById(id);
-      var L = [];
-      L.push("viewport " + innerWidth + "x" + innerHeight + "  dpr " + devicePixelRatio);
-      L.push("scrollY " + Math.round(scrollY) + "   fonts " +
-             (document.fonts ? document.fonts.status : "n/a"));
-      L.push("scroll-padding-top " + getComputedStyle(document.documentElement).scrollPaddingTop);
-      var D = window.__navDiag;
-      if (D) {
-        L.push("last click: " + D.path + "  href=" + (D.href || "-"));
-        L.push("nav state: " + D.state);
-        L.push("jumpTo: " + D.jump);
-        L.push("chrome inset: atLoad=" + D.insetAtLoad + " atJump=" + D.insetAtJump +
-               " max=" + D.insetMax + " now=" +
-               (window.visualViewport ? Math.round(visualViewport.offsetTop) : 0));
-        L.push("reland: " + D.reland + "   scroll events: " + D.scrolls +
-               (D.firstHide ? "   first hide at " + D.firstHide : "   never hid"));
-      }
-      if (nav) {
-        var nr = nav.getBoundingClientRect();
-        var ns = getComputedStyle(nav);
-        L.push("NAV rect top " + Math.round(nr.top) + " h " + Math.round(nr.height) +
-               "  pos " + ns.position + "  z " + ns.zIndex +
-               "  vis " + ns.visibility + "  opa " + ns.opacity + "  disp " + ns.display);
-        L.push("NAV transform inline '" + (nav.style.transform || "") +
-               "'  computed " + ns.transform);
-        L.push("body: " + getComputedStyle(document.body).display +
-               " / " + getComputedStyle(document.body).overflow +
-               "   html overflow " + getComputedStyle(document.documentElement).overflow);
-      }
-      if (window.visualViewport) {
-        var v = window.visualViewport;
-        L.push("visualViewport h " + Math.round(v.height) + " offsetTop " +
-               Math.round(v.offsetTop) + " pageTop " + Math.round(v.pageTop) +
-               "   innerHeight " + window.innerHeight);
-      }
-      if (!t) { L.push("no hash target"); box.textContent = L.join("\n"); return; }
+  function report() {
+    if (!box) return;
+    var nav = document.querySelector(".site-nav");
+    var id = decodeURIComponent(location.hash.slice(1));
+    var t = id && document.getElementById(id);
+    var D = window.__navDiag;
+    var L = [];
+
+    L.push("viewport " + innerWidth + "x" + innerHeight + "  dpr " + devicePixelRatio);
+    L.push("scrollY " + Math.round(scrollY) + "   fonts " +
+           (document.fonts ? document.fonts.status : "n/a"));
+    L.push("scroll-padding-top " + getComputedStyle(document.documentElement).scrollPaddingTop);
+
+    if (D) {
+      L.push("last click: " + D.path + "  href=" + (D.href || "-"));
+      L.push("nav state: " + D.state);
+      L.push("jumpTo: " + D.jump);
+      L.push("chrome inset: atLoad=" + D.insetAtLoad + " atJump=" + D.insetAtJump +
+             " max=" + D.insetMax + " now=" +
+             (window.visualViewport ? Math.round(visualViewport.offsetTop) : 0));
+      L.push("reland: " + D.reland + "   scroll events: " + D.scrolls +
+             (D.firstHide ? "   first hide at " + D.firstHide : "   never hid"));
+    }
+
+    if (nav) {
+      var nr = nav.getBoundingClientRect();
+      var ns = getComputedStyle(nav);
+      L.push("NAV rect top " + Math.round(nr.top) + " h " + Math.round(nr.height) +
+             "  pos " + ns.position + "  z " + ns.zIndex +
+             "  vis " + ns.visibility + "  opa " + ns.opacity + "  disp " + ns.display);
+      L.push("NAV transform inline '" + (nav.style.transform || "") +
+             "'  computed " + ns.transform +
+             "   persisted " + (nav.hasAttribute("data-astro-transition-persist") ? "yes" : "NO"));
+    }
+    if (window.visualViewport) {
+      var v = window.visualViewport;
+      L.push("visualViewport h " + Math.round(v.height) + " offsetTop " +
+             Math.round(v.offsetTop) + "   innerHeight " + window.innerHeight);
+    }
+
+    if (!t) {
+      L.push("no hash target");
+    } else {
       var h = t.querySelector("h2");
       var tr = t.getBoundingClientRect();
       L.push("target #" + id + "  <" + t.tagName.toLowerCase() + ">  top " + Math.round(tr.top));
@@ -611,18 +727,24 @@
       }
       L.push("  LANDED: heading is " + Math.round(h ? h.getBoundingClientRect().top : tr.top) +
              "px from the top of the viewport");
-      box.textContent = L.join("\n");
     }
-    report();
-    addEventListener("scroll", function () { requestAnimationFrame(report); }, { passive: true });
-    addEventListener("resize", report);
-    /* The page can move without a scroll event — the URL bar collapsing, for one — so keep
-       the readout live rather than trusting that something notified us. */
-    setInterval(report, 250);
-    if (window.visualViewport) {
-      visualViewport.addEventListener("resize", report);
-      visualViewport.addEventListener("scroll", report);
-    }
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(report);
-  });
+    box.textContent = L.join(String.fromCharCode(10));
+  }
+
+  function tick() { mount(); report(); }
+
+  document.addEventListener("astro:page-load", tick);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", tick);
+  else tick();
+
+  addEventListener("scroll", function () { requestAnimationFrame(report); }, { passive: true });
+  addEventListener("resize", report);
+  /* The page can move without a scroll event — the URL bar collapsing, for one — so poll
+     rather than trust that something will notify us. */
+  setInterval(tick, 250);
+  if (window.visualViewport) {
+    visualViewport.addEventListener("resize", report);
+    visualViewport.addEventListener("scroll", report);
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(report);
 })();

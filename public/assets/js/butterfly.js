@@ -33,7 +33,31 @@
      FLAP_*      — how hard the wingbeat responds to travel speed
 */
 (function () {
-  document.addEventListener("DOMContentLoaded", initButterfly);
+  /* Client-side routing swaps the document, so this file runs again on every navigation
+     while everything it attached to window survives. Each listener is recorded as it is
+     added and dropped before the next page wires its own — otherwise every navigation would
+     leave another scroll handler running against elements that no longer exist. */
+  /* Both DOMContentLoaded and astro:page-load fire on the FIRST load, so this would
+     initialise twice and double-bind every element listener. The flag lives on <body>,
+     which the router replaces on every swap — so it clears itself per page, with no timer
+     and no guess about which event wins the race. */
+  function bootedAlready(key) {
+    if (!document.body) return false;
+    if (document.body.dataset[key] === "1") return true;
+    document.body.dataset[key] = "1";
+    return false;
+  }
+
+  var listeners = [];
+  function on(target, type, fn, opts) {
+    target.addEventListener(type, fn, opts);
+    listeners.push([target, type, fn, opts]);
+  }
+  function offAll() {
+    listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2], l[3]); });
+    listeners = [];
+  }
+
 
   function initButterfly() {
     var el = document.getElementById("butterfly");
@@ -197,6 +221,10 @@
     }
 
     function frame(now) {
+      /* The element belongs to the home page, which client-side routing can swap away
+         underneath a running loop. Once it is detached there is nothing to draw to and
+         nobody to see it. */
+      if (!el.isConnected) { running = false; return; }
       var dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 0.016;
       lastT = now;
       /* Frame-rate-independent follower, so it behaves the same at 60Hz and 144Hz
@@ -233,13 +261,25 @@
       /* No animation loop at all: draw once, then only on scroll/resize. */
       var still = function () { draw(rawProgress(), 0); };
       still();
-      window.addEventListener("scroll", still, { passive: true });
-      window.addEventListener("resize", function () { buildPath(); still(); });
+      on(window, "scroll", still, { passive: true });
+      on(window, "resize", function () { buildPath(); still(); });
       return;
     }
 
     wake();
-    window.addEventListener("scroll", wake, { passive: true });
-    window.addEventListener("resize", function () { buildPath(); wake(); });
+    on(window, "scroll", wake, { passive: true });
+    on(window, "resize", function () { buildPath(); wake(); });
   }
+  function boot() {
+    if (bootedAlready("butterflyBooted")) return;
+    offAll();
+    initButterfly();
+  }
+  /* astro:page-load covers the first load as well as every navigation; the readyState check
+     is the fallback for a build without <ClientRouter />. */
+  /* NOT recorded: offAll() would otherwise remove the very hook that calls it, and every
+     navigation after the first would arrive with nothing wired at all. */
+    document.addEventListener("astro:page-load", boot);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
 })();

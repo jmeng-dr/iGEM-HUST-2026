@@ -3,14 +3,39 @@
 // (Viewport-height sizing for the preface is handled purely by the CSS `dvh` unit now —
 // see home.css — no JS measurement needed for that.)
 (function () {
-  document.addEventListener("DOMContentLoaded", function () {
+  /* Client-side routing swaps the document, so this file runs again on every navigation
+     while everything it attached to window survives. Each listener is recorded as it is
+     added and dropped before the next page wires its own — otherwise every navigation would
+     leave another scroll handler running against elements that no longer exist. */
+  /* Both DOMContentLoaded and astro:page-load fire on the FIRST load, so this would
+     initialise twice and double-bind every element listener. The flag lives on <body>,
+     which the router replaces on every swap — so it clears itself per page, with no timer
+     and no guess about which event wins the race. */
+  function bootedAlready(key) {
+    if (!document.body) return false;
+    if (document.body.dataset[key] === "1") return true;
+    document.body.dataset[key] = "1";
+    return false;
+  }
+
+  var listeners = [];
+  function on(target, type, fn, opts) {
+    target.addEventListener(type, fn, opts);
+    listeners.push([target, type, fn, opts]);
+  }
+  function offAll() {
+    listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2], l[3]); });
+    listeners = [];
+  }
+
+  function initPage() {
     initPreface();
     // initCursorOrb();  // disabled — cursor-replacement effect felt more disorienting than
     //                      delightful. Implementation kept intact below; uncomment to bring back.
     initWheel();
     initStack();
     initTOC();
-  });
+  }
 
   /* ---------------- 1. Preface: pinned scroll -> glow brighten + expand + bg wash ---------------- */
   /* The page holds still on the preface (via CSS position:sticky, scoped in home.css to
@@ -47,8 +72,8 @@
       cue.style.opacity = progress > 0.05 ? "0" : "1";
     }
     onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    on(window, "scroll", onScroll, { passive: true });
+    on(window, "resize", onScroll);
   }
 
   /* ---------------- 2. Cursor-following orb ("clue") ---------------- */
@@ -59,7 +84,7 @@
     var x = tx, y = ty;
     var shown = false;
 
-    window.addEventListener("mousemove", function (e) {
+    on(window, "mousemove", function (e) {
       tx = e.clientX; ty = e.clientY;
       if (!shown) {
         shown = true;
@@ -67,7 +92,7 @@
         document.body.classList.add("cursor-hidden");
       }
     });
-    window.addEventListener("mouseleave", function () {
+    on(window, "mouseleave", function () {
       orb.classList.remove("visible");
       document.body.classList.remove("cursor-hidden");
     });
@@ -290,8 +315,8 @@
     /* Run once before listening: a reload that restores a mid-page scroll position would
        otherwise leave the dial at its entry size until the reader happened to scroll. */
     onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    on(window, "scroll", onScroll, { passive: true });
+    on(window, "resize", onScroll);
   }
 
   /* ---------------- 3b. Stacked panels: the hand-off ---------------- */
@@ -475,8 +500,8 @@
       if (!ticking) { ticking = true; requestAnimationFrame(update); }
     }
     update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", function () { seatFooter(); onScroll(); });
+    on(window, "scroll", onScroll, { passive: true });
+    on(window, "resize", function () { seatFooter(); onScroll(); });
   }
 
   /* ---------------- 4. TOC totems: hover -> preview, click -> navigate ---------------- */
@@ -530,4 +555,16 @@
     });
     deactivate();
   }
+  function boot() {
+    if (bootedAlready("homeBooted")) return;
+    offAll();
+    initPage();
+  }
+  /* astro:page-load covers the first load as well as every navigation; the readyState check
+     is the fallback for a build without <ClientRouter />. */
+  /* NOT recorded: offAll() would otherwise remove the very hook that calls it, and every
+     navigation after the first would arrive with nothing wired at all. */
+    document.addEventListener("astro:page-load", boot);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
 })();

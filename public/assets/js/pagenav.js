@@ -25,7 +25,50 @@
       generated one.
 */
 (function () {
-  document.addEventListener("DOMContentLoaded", function () {
+  /* Client-side routing swaps the document, so this runs again on every navigation. The
+     rail itself is rebuilt each time — it belongs to the page it indexes — but its window
+     listeners must not be, or a new pair would stack up per navigation and keep pointing at
+     rails that no longer exist. They are attached once and read the module state below. */
+  var entries = [], links = [], ticking = false;
+
+  function update() {
+    ticking = false;
+    if (!links.length) return;
+    var line = 140;                          // just below the sticky nav
+    var current = 0;
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].el.getBoundingClientRect().top <= line) current = i;
+      else break;
+    }
+    /* At the very bottom, select the last item — the final section is often too short to
+       ever cross the line on its own. */
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+      current = entries.length - 1;
+    }
+    links.forEach(function (a, i) {
+      a.classList.toggle("active", i === current);
+      if (i === current) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    });
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+
+  function build() {
+    /* Both DOMContentLoaded and astro:page-load fire on the first load. The flag lives on
+       <body>, which the router replaces on every swap, so it clears itself per page. */
+    if (document.body) {
+      if (document.body.dataset.railBuilt === "1") return;
+      document.body.dataset.railBuilt = "1";
+    }
+    entries = [];
+    links = [];
+    var stale = document.querySelector(".page-sidenav-rail");
+    if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
+
     var body = document.querySelector(".page-body");
     if (!body) return;                       // home page, redirect stubs
 
@@ -91,7 +134,7 @@
     }
 
     var seen = {};
-    var entries = headings.map(function (h) {
+    entries = headings.map(function (h) {
       var section = h.closest("section");
       var id = (section && section.id) || h.id;
       if (!id) {
@@ -116,7 +159,7 @@
     rail.appendChild(nav);
     body.appendChild(rail);
 
-    var links = Array.prototype.slice.call(nav.querySelectorAll("a"));
+    links = Array.prototype.slice.call(nav.querySelectorAll("a"));
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     links.forEach(function (a, i) {
@@ -128,34 +171,12 @@
       });
     });
 
-    /* Active item: the last heading that has passed the top of the viewport.
-       Simpler and steadier than an IntersectionObserver here, because the headings
-       are far apart and several can be off-screen at once. */
-    var ticking = false;
-    function update() {
-      ticking = false;
-      var line = 140;                        // just below the sticky nav
-      var current = 0;
-      for (var i = 0; i < entries.length; i++) {
-        if (entries[i].el.getBoundingClientRect().top <= line) current = i;
-        else break;
-      }
-      /* At the very bottom, select the last item — the final section is often too
-         short to ever cross the line on its own. */
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
-        current = entries.length - 1;
-      }
-      links.forEach(function (a, i) {
-        a.classList.toggle("active", i === current);
-        if (i === current) a.setAttribute("aria-current", "true");
-        else a.removeAttribute("aria-current");
-      });
-    }
-    function onScroll() {
-      if (!ticking) { ticking = true; requestAnimationFrame(update); }
-    }
     update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-  });
+  }
+
+  /* astro:page-load covers the first load as well as every navigation; the readyState check
+     is the fallback for a build without <ClientRouter />. */
+  document.addEventListener("astro:page-load", build);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build);
+  else build();
 })();

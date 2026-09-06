@@ -7,6 +7,7 @@
 // on the home page; the page-scoped <style> block on Project / Wet Lab / Attributions;
 // the <meta refresh> on the two AI redirect stubs). It is injected untouched so those
 // styles are NOT run through Astro's scoping/bundling.
+import { ClientRouter } from 'astro:transitions';
 import SiteNav from '../components/SiteNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import RingNav from '../components/RingNav.astro';
@@ -57,9 +58,24 @@ const {
   <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/cormorant-garamond-700-latin.woff2" />
   <link rel="stylesheet" href="assets/css/fonts.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
+  {/* Client-side routing. Navigation swaps the document in place instead of tearing it down
+      and rebuilding it, which is what actually removes the flash between pages — the nav bar
+      is not re-created, the fonts are not re-applied, and scroll state is the router's to
+      manage rather than the browser's to guess.
+
+      Everything downstream follows from one rule: an element carrying transition:persist
+      survives the swap, so listeners bound to it must be bound ONCE; an element that does
+      not survive takes its listeners with it and can be bound freely on every page; and
+      anything bound to window or document outlives all of it and must be bound once. Each
+      of the four scripts below is written against that rule and initialises from
+      astro:page-load, which fires on the first load as well as on every navigation. */}
+  <ClientRouter />
   {headExtra && <Fragment set:html={headExtra} />}
 </head>
-<body class={bodyClass || undefined}>
+{/* The nav variant is on the body because the nav element itself is persisted across
+    navigations and therefore cannot carry a per-page class of its own; nav.js reads this
+    and re-applies the right one after each swap. */}
+<body class={bodyClass || undefined} data-nav={navVariant}>
   <a class="skip-link" href="#main">Skip to content</a>
   <slot name="body-top" />
   <SiteNav variant={navVariant} />
@@ -70,6 +86,12 @@ const {
   <script is:inline>document.getElementById("year").textContent = new Date().getFullYear();</script>
   <script is:inline src="assets/js/nav.js"></script>
   <script is:inline src="assets/js/pagenav.js"></script>
+  {/* Loaded on every page, not just the home page. Under client-side routing a script that
+      only exists in one page's markup is never fetched if the visitor arrives anywhere else
+      first, and then arriving at the home page gets a page with no behaviour at all. Both
+      of these already do nothing when the markup they drive is absent. */}
+  <script is:inline src="assets/js/home.js"></script>
+  <script is:inline src="assets/js/butterfly.js"></script>
   <slot name="body-end" />
 </body>
 </html>

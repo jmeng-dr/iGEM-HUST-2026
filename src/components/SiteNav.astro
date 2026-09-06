@@ -10,4 +10,9 @@ interface Props {
 const { variant = 'default' } = Astro.props;
 const cls = variant === 'home' ? 'site-nav on-dark home-topbar' : 'site-nav';
 ---
-<header class={cls}><Fragment set:html={navInner} /></header>
+{/* transition:persist belongs HERE, on the element itself: a directive on the component tag
+    is not forwarded to what the component renders unless the props are spread, so putting it
+    at the call site silently did nothing. This is what survives a client-side navigation —
+    the bar is never rebuilt, which is the whole point of the router. Its light/dark variant
+    therefore cannot come from `cls` on a later page, so nav.js re-applies it from <body>. */}
+<header class={cls} transition:persist="site-nav"><Fragment set:html={navInner} /></header>
