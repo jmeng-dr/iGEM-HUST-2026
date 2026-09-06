@@ -369,7 +369,10 @@
        different gaps, and one shared pixel floor made the same setting read as a light
        nudge for one pair and as almost touching for the other. A fraction is the same
        amount of squeeze for both by construction. */
-    var SQUEEZE = 0.75;   /* the gap closes to a quarter of what it starts at */
+    /* 0.45 rather than 0.75: the top hand-off had been running looser than it was set to,
+       because its pull-up was being clobbered (see update()), and that looser value was the
+       one that looked right. This is roughly it, now applied to both. */
+    var SQUEEZE = 0.45;
     var GAP_MIN = 8;      /* px: an absolute floor as well, for a pair that starts tiny */
     var PAD = 4;          /* px of hard clearance, for content that does not fit the viewport */
     var ticking = false;
@@ -410,7 +413,19 @@
     function update() {
       ticking = false;
       var V = window.innerHeight || 800;
-      for (var i = 0; i < pairs.length; i++) {
+      var i;
+      /* Shifts ACCUMULATE, they are not assigned. The middle panel belongs to both pairs —
+         it is the incoming of one and the outgoing of the next — and writing the second
+         pair's value over the first's silently dropped the first's pull-up. Its M had been
+         solved assuming that pull-up was applied, so the gap came out T larger than
+         designed and only the top hand-off was affected, which is exactly why the two
+         looked nothing like each other. The two terms are never both non-zero anyway: a
+         panel is done arriving before it starts leaving. */
+      for (i = 0; i < pairs.length; i++) {
+        pairs[i].out.__acc = 0;
+        pairs[i].in.__acc = 0;
+      }
+      for (i = 0; i < pairs.length; i++) {
         var p = pairs[i];
         /* The SECTION's rect, not the container's — the container carries the transform
            and would report its own displacement back into the input. */
@@ -436,21 +451,22 @@
         if (slack < PAD) M += PAD - slack;    /* clear the outgoing further, never hold the
                                                  incoming back — that is the dead space */
 
-        p.out.style.setProperty("--shift", (-M).toFixed(1) + "px");
-        p.in.style.setProperty("--shift", (-T).toFixed(1) + "px");
-        p.in.__shift = -T;
+        p.out.__acc += -M;
+        p.in.__acc += -T;
       }
 
       /* Re-centre the last panel in what the footer has not taken. The footer covers the
          bottom `enc` pixels, so the free band is [0, V - enc] and its middle is enc/2
          higher than the viewport's — hence the panel moves up by half of what the footer
-         moves in, not all of it. Added to whatever the hand-off already asked for; by the
-         time the footer is rising that term is zero anyway, but adding rather than
-         overwriting keeps the two independent. */
+         moves in, not all of it. */
       if (footer && lastPanel) {
         var enc = Math.min(V, Math.max(0, V - footer.getBoundingClientRect().top));
-        var base = lastPanel.__shift || 0;
-        lastPanel.style.setProperty("--shift", (base - enc / 2).toFixed(1) + "px");
+        lastPanel.__acc += -enc / 2;
+      }
+
+      for (i = 0; i < pairs.length; i++) {
+        pairs[i].out.style.setProperty("--shift", pairs[i].out.__acc.toFixed(1) + "px");
+        pairs[i].in.style.setProperty("--shift", pairs[i].in.__acc.toFixed(1) + "px");
       }
     }
     function onScroll() {
