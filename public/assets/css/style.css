@@ -470,6 +470,11 @@ img{ max-width: 100%; display:block; }
   padding: 22px 0; font-size: 0.85rem;
 }
 .site-footer a{ color: var(--text-on-dark); }
+/* The footer follows the top nav's width, not the prose column's. Both are page chrome
+   spanning the full page rather than something meant to be read at a comfortable measure,
+   and at --content-width the three columns were narrow enough that "Human Practices" broke
+   across two lines in a list of one-line items. */
+.site-footer .container{ max-width: 1400px; }
 /* Three columns of real footer content, with the institution seals on a tint band
    underneath. The band is full-bleed and the seals sit ON it rather than floating on
    bare near-black: two of the three are dark-on-white and the third is the inverse,
@@ -497,6 +502,9 @@ img{ max-width: 100%; display:block; }
 .footer-mail{ color: var(--kingfisher-3) !important; font-weight:600; }
 .footer-nav{ display:grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; }
 .footer-nav ul{ list-style:none; margin:0; padding:0; }
+/* Belt and braces on the width above: a navigation label is a name, and wrapping one
+   across two lines in a column of single-line items reads as two entries. */
+.footer-nav a{ white-space: nowrap; }
 .footer-nav li{ margin-bottom: 10px; }
 .footer-copy{ font-weight:700; color: var(--text-on-dark); }
 
