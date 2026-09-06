@@ -417,13 +417,28 @@
     var footer = document.querySelector(".site-footer");
     var lastPanel = pairs.length ? pairs[pairs.length - 1].in : null;
     var briefStack = document.querySelector(".stack-brief");
-    var VIDEO_DWELL = 0.15;   /* of viewport height, between the panel landing and the push */
+    /* Of viewport height, between the panel landing and the footer coming up. 0.5 to match
+       the totems: .stack-hold is 250dvh — one viewport to slide in, HALF for the dwell, one
+       to stay pinned while the next panel takes over — so half a viewport is what a dwell
+       is on this page, and the last panel had no reason to be the exception. */
+    var VIDEO_DWELL = 0.5;
+    /* Whether the footer is allowed to overlap the last panel at all. It rises from BEHIND
+       that panel — the panel is the one with a stacking layer — so this only works while the
+       panel can vacate the room the footer needs. When it cannot, pulling the footer up does
+       not push anything: it slides the footer under the video and leaves the two on top of
+       each other. */
+    var footerPulls = false;
 
     function seatFooter() {
       if (!footer) return;
       footer.style.marginTop = "";
       var fh = footer.offsetHeight;
-      footer.style.marginTop = (-fh) + "px";
+      var Vh = window.innerHeight || 800;
+      var hLast = lastPanel ? lastPanel.offsetHeight : 0;
+      var navBar = document.querySelector(".site-nav");
+      var navHh = navBar ? navBar.getBoundingClientRect().height : 0;
+      footerPulls = (Vh - hLast) >= (fh + navHh + 24);
+      footer.style.marginTop = footerPulls ? (-fh) + "px" : "";
       /* The last track's height is set here rather than in CSS because the dwell is what we
          actually want to control, and the track has to be one viewport of slide-in, plus
          the dwell, plus the footer's own height for the push. CSS cannot know that last
@@ -431,8 +446,10 @@
          dwell was whatever was left over after the guess. This makes the dwell the stated
          quantity and lets the push take exactly as long as the footer is tall. */
       if (briefStack) {
-        var V = window.innerHeight || 800;
-        briefStack.style.minHeight = Math.round(V * (1 + VIDEO_DWELL) + fh) + "px";
+        /* The track only needs the footer's height on top when the footer is going to travel
+           across it. Without the pull it would just be dead scroll. */
+        briefStack.style.minHeight =
+          Math.round(Vh * (1 + VIDEO_DWELL) + (footerPulls ? fh : 0)) + "px";
       }
     }
     seatFooter();
@@ -496,7 +513,7 @@
          bottom `enc` pixels, so the free band is [0, V - enc] and its middle is enc/2
          higher than the viewport's — hence the panel moves up by half of what the footer
          moves in, not all of it. */
-      if (footer && lastPanel) {
+      if (footer && lastPanel && footerPulls) {
         var enc = Math.min(V, Math.max(0, V - footer.getBoundingClientRect().top));
         /* Re-centre in what the footer has not taken — but only as far as the block still
            FITS there. Half the encroachment is the right shift when the block is smaller

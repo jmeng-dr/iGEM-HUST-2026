@@ -263,12 +263,13 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    grow with it rather than have the panel overflow its own track. Slide in (1), dwell
    (0.5), then hold the panel pinned while the NEXT one takes over (1). */
 .stack-hold{ min-height: 250vh; min-height: 250dvh; }
-/* The last panel does not need a full viewport of dwell — nothing in it is interactive in
-   the way the totems are, and the footer arriving is itself the next event. home.js
-   overwrites this height at runtime with viewport * (1 + dwell) + the footer's measured
-   height, because the dwell is the quantity worth controlling and CSS cannot know how tall
-   the footer is; this value is only the fallback if the script never runs. */
-.stack-brief{ min-height: 170vh; min-height: 170dvh; }
+/* The last panel's dwell now matches the totems' — half a viewport, the same as the middle
+   term of .stack-hold's 250dvh — so this fallback is one viewport to slide in plus half to
+   dwell. home.js overwrites it at runtime with viewport * (1 + dwell), plus the footer's
+   measured height when the footer is going to travel across the panel: the dwell is the
+   quantity worth controlling and CSS cannot know how tall the footer is. This value only
+   applies if the script never runs. */
+.stack-brief{ min-height: 150vh; min-height: 150dvh; }
 /* The panels are TRANSPARENT. An earlier version gave them an opaque ground so they
    could cover each other, which was wrong twice over: it hid the things that should
    never be interrupted — the fixed wash, the medallion, the butterfly are all page-level
@@ -649,11 +650,20 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
      not know that: on a 1690px screen it produced a 777px dial whose visible 388px reached
      83px past a 305px gutter and straight into the module list.
 
-     The + 120px is the column's own left padding, which is empty by construction, so the
-     artwork may run under that but never under a word. Still capped by height and by 860,
-     so nothing changes on a large screen. */
-  width: min(92dvh, calc(100vw - var(--content-width) + 120px), 860px);
-  height: min(92dvh, calc(100vw - var(--content-width) + 120px), 860px);
+     --dial-span is the ONE knob: how much of the screen's shorter side the medallion spans.
+     Proportional rather than absolute, so it holds the same visual weight at any size —
+     which a fixed 860px cannot, being a third of one screen and two thirds of another.
+
+     The two caps are safety, not sizing. The gutter matters because the content column is a
+     FIXED 1080px: it does not shrink with the viewport, so the room beside it shrinks
+     faster than the viewport does, and on a narrow screen the proportional size would run
+     into the text. 100vw includes the scrollbar while the column is centred in the client
+     width, hence the extra 40px — an allowance leaving single digits of clearance is not a
+     bound, it is a coincidence. 92dvh keeps it inside a short viewport, and its centre is on
+     x = 0, so half of whatever this resolves to is what you actually see. */
+  --dial-span: 52vmin;
+  width: min(var(--dial-span), 92dvh, calc(100vw - var(--content-width) - 40px));
+  height: min(var(--dial-span), 92dvh, calc(100vw - var(--content-width) - 40px));
   z-index: 0;
   pointer-events: none;
   will-change: transform;
