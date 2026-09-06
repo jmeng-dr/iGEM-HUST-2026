@@ -232,7 +232,9 @@
       dial.style.opacity = op.toFixed(3);
       /* Fully faded: take the fixed box out of the picture entirely rather than leaving
          an invisible full-height element composited over the rest of the page. */
-      if (dialWrap) dialWrap.style.visibility = op < 0.002 ? "hidden" : "";
+      /* "visible", not "": clearing the inline value would fall back to the stylesheet,
+         which now hides the wrap by default so it cannot flash before it is positioned. */
+      if (dialWrap) dialWrap.style.visibility = op < 0.002 ? "hidden" : "visible";
     }
 
     // Turn the dial 90 degrees per module. The arcs ride along, so marking arc

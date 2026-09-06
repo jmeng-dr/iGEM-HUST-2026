@@ -627,6 +627,11 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   z-index: 0;
   pointer-events: none;
   will-change: transform;
+  /* Hidden until home.js gives it a position. Its Y is written entirely from script, so
+     between first paint and DOMContentLoaded it has no transform at all and sits at its
+     declared left:0/top:0 — half a medallion in the corner of the screen, at the CSS
+     opacity, for one frame on every load. Nothing draws it until renderDial says so. */
+  visibility: hidden;
 }
 .dial{
   position: absolute;
