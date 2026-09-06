@@ -57,18 +57,30 @@
     var FADE_OUT_AT = 0.93;  /* progress at which it starts fading back out */
     var MAX_OPACITY = 0.8;
     var SMOOTH_TAU  = 0.10;  /* seconds of glide */
-    /* Wingbeat vs. travel speed. The wings have a resting beat in CSS (.bf-wing in
-       home.css); these scale it up as the butterfly moves faster, so a fast scroll
-       reads as the thing actually flying off rather than as the same idle loop sliding
-       across the screen.
+    /* Wingbeat. Driven from here rather than from CSS keyframes, because the AMPLITUDE
+       has to vary and a keyframe's angles are fixed. Frequency could be varied through
+       playbackRate; amplitude cannot, short of rewriting the keyframes or hanging them
+       off custom properties — and a transform animation carrying a var() drops off the
+       compositor anyway, so the CSS version was not buying what it looked like it was.
 
        The signal is the SMOOTHED travel speed in px/s, not raw scroll velocity: it is
        already glided by the follower below, and it is what is actually on screen — a
        burst of wheel events during a pinned section moves the page a long way and the
-       butterfly hardly at all, and the wings should follow the butterfly. */
-    var FLAP_REF_SPEED = 450;  /* px/s of travel that buys one extra beat's worth of rate */
-    var FLAP_MAX_EXTRA = 4.8;  /* ceiling, so rate stays within 1 .. 5.8 */
-    var FLAP_TAU       = 0.18; /* seconds for the rate itself to catch up */
+       butterfly hardly at all, and the wings should follow the butterfly.
+
+       Amplitude rises with speed CONTINUOUSLY, but on a far gentler curve than the
+       frequency. Two fixed gears would need a transition between them, and building
+       that transition is building this, only with a worse curve. And the two must not
+       scale together: tip speed goes as frequency x amplitude, so 5.8x and 1.4x is
+       already 8x, where 5.8x and 2x would be 11.6x and just smears. */
+    var FLAP_REF_SPEED = 450;   /* px/s of travel that buys one extra beat's worth of rate */
+    var FLAP_MAX_EXTRA = 4.8;   /* rate ceiling, so it runs 1 .. 5.8 */
+    var FLAP_TAU       = 0.18;  /* seconds for rate and amplitude to catch up */
+    var FLAP_BASE_HZ   = 1.18;  /* resting beat — the 0.85s period this had in CSS */
+    var FLAP_MID_DEG   = 20;    /* the stroke is centred above flat, as a real one is */
+    var FLAP_AMP_DEG   = 42;    /* resting half-stroke: -22deg to +62deg */
+    var FLAP_AMP_GAIN  = 0.40;  /* extra amplitude at full speed: up to -38deg .. +78deg */
+    var FLAP_PERSP     = 420;   /* px; was the perspective() in the keyframes */
 
     var SWAY_DEG    = 7;     /* gentle roll on top of the heading, so it banks */
     var SWAY_HZ     = 0.22;
@@ -143,24 +155,30 @@
 
     var target = 0, smooth = 0, running = false, lastT = 0;
 
-    /* The wing and shade animations are declared in CSS; this reaches them through the
-       Web Animations API to change their RATE. playbackRate is the right control here:
-       it preserves currentTime and only alters how fast the clock runs from now on,
-       whereas rewriting animation-duration re-reads the elapsed time against the new
-       duration and jumps the wings mid-stroke.
+    var wingL  = el.querySelector(".bf-wing-l");
+    var wingR  = el.querySelector(".bf-wing-r");
+    var shades = el.querySelectorAll(".bf-shade");
+    var flapRate = 1, flapPhase = 0, prevSmooth = 0;
 
-       All five (two wings, three shades) are declared with the same duration on
-       elements present in the initial HTML, so they start together; startTime is
-       levelled once anyway, because a phase split between a wing and its own shading
-       would be obvious. */
-    var flapAnims = el.getAnimations ? el.getAnimations({ subtree: true }) : [];
-    if (flapAnims.length) {
-      var t0 = flapAnims[0].startTime;
-      for (var fi = 0; fi < flapAnims.length; fi++) flapAnims[fi].startTime = t0;
-    }
-    var flapRate = 1, prevSmooth = 0;
-    function setFlapRate(r) {
-      for (var i = 0; i < flapAnims.length; i++) flapAnims[i].playbackRate = r;
+    /* Phase is ACCUMULATED (phase += hz * dt) rather than recomputed from absolute
+       time. Deriving it from the clock would mean that every change of frequency
+       reinterprets the whole elapsed time and the wings jump mid-stroke — the same
+       reason animation-duration was the wrong knob. Accumulating makes the frequency
+       free to change at any moment with no discontinuity at all. */
+    function drawWings(dt) {
+      if (!wingL || !wingR) return;
+      var norm = (flapRate - 1) / FLAP_MAX_EXTRA;                 // 0 at rest, 1 flat out
+      flapPhase = (flapPhase + FLAP_BASE_HZ * flapRate * dt) % 1;
+      var amp = FLAP_AMP_DEG * (1 + FLAP_AMP_GAIN * norm);
+      var deg = FLAP_MID_DEG - amp * Math.cos(flapPhase * 2 * Math.PI);
+      wingL.style.transform = "perspective(" + FLAP_PERSP + "px) rotateY(" + deg.toFixed(2) + "deg)";
+      wingR.style.transform = "perspective(" + FLAP_PERSP + "px) rotateY(" + (-deg).toFixed(2) + "deg)";
+      /* The shading is now a function of the fold ANGLE, not a parallel animation that
+         merely shares its period. sin(deg) is 0 when the wings are flat or below and
+         approaches 1 as they close on edge-on, so a bigger stroke deepens the shadow on
+         its own — which is what more fold actually does — with nothing extra to tune. */
+      var op = Math.max(0, Math.sin(deg * Math.PI / 180)).toFixed(3);
+      for (var i = 0; i < shades.length; i++) shades[i].style.opacity = op;
     }
 
     function draw(p, timeMs) {
@@ -185,7 +203,7 @@
       prevSmooth = smooth;
       var want = 1 + Math.min(FLAP_MAX_EXTRA, speed / FLAP_REF_SPEED);
       flapRate += (want - flapRate) * (1 - Math.exp(-dt / FLAP_TAU));
-      setFlapRate(flapRate);
+      drawWings(dt);
 
       draw(smooth, now);
       /* Keep animating while catching up, or while visible (for the sway). Park
@@ -194,8 +212,7 @@
         requestAnimationFrame(frame);
       } else {
         running = false;
-        flapRate = 1;
-        setFlapRate(1);   /* parked and out of sight; do not leave the wings racing */
+        flapRate = 1;     /* parked and out of sight; do not resume at the old rate */
       }
     }
 

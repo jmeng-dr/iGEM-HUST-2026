@@ -414,13 +414,10 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    only moves it INWARD (43% maps to 46.1% at the 50deg extreme) and nothing from
    outside crosses in, so the strip's edge never exposes a seam or a gap. */
 .bf-part{ position: absolute; inset: 0; }
-.bf-wing{
-  /* The RESTING beat only. butterfly.js drives animation.playbackRate off how fast the
-     butterfly is actually travelling, up to 5.8x, so a slow rest is what gives that
-     range something to read against — speeding this up narrows the contrast. */
-  animation: bf-flap-l 0.85s ease-in-out infinite;
-  will-change: transform;
-}
+/* No keyframes: butterfly.js writes the angle every frame, because the AMPLITUDE has to
+   vary with speed and a keyframe's angles are fixed. Without JS, or under
+   prefers-reduced-motion, the wings simply sit flat — which is the artwork as drawn. */
+.bf-wing{ will-change: transform; }
 /* THE HINGE IS ON THE SEAM, not on the midline. A rotation leaves its own axis fixed,
    so putting each wing's transform-origin exactly on the edge it shares with the body
    makes the alignment there exact by construction — zero displacement, at any angle,
@@ -441,19 +438,10 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    never become visible, so it cannot misalign. Near the hinge the perspective depth is
    ~0 and the vertical magnification ~1, so the seam matches in both axes. */
 .bf-wing-l{ clip-path: inset(0 56% 0 0);  transform-origin: 43% 50%; }
-.bf-wing-r{ clip-path: inset(0 0 0 56%);  transform-origin: 57% 50%; animation-name: bf-flap-r; }
+.bf-wing-r{ clip-path: inset(0 0 0 56%);  transform-origin: 57% 50%; }
 /* 43%/57% clears the widest part of the thorax (44.3%-55.7% measured off the artwork)
    with a little margin, and is what sets where the hinges go. */
 .bf-body{ clip-path: inset(0 43% 0 43%); }
-
-@keyframes bf-flap-l{
-  0%, 100%{ transform: perspective(420px) rotateY(-14deg); }
-  50%     { transform: perspective(420px) rotateY(50deg); }
-}
-@keyframes bf-flap-r{
-  0%, 100%{ transform: perspective(420px) rotateY(14deg); }
-  50%     { transform: perspective(420px) rotateY(-50deg); }
-}
 
 /* The shading. This replaced a filter:brightness() on the whole wing, which dimmed it
    uniformly — and since the body strip does not animate, that left a hard brightness
@@ -483,8 +471,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   -webkit-mask-size: contain;      mask-size: contain;
   -webkit-mask-position: center;   mask-position: center;
   -webkit-mask-repeat: no-repeat;  mask-repeat: no-repeat;
-  opacity: 0;
-  animation: bf-shade 0.85s ease-in-out infinite;   /* must match .bf-wing */
+  opacity: 0;              /* butterfly.js drives this from the fold angle */
   will-change: opacity;
 }
 /* DARK AT THE HINGE, clearing toward the tip — the ambient-occlusion reading: two
@@ -519,10 +506,6 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
     var(--bf-dark) 43%, var(--bf-clear) 50%, var(--bf-dark) 57%);
 }
 
-@keyframes bf-shade{
-  0%, 100%{ opacity: 0.10; }
-  50%     { opacity: 1; }
-}
 /* On a phone the same path crosses a much narrower column, so the butterfly ends up
    sitting on the text. Shrink it there. */
 @media (max-width: 760px){
@@ -530,8 +513,8 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 }
 @media (prefers-reduced-motion: reduce){
   #butterfly{ opacity: 0 !important; }
-  .bf-wing{ animation: none; transform: none; }
-  .bf-shade{ animation: none; opacity: 0; }
+  .bf-wing{ transform: none; }
+  .bf-shade{ opacity: 0; }
 }
 
 /* ---------------- 8. INTRO-WHEEL DIAL ---------------- */
