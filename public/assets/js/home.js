@@ -183,9 +183,12 @@
          q = 0    the modules have just finished
          q = 0.5  the totems have reached the top of the screen  -> 50% opacity, and the
                   stage (3% white) is over the dial, so it reads as passing behind them
-         q = 1    the totems have fully scrolled by -> gone, well before the page ends */
+         q = 1    gone — EXIT_FADE_SPAN of the way through the totems, not at the end of
+                  them. Spending the whole section on the second half of the fade left it
+                  faintly visible almost to the footer. */
     var EXIT_SPIN        = 200;   /* deg of further rotation across the exit */
-    var EXIT_SCALE       = 1.6;   /* grown to this by the time it is gone */
+    var EXIT_SCALE       = 2.2;   /* grown to this by the time it is gone */
+    var EXIT_FADE_SPAN   = 0.5;   /* of #toc's height: how much of it the fade-out uses */
     var EXIT_MID_OPACITY = 0.5;
     var BASE_OPACITY     = 0.92;  /* matches .dial's opacity in home.css */
 
@@ -196,7 +199,7 @@
       var r = toc.getBoundingClientRect();
       var V = window.innerHeight || 800;
       if (r.top > 0) return 0.5 * Math.min(1, Math.max(0, 1 - r.top / V));
-      return 0.5 + 0.5 * Math.min(1, Math.max(0, -r.top / Math.max(1, r.height)));
+      return 0.5 + 0.5 * Math.min(1, Math.max(0, -r.top / Math.max(1, r.height * EXIT_FADE_SPAN)));
     }
 
     /* progress is 0 where the entrance begins, 1 the moment the track pins and module 1
@@ -218,7 +221,10 @@
 
       var op = exit <= 0.5
         ? BASE_OPACITY + (EXIT_MID_OPACITY - BASE_OPACITY) * (exit / 0.5)
-        : EXIT_MID_OPACITY * (1 - (exit - 0.5) / 0.5);
+        /* Squared, so the second half of the fade drops away early rather than trailing
+           a barely-there ghost down the page: at the halfway point of this leg it is
+           already at an eighth of the mid opacity, not a half. */
+        : EXIT_MID_OPACITY * Math.pow(1 - (exit - 0.5) / 0.5, 2);
       dial.style.opacity = op.toFixed(3);
       /* Fully faded: take the fixed box out of the picture entirely rather than leaving
          an invisible full-height element composited over the rest of the page. */
