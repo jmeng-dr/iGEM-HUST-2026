@@ -58,7 +58,24 @@
 /* 17px on the ROOT, not on body: rem resolves against <html>, so setting it on body
    scaled the prose but left every rem-sized element (nav, tables, badges) at the old
    16px scale. This lifts the whole type scale by one step, uniformly. */
-html{ font-size: 17px; scroll-behavior: smooth; background: var(--paper); }
+html{
+  font-size: 17px; background: var(--paper);
+  /* NOT scroll-behavior: smooth. That applies to the browser's OWN fragment scrolling too,
+     including the one it performs on load — so opening a link to a section rendered the top
+     of the page and then animated down to it, which is not a transition anyone asked for.
+     Smoothness belongs to whoever initiates the scroll: nav.js animates same-page jumps and
+     pagenav.js animates the rail, both honouring prefers-reduced-motion; arriving at a
+     fragment is instant, as it should be. */
+  /* The sticky bar is 77px tall (--brand-mark-size 50 + 13 padding twice + a 1px border),
+     and an anchor jump aligns its target to y = 0 — straight underneath it, so the heading
+     you jumped to was the one thing you could not see. Insetting the scrollport at the
+     container is the single place that fixes it: it applies to every fragment link, to
+     history restoration, and to scrollIntoView (which pagenav.js uses), rather than needing
+     a scroll-margin on each individual target. 84 rather than 94: 17px of clearance over
+     the bar reads as a gap, and on a phone the bar is often hidden when you land, which
+     leaves the whole inset as empty space above the heading. */
+  scroll-padding-top: 84px;
+}
 
 /* Cross-document view transition: smooth crossfade between pages instead of a hard
    cut, in browsers that support it. No-op (plain navigation) elsewhere. */
@@ -115,7 +132,12 @@ img{ max-width: 100%; display:block; }
   background: rgba(250,246,238,0.92);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(0,0,0,0.08);
-  view-transition-name: site-nav; /* held stable across page navigations instead of crossfading */
+  /* view-transition-name lives in a desktop-only rule below. Naming this element makes the
+     cross-document transition take over its rendering, and on a phone nav.js also writes a
+     transform to it every frame — the two do not mix. Measured on the device: after arriving
+     from another page the bar was simply not painted, while the script reported it had never
+     hidden it and its transform was none. Desktop keeps the effect; nothing transforms the
+     bar there. */
 }
 .site-nav.on-dark{
   background: rgba(11,15,16,0.82);
@@ -155,14 +177,25 @@ img{ max-width: 100%; display:block; }
   color: var(--text-mid); padding: 6px 4px; border-bottom: 2px solid transparent;
 }
 .site-nav.on-dark nav a{ color: var(--text-on-dark-dim); }
-.site-nav nav a:hover, .site-nav nav a.active{
+.site-nav nav a.active{
   color: var(--kingfisher-1); text-decoration:none; border-bottom-color: var(--kingfisher-2);
+}
+@media (hover: hover) and (pointer: fine){
+  .site-nav nav a:hover{
+    color: var(--kingfisher-1); text-decoration:none; border-bottom-color: var(--kingfisher-2);
+  }
 }
 .site-nav.on-dark nav a:hover, .site-nav.on-dark nav a.active{ color: var(--cream-glow-lit); border-bottom-color: var(--kingfisher-3); }
 .nav-toggle{ display:none; }
 @media (max-width: 860px){
-  .site-nav nav{ display:none; width:100%; flex-direction:column; }
-  .site-nav.nav-open nav{ display:flex; }
+  /* BLOCK, not a column flex box. The base rule carries flex-wrap:wrap, and in a wrapping
+     column flex container align-items:stretch stretches items to the cross size of their
+     FLEX LINE — which is the widest item — not to the container. So the whole menu shrank
+     to its longest label and a tap to the right of the text hit nothing. Block layout makes
+     every child full width by definition and has no such case to get wrong. */
+  .site-nav nav{ display:none; width:100%; }
+  .site-nav.nav-open nav{ display:block; }
+  .site-nav nav > a{ display:block; }
   .nav-toggle{ display:block; background:none; border:1px solid currentColor; border-radius:6px; padding:6px 10px; cursor:pointer; color:inherit; font-size:0.85rem; }
 }
 
@@ -174,7 +207,13 @@ img{ max-width: 100%; display:block; }
 }
 .site-nav.on-dark .nav-drop-trigger{ color: var(--text-on-dark-dim); }
 .nav-drop-trigger::after{ content:""; width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.2s; }
-.nav-drop-trigger:hover, .nav-drop-trigger.active{ color: var(--kingfisher-1); border-bottom-color: var(--kingfisher-2); }
+/* Hover colouring, like hover opening, is for pointers only: a tap leaves :hover asserted
+   on a touchscreen, so the section you last opened ended up styled identically to the one
+   you are actually on. */
+.nav-drop-trigger.active{ color: var(--kingfisher-1); border-bottom-color: var(--kingfisher-2); }
+@media (hover: hover) and (pointer: fine){
+  .nav-drop-trigger:hover{ color: var(--kingfisher-1); border-bottom-color: var(--kingfisher-2); }
+}
 .site-nav.on-dark .nav-drop-trigger:hover, .site-nav.on-dark .nav-drop-trigger.active{ color: var(--cream-glow-lit); border-bottom-color: var(--kingfisher-3); }
 .nav-dropdown.open .nav-drop-trigger::after{ transform: rotate(225deg) translateY(2px); }
 
@@ -208,8 +247,13 @@ img{ max-width: 100%; display:block; }
   width: max-content; max-width: calc(100vw - 32px);
 }
 .nav-dropdown.open .nav-drop-menu,
-.nav-dropdown:hover .nav-drop-menu,
 .nav-dropdown:focus-within .nav-drop-menu{ display:grid; }
+/* Opening on hover is for pointers only. A tap leaves :hover asserted on a touchscreen
+   until you tap elsewhere, so on a phone every menu you had touched stayed open at once —
+   which is most of why the expanded menu looked like it had no layout. */
+@media (hover: hover) and (pointer: fine){
+  .nav-dropdown:hover .nav-drop-menu{ display:grid; }
+}
 .nav-drop-item{
   display:grid; grid-column: 1 / -1; grid-template-columns: subgrid;
   align-items:baseline; gap: 0 26px;
@@ -217,19 +261,118 @@ img{ max-width: 100%; display:block; }
   color: inherit !important; text-decoration:none !important; border-bottom:none !important;
 }
 .nav-drop-item:hover{ background: var(--paper-dim); }
+/* The section you are currently reading, marked in the drop-down at every width — the
+   tracking in nav.js is the same either way, so it costs nothing to show it here too. */
+.nav-drop-item.active .ndi-title{ color: var(--kingfisher-1); }
 /* The wrapper exists only to group the two spans in the markup; it must not become
    a box, or the title and subtitle would be one grid cell instead of two. */
 .nav-drop-item .ndi-text{ display: contents; }
 .nav-drop-item .ndi-title{ display:block; font-weight:700; color: var(--text-dark); font-size:0.92rem; white-space:nowrap; }
 .nav-drop-item .ndi-sub{ display:block; color: var(--kingfisher-1); font-size:0.78rem; }
 
+/* Held stable across page navigations instead of crossfading — desktop only, see the note
+   in .site-nav above. */
+@media (min-width: 861px){
+  .site-nav{ view-transition-name: site-nav; }
+}
+
 @media (max-width: 860px){
+  /* The bar has to WRAP. .site-nav .container is a flex row, and the open nav is a third
+     item in it at width:100% — with no wrapping allowed, the brand was squeezed to its
+     minimum and set one glyph per line down the side of the screen, with the Menu button
+     stranded in the middle of the list. Wrapping puts the nav on its own row underneath,
+     which is the only thing that was ever wanted. */
+  .site-nav .container{ flex-wrap: wrap; }
+  /* No backdrop-filter on a phone. Blur behind a sticky bar is re-rasterised throughout
+     momentum scrolling, which is what the flicker after every jump was; an opaque ground
+     costs nothing here because there is no wide layout showing through it anyway. */
+  .site-nav{
+    background: var(--paper);
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  .site-nav.on-dark{ background: var(--ink); }
+  /* Out of the way while reading, back the instant you reach for it. A phone's vertical
+     space is scarce enough that a permanent bar is worth about a tenth of the viewport,
+     and scrolling down vs up maps cleanly onto reading vs looking for navigation.
+     nav.js writes the transform per frame from the accumulated scroll, so there is NO
+     transition here — one would make the bar lag the gesture it is following. .nav-snap
+     adds it back only for a move the reader did not make. */
+  .site-nav.nav-snap{ transition: transform 0.2s ease; }
+  .site-nav .brand{ flex: 1 1 auto; min-width: 0; }
+  .site-nav nav{ order: 3; }
+
   .nav-dropdown{ width:100%; }
-  .nav-drop-trigger{ width:100%; justify-content:space-between; padding:8px 0; }
-  .nav-drop-menu{ position:static; transform:none; box-shadow:none; background:transparent; padding: 4px 0 4px 14px; display:flex; flex-direction:column; min-width:0; gap:0; }
-  .nav-drop-item{ display:block; color: inherit !important; padding:8px 4px; }
+  .nav-drop-trigger{ width:100%; justify-content:space-between; padding:10px 0; }
+  /* display:none, not display:flex. The old rule set flex unconditionally, which overrode
+     the base rule's display:none — so on a phone every section was expanded the moment the
+     menu opened, and the two-level accordion the JS implements could never be seen. */
+  /* Animated open/close. display cannot be transitioned, so the panel stays in flow and
+     collapses by max-height instead — no magic number is exposed to the layout because the
+     cap only has to EXCEED the tallest menu (7 items, ~310px); it is not the height used.
+     visibility is switched with the transition rather than display so a collapsed panel
+     stays out of the tab order, and it is delayed on the way out so the collapse is
+     visible before it disappears. */
+  .nav-drop-menu{
+    position:static; transform:none; box-shadow:none; background:transparent;
+    padding: 0 0 0 14px; display:block;
+    width:100%; min-width:0; max-width:none; gap:0;
+    overflow: hidden;
+    max-height: 0; opacity: 0; visibility: hidden;
+    transition: max-height .26s ease, opacity .18s ease, padding .26s ease,
+                visibility 0s linear .26s;
+  }
+  /* .open ONLY. :focus-within kept the panel open after a tap, because the trigger still
+     held focus — so the class the JS removes was irrelevant and the section could not be
+     closed at all. Nothing is lost by dropping it here: unlike on the desktop menu, where
+     it is what reveals the panel to a keyboard, every interaction in the stacked menu goes
+     through a click, and Enter on a focused trigger fires one. */
+  .nav-dropdown.open .nav-drop-menu{
+    display: block;
+    max-height: 26rem; opacity: 1; visibility: visible;
+    padding: 2px 0 8px 14px;
+    transition: max-height .26s ease, opacity .22s ease .04s, padding .26s ease,
+                visibility 0s;
+  }
+
+  /* Where you ARE and what you have OPENED must not look alike. The underline is the
+     desktop treatment and reads as a divider in a vertical list, so here the current page
+     gets a left accent bar instead — persistent and structural — and the open/closed state
+     is left entirely to the chevron, which already rotates. */
+  .site-nav nav a, .site-nav nav a.active,
+  .nav-drop-trigger, .nav-drop-trigger.active{ border-bottom: 0; }
+
+  /* ONE marker per location. Being on Wet-Lab-Experiments.html matches both the section
+     header (Lab) and the exact item (Experiments), and marking both put two bars at two
+     different indents on the screen at once. The bar belongs to the precise destination;
+     the section header only has to say "it is in here", which colour and weight already do,
+     and which the chevron and the open panel say again.
+
+     The bar sits in the gutter — the negative margin equals its own width plus the padding
+     it adds — so the label itself does not shift when it becomes current. Square on the
+     left, because .nav-drop-item is a rounded pill and a rounded border-left renders as a
+     parenthesis. */
+  .site-nav nav > a.active,
+  .nav-drop-item.active{
+    border-left: 3px solid var(--kingfisher-2);
+    margin-left: -11px; padding-left: 8px;
+    border-radius: 0 8px 8px 0;
+    background: var(--paper-dim);
+    font-weight: 700;
+  }
+  .nav-drop-trigger.active{ font-weight: 700; }
+  /* Full width, explicitly. The row was only as wide as the longest label, so a tap to the
+     right of the text missed the link entirely and fell through to the close-on-outside-
+     click handler — which reads as "it jumped back to where I was". */
+  .nav-drop-item{
+    display:block; width:100%; box-sizing:border-box;
+    color: inherit !important; padding:7px 4px;
+  }
   .nav-drop-item .ndi-title{ white-space:normal; }
   .nav-drop-item .ndi-text{ display:block; }
+  /* Names only. The one-line descriptions exist to preview a section before you click into
+     it, which is worth a column of a wide drop-down and is not worth doubling the height of
+     a list you are scrolling past on a phone — where they also overflowed the screen. */
+  .nav-drop-item .ndi-sub{ display:none; }
 }
 
 /* ---------- required-page badge ---------- */
@@ -380,7 +523,15 @@ img{ max-width: 100%; display:block; }
      goes deep enough that it is no longer the lighter of the two. */
   color: var(--ink-brown-deep);
   border-bottom: 3px solid var(--kingfisher-2);
-  display: inline-block;
+  /* block + fit-content, NOT inline-block. Both shrink the box to the text so the rule
+     underlines the words rather than the column, but an inline-block's margins do not
+     collapse with its parent — so this heading's 2.6em top margin stayed INSIDE the
+     <section> that anchors point at, putting the section's border-box top some 170px above
+     the heading and landing every fragment jump that far too low. As a block box the margin
+     collapses through the section edge again and section.top is the heading's top. */
+  display: block;
+  width: fit-content;
+  max-width: 100%;
   padding-bottom: 6px;
   margin-top: 2.6em;
   margin-bottom: 0.6em;
@@ -419,6 +570,26 @@ img{ max-width: 100%; display:block; }
    the tables — and a token that cannot fit the column otherwise pushes the whole line out
    of the page. This only breaks a word that has nowhere else to go. */
 .page-body{ overflow-wrap: break-word; }
+/* ...but not inside code. A construct name breaking mid-token is the lesser evil in prose;
+   in a code chip it reads as a different identifier. `anywhere` on the chip lets the LINE
+   break at the chip's own edges instead, so the chip moves whole. */
+.page-body :not(pre) > code{ overflow-wrap: normal; word-break: keep-all; }
+.page-body p, .page-body li{ overflow-wrap: anywhere; }
+
+/* Where the lines actually break is not purely a content problem — the browser has two
+   line-breaking algorithms and both pages were getting the cheap one.
+   `balance` evens a heading out across its lines instead of filling the first and dropping
+   one or two words onto the second ("Module 2: three ways to load / pigment").
+   `pretty` looks ahead over the whole paragraph rather than greedily filling each line, so
+   it will not leave a single word alone on the last line, and it avoids the very short,
+   very ragged lines that a narrow column otherwise produces.
+   Both degrade to normal wrapping where unsupported. */
+.page-hero h1, .page-body h2, .page-body h3, .page-body h4, .page-body h5{
+  text-wrap: balance;
+}
+.page-body p, .page-body li, .page-body td, .page-body th{
+  text-wrap: pretty;
+}
 .page-body p{ color: var(--text-mid); }
 .page-body ul, .page-body ol{ color: var(--text-mid); }
 
@@ -454,7 +625,10 @@ img{ max-width: 100%; display:block; }
    Deliberately scoped to the media query: at desktop widths the tables are already the
    width they should be and nothing here touches them. */
 @media (max-width: 860px){
-  .page-body table{ min-width: 40rem; }
+  /* 46rem, up from 40: at 40 a three-column table still gave each column only ~225px, which
+     is where "BL21 + pET-Cel5A / + pCDF-Cel6B- / BglC(-LPMO10A)" comes from. Wider means
+     more scrolling, so this is the trade-off knob if it ever needs to move. */
+  .page-body table{ min-width: 46rem; }
 }
 .table-wrap > table{ margin: 0; }
 .page-body table{ border-collapse: collapse; width:100%; margin: 18px 0; font-size:0.92rem; }
@@ -462,6 +636,9 @@ img{ max-width: 100%; display:block; }
 .page-body th{ background: var(--paper-dim); font-family: var(--font-body); font-weight:700; font-size:0.95em; letter-spacing:0.01em; }
 
 .credit-tags{ display:flex; flex-wrap:wrap; gap:6px; margin: 6px 0 18px; }
+/* Bound to the last word of the heading it annotates, so it can never be pushed onto a
+   line by itself, which reads as a stray label rather than as part of the heading. */
+h2 > .credit-tag, h3 > .credit-tag, h4 > .credit-tag{ white-space: nowrap; }
 .credit-tag{
   font-size:0.78rem; background: rgba(23,163,152,0.12); color: var(--kingfisher-1);
   padding:3px 10px; border-radius:999px; font-weight:600;
@@ -626,7 +803,9 @@ pre code{
   text-decoration:none;
 }
 .skip-link:focus{ left:0; }
-#main{ scroll-margin-top: 100px; }
+/* No scroll-margin here: it would ADD to html's scroll-padding-top rather than replace it,
+   and 194px of offset would drop the skip link's target most of a screen too low. */
+#main{ scroll-margin-top: 0; }
 .tag-required{ color: var(--ink-brown); font-weight:700; }
 
 /* ---------- "on this page" rail ---------- */
@@ -708,4 +887,10 @@ pre code{
     font-weight: 600;
     border-left-color: var(--kingfisher-2);
   }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .site-nav, .site-nav.nav-snap{ transition: none; }
+  .nav-drop-menu{ transition: visibility 0s; }
+  .nav-dropdown.open .nav-drop-menu{ transition: none; }
 }
