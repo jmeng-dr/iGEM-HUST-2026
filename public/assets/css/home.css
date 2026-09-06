@@ -244,35 +244,33 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 /* min-height, not height: if a panel's content ever exceeds a viewport the hold has to
    grow with it rather than have the panel overflow its own track. */
 .stack-hold{ min-height: 200vh; min-height: 200dvh; }
+/* The panels are TRANSPARENT. An earlier version gave them an opaque ground so they
+   could cover each other, which was wrong twice over: it hid the things that should
+   never be interrupted — the fixed wash, the medallion, the butterfly are all page-level
+   fixed elements and a transparent panel simply never touches them — and the ground it
+   painted did not match, because a transform on an element makes
+   background-attachment:fixed resolve against that element instead of the viewport, so
+   the copied wash landed in the wrong place and left a hard horizontal seam.
+
+   Nothing needs to be covered. Only the CONTENT moves: the incoming panel's block slides
+   up, the outgoing one's fades and drifts back. The background is continuous because it
+   was never sectioned in the first place. */
 .stack > section{
   position: sticky; top: 0;
   min-height: 100vh; min-height: 100dvh;
   display: flex; flex-direction: column; justify-content: center;
-  /* Opaque, or it would not cover the panel underneath. Not a flat colour though: this
-     reproduces #bg-wash exactly — same gradient, and background-attachment:fixed makes it
-     resolve against the VIEWPORT, so a sliding panel carries an identical copy of the
-     page's wash and the surface still reads as one continuous ground rather than as
-     panels with their own backgrounds. (The wash is at full opacity from scrollY 450, so
-     there is nothing to match part-way.) */
-  background-color: var(--ink);
-  background-image: radial-gradient(circle at 50% 42%, var(--kingfisher-2) 0%, var(--kingfisher-1) 35%, transparent 68%);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
 }
-/* The recede. Pure occlusion reads flat — the outgoing panel just gets covered and
-   nothing suggests depth. Scaling it down a little and dropping a scrim over it as the
-   incoming panel climbs is what makes it read as being pushed back rather than clipped.
-   home.js drives --cover on each outgoing panel, 0 to 1. */
-.wheel-sticky, .stack > section{
-  --cover: 0;
-  transform: scale(calc(1 - 0.05 * var(--cover)));
-  transform-origin: 50% 42%;
-}
-.wheel-sticky::after, .stack > section::after{
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: var(--ink);
-  opacity: calc(0.55 * var(--cover));
-  z-index: 9;
+/* home.js drives --cover on the OUTGOING panel, 0 to 1, from how far the incoming one's
+   top edge has climbed. It inherits to the content block, which is the only thing that
+   reacts: it fades and eases back, so the two never both read as present. The panel
+   itself is untouched, so nothing behind it is either. */
+.wheel-sticky, .stack > section{ --cover: 0; }
+.wheel-sticky > .container,
+.stack > section > .container{
+  opacity: calc(1 - var(--cover));
+  transform: translateY(calc(-5vh * var(--cover))) scale(calc(1 - 0.05 * var(--cover)));
+  transform-origin: 50% 50%;
+  will-change: opacity, transform;
 }
 
 #toc{ padding: 40px 0 56px; }
