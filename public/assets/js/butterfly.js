@@ -66,8 +66,8 @@
        already glided by the follower below, and it is what is actually on screen — a
        burst of wheel events during a pinned section moves the page a long way and the
        butterfly hardly at all, and the wings should follow the butterfly. */
-    var FLAP_REF_SPEED = 900;  /* px/s of travel that buys one extra beat's worth of rate */
-    var FLAP_MAX_EXTRA = 2.4;  /* ceiling, so rate stays within 1 .. 3.4 */
+    var FLAP_REF_SPEED = 450;  /* px/s of travel that buys one extra beat's worth of rate */
+    var FLAP_MAX_EXTRA = 4.8;  /* ceiling, so rate stays within 1 .. 5.8 */
     var FLAP_TAU       = 0.18; /* seconds for the rate itself to catch up */
 
     var SWAY_DEG    = 7;     /* gentle roll on top of the heading, so it banks */

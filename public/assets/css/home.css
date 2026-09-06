@@ -415,10 +415,10 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    outside crosses in, so the strip's edge never exposes a seam or a gap. */
 .bf-part{ position: absolute; inset: 0; }
 .bf-wing{
-  /* 0.71s, i.e. 1.2x the 0.85s this started at. butterfly.js then drives
-     animation.playbackRate off how fast the butterfly is actually travelling, so this
-     is the resting beat, not the only one. */
-  animation: bf-flap-l 0.71s ease-in-out infinite;
+  /* The RESTING beat only. butterfly.js drives animation.playbackRate off how fast the
+     butterfly is actually travelling, up to 5.8x, so a slow rest is what gives that
+     range something to read against — speeding this up narrows the contrast. */
+  animation: bf-flap-l 0.85s ease-in-out infinite;
   will-change: transform;
 }
 /* THE HINGE IS ON THE SEAM, not on the midline. A rotation leaves its own axis fixed,
@@ -484,7 +484,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   -webkit-mask-position: center;   mask-position: center;
   -webkit-mask-repeat: no-repeat;  mask-repeat: no-repeat;
   opacity: 0;
-  animation: bf-shade 0.71s ease-in-out infinite;   /* must match .bf-wing */
+  animation: bf-shade 0.85s ease-in-out infinite;   /* must match .bf-wing */
   will-change: opacity;
 }
 /* DARK AT THE HINGE, clearing toward the tip — the ambient-occlusion reading: two
