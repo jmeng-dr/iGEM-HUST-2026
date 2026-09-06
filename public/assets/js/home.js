@@ -480,6 +480,16 @@
 
         p.out.__acc += -M;
         p.in.__acc += -T;
+
+        /* Published for the ?diag=1 overlay. The hand-off is only sound while both blocks
+           fit the viewport with room to spare — G0 and G1 ARE that room — so this is the
+           one number that says whether the layout can work at this size at all. */
+        if (i === 0) window.__homeDiag = [];
+        window.__homeDiag.push(
+          "pair" + (i + 1) + " V=" + Math.round(V) +
+          " hOut=" + Math.round(hm) + " hIn=" + Math.round(ht) +
+          " G0=" + Math.round(G0) + " G1=" + Math.round(G1) +
+          (Math.min(G0, G1) < 40 ? "  <-- TOO TIGHT" : ""));
       }
 
       /* Re-centre the last panel in what the footer has not taken. The footer covers the

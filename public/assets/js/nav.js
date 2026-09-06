@@ -711,6 +711,12 @@
       L.push("visualViewport h " + Math.round(v.height) + " offsetTop " +
              Math.round(v.offsetTop) + "   innerHeight " + window.innerHeight);
     }
+    /* The home page's hand-off geometry, if this is the home page. G0/G1 are the clearance
+       each pair has to work with; below about 40px the "nothing intrudes while this one is
+       centred" guarantee has nothing left to give and the blocks start to collide. */
+    if (window.__homeDiag && window.__homeDiag.length) {
+      window.__homeDiag.forEach(function (line) { L.push(line); });
+    }
 
     if (!t) {
       L.push("no hash target");

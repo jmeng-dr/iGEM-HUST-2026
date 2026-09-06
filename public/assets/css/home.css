@@ -135,8 +135,11 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 #intro-wheel{
   color: var(--text-on-dark);
   position: relative; z-index: 1;
-  margin-top: calc(360px - 50vh);
-  margin-top: calc(360px - 50dvh);
+  /* min(0px, ...) because the expression turns POSITIVE below a 720px viewport — 360 - 50%
+     of 600 is +60 — and a positive margin pushes the wheel further away, which is the exact
+     opposite of what this is for. It may pull up or do nothing; it must never push down. */
+  margin-top: min(0px, calc(360px - 50vh));
+  margin-top: min(0px, calc(360px - 50dvh));
 }
 #intro-wheel .eyebrow{
   color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em; text-transform:uppercase; font-weight:700;
@@ -201,7 +204,13 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 .wheel-panel{
   background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
   border-radius: var(--radius-lg); padding: 34px 38px;
-  height: 480px;              /* fixed and generous — never reflows between modules */
+  /* Was a flat 480px. The whole hand-off is built on the blocks FITTING the viewport —
+     initStack's clearance is V/2 - blockheight/2, which collapses to zero once a block
+     approaches the viewport's height and takes the "nothing intrudes while this is centred"
+     guarantee with it. A laptop viewport is routinely 600-700px, so a fixed 480 plus the
+     heading pushed this block past the point where the geometry holds. Bounded by the
+     viewport now, with the old value as the ceiling so nothing changes on a tall screen. */
+  height: clamp(300px, 54dvh, 480px);
   display:flex; align-items:center;   /* shorter modules sit centred, not stranded at the top */
   overflow: hidden;           /* safety net; no visible scrollbar, ever */
 }
@@ -310,7 +319,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    beside it in a separate panel. */
 .totem-display-wrap{ position:relative; }
 .totem-display{
-  width:100%; height:360px; border-radius: var(--radius-md); overflow:hidden;
+  width:100%; height: clamp(200px, 38dvh, 360px); border-radius: var(--radius-md); overflow:hidden;
   background: var(--ph-bg); border:1px solid var(--ph-border);
   display:flex; align-items:center; justify-content:center;
 }
@@ -401,7 +410,11 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   color: var(--text-on-dark); font-size: clamp(1.95rem,3.5vw,2.8rem); font-weight:700; letter-spacing:-0.005em; margin-bottom: 28px;
 }
 .promo-frame{
+  /* 16:9 across a 952px column is 535px tall — on its own more than a short laptop viewport
+     can give this panel once its heading is counted. The ratio is kept; the height is capped
+     and the width follows from it, so the frame shrinks rather than overflowing. */
   position:relative; width:100%; aspect-ratio: 16 / 9;
+  max-height: 58dvh; margin-inline: auto;
   background: rgba(255,255,255,0.03);
   border:1px solid rgba(255,255,255,0.08);
   border-radius: var(--radius-lg);
@@ -622,8 +635,12 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   position: fixed;
   left: 0;
   top: 0;
-  width: min(92dvh, 860px);
-  height: min(92dvh, 860px);
+  /* 46vw as well as 92dvh: sized only against height, a tall narrow window gave this the
+     full 860px, and since its centre sits on x = 0 the visible half alone covered more than
+     half the screen and sat under the module list. Now its visible half can never exceed
+     23% of the viewport's width. */
+  width: min(92dvh, 46vw, 860px);
+  height: min(92dvh, 46vw, 860px);
   z-index: 0;
   pointer-events: none;
   will-change: transform;
