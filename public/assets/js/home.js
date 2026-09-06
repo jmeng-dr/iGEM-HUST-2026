@@ -98,7 +98,9 @@
     // The medallion dial hanging off the left edge (see home.css section 8). Optional:
     // every page that lacks it still runs the wheel exactly as before.
     var dial = document.getElementById("wheelDial");
+    var dialWrap = document.querySelector(".wheel-dial-wrap");
     var arcs = document.querySelectorAll(".dial-arc");
+    var toc = document.getElementById("toc");
 
     var WHEEL_STEP_PX = 300; // must match "1200px" (= this * stops.length) in home.css
     var FADE_MS = 160;       // must be <= the transition duration set on .wp-content in home.css
@@ -167,24 +169,60 @@
        opposite error, if a small one: it began 0.05V after the centre had already
        entered. 0.5 is the boundary itself. */
     var ENTRY_FRACTION = 0.5;
+
+    /* THE EXIT. The dial is viewport-fixed and page-level now (see .wheel-dial-wrap in
+       home.css), so once the modules are done it can simply stop moving while the page
+       keeps scrolling under it, instead of sliding away with the section that used to
+       contain it. It goes on turning and growing, and fades out across the totems.
+
+       Progress is read off #toc's own rectangle rather than counted in pixels from the
+       release, because #toc follows the wheel's track immediately: its top is at exactly
+       V when the track releases, so `1 - top/V` is 0 at the release with nothing to
+       measure or keep in sync. Past that, `-top/height` carries it across the section.
+
+         q = 0    the modules have just finished
+         q = 0.5  the totems have reached the top of the screen  -> 50% opacity, and the
+                  stage (3% white) is over the dial, so it reads as passing behind them
+         q = 1    the totems have fully scrolled by -> gone, well before the page ends */
+    var EXIT_SPIN        = 200;   /* deg of further rotation across the exit */
+    var EXIT_SCALE       = 1.6;   /* grown to this by the time it is gone */
+    var EXIT_MID_OPACITY = 0.5;
+    var BASE_OPACITY     = 0.92;  /* matches .dial's opacity in home.css */
+
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    function exitProgress() {
+      if (!toc) return 0;
+      var r = toc.getBoundingClientRect();
+      var V = window.innerHeight || 800;
+      if (r.top > 0) return 0.5 * Math.min(1, Math.max(0, 1 - r.top / V));
+      return 0.5 + 0.5 * Math.min(1, Math.max(0, -r.top / Math.max(1, r.height)));
+    }
 
     /* progress is 0 where the entrance begins, 1 the moment the track pins and module 1
        is in place. Smoothstep rather than a plain ease-out: it eases IN as well, so the
        growth is centred in the window where the dial is on screen instead of being spent
        in the first third of it, and still decelerates into position at the end. */
-    function renderDial(index, progress) {
+    function renderDial(index, progress, exit) {
       if (!dial) return;
       var e = reduceMotion.matches ? 1 : progress * progress * (3 - 2 * progress);
-      var rot = -index * 90 + ENTRY_SPIN * (1 - e);
-      var scale = ENTRY_SCALE + (1 - ENTRY_SCALE) * e;
-      /* The 0.75s transition exists for the 90deg module steps. While the entrance is
-         being driven frame by frame off the scroll position it has to be off, or the
-         dial trails the scroll by three quarters of a second. Clearing the inline value
-         hands it back to the stylesheet for the steps. */
-      dial.style.transition = e < 1 ? "none" : "";
+      var rot = -index * 90 + ENTRY_SPIN * (1 - e) - EXIT_SPIN * exit;
+      var scale = (ENTRY_SCALE + (1 - ENTRY_SCALE) * e) * (1 + (EXIT_SCALE - 1) * exit);
+      /* The 0.75s transition exists for the 90deg module steps. Whenever the transform is
+         instead being driven frame by frame off the scroll position — the entrance, and
+         now the exit — it has to be off, or the dial trails the scroll by three quarters
+         of a second. Clearing the inline value hands it back to the stylesheet. */
+      dial.style.transition = (e < 1 || exit > 0) ? "none" : "";
       dial.style.transform =
         "translate(-50%, -50%) rotate(" + rot + "deg) scale(" + scale + ")";
+
+      var op = exit <= 0.5
+        ? BASE_OPACITY + (EXIT_MID_OPACITY - BASE_OPACITY) * (exit / 0.5)
+        : EXIT_MID_OPACITY * (1 - (exit - 0.5) / 0.5);
+      dial.style.opacity = op.toFixed(3);
+      /* Fully faded: take the fixed box out of the picture entirely rather than leaving
+         an invisible full-height element composited over the rest of the page. */
+      if (dialWrap) dialWrap.style.visibility = op < 0.002 ? "hidden" : "";
     }
 
     // Turn the dial 90 degrees per module. The arcs ride along, so marking arc
@@ -220,13 +258,22 @@
          within ENTRY_FRACTION of a screen. renderDial runs on every scroll event, not
          only on a step change, because applyStep returns early when the index is
          unchanged and the entrance moves continuously. */
-      var span = (window.innerHeight || 800) * ENTRY_FRACTION;
+      var V = window.innerHeight || 800;
+      var span = V * ENTRY_FRACTION;
       var entry = top <= 0 ? 1 : Math.max(0, 1 - top / span);
-      renderDial(index, entry);
+
+      /* One clamp covers all three phases of the dial's vertical position: it rides up
+         with the section while the track is still below (top > 0), holds at mid-screen
+         for the whole pinned sequence (top <= 0), and goes on holding there once the
+         track has released — which IS the exit, with no extra branch. */
+      if (dialWrap) {
+        dialWrap.style.transform = "translateY(" + (V / 2 + Math.max(0, top)).toFixed(1) + "px)";
+      }
+      renderDial(index, entry, exitProgress());
     }
     writeContent(0);
     turnDial(0);
-    renderDial(0, 0);
+    renderDial(0, 0, 0);
     currentIndex = 0; // module 1 is already in the markup on load — no fade-in needed for it
     /* Run once before listening: a reload that restores a mid-page scroll position would
        otherwise leave the dial at its entry size until the reader happened to scroll. */

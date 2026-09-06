@@ -223,7 +223,9 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 /* The generous bottom padding here used to be the end of the page; the promotion
    video now follows, so #toc only needs normal separation and the long tail moved
    to #promo-video. */
-#toc{ padding: 40px 0 56px; }
+/* Claims a layer so the whole section — including its static heading — paints over the
+   page-level dial behind it, rather than only its positioned descendants doing so. */
+#toc{ padding: 40px 0 56px; position: relative; z-index: 1; }
 #toc .eyebrow{ color: var(--kingfisher-3); font-size:0.78rem; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; }
 #toc h2{ font-size: clamp(1.95rem,3.5vw,2.8rem); font-weight:700; letter-spacing:-0.005em; color: var(--text-on-dark); margin-bottom: 40px; }
 
@@ -530,14 +532,31 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 
    Purely decorative: pointer-events:none, aria-hidden, and the wheel-stop list
    remains the actual progress indicator. */
+/* Viewport-FIXED and page-level, not absolute inside .wheel-sticky. Inside the sticky it
+   could only ever be where that box was, so once the modules finished and the sticky
+   released, the dial had no choice but to slide away with it. home.js writes its Y as
+   translateY(V/2 + max(0, trackTop)) — one clamp that covers all three phases: it rides
+   up with the section while trackTop is positive, holds at mid-screen while pinned, and
+   goes on holding there after the release, which is the exit.
+
+   left:0 with .dial's own translate(-50%,-50%) puts the centre of rotation on x = 0, so
+   the left half is off the viewport. It used to be .wheel-sticky's overflow:hidden that
+   clipped it; a fixed element does not contribute to the document's scrollable overflow,
+   so nothing has to clip it now and no horizontal scrollbar appears.
+
+   z-index 0 puts it above #bg-wash (-1) and below every section that claims a layer —
+   #intro-wheel and #toc are both position:relative/z-index:1 — so the module text and
+   the totem stage sit over it. The stage's own background is only 3% white, which is why
+   the dial reads as passing BEHIND the totems rather than being hidden by them. */
 .wheel-dial-wrap{
-  position: absolute;
+  position: fixed;
   left: 0;
-  top: 50%;
+  top: 0;
   width: min(92dvh, 860px);
   height: min(92dvh, 860px);
   z-index: 0;
   pointer-events: none;
+  will-change: transform;
 }
 .dial{
   position: absolute;
@@ -549,7 +568,8 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   /* Full brightness, like the reference. Readability of the module list that sits
      over it is handled by the text-shadow on .wheel-stop below, rather than by
      dimming the artwork — halving its opacity against the near-black page just
-     turned the medallion muddy. */
+     turned the medallion muddy. home.js overwrites this during the exit fade; this is
+     the value it starts from and the one used if the script never runs. */
   opacity: 0.92;
 }
 .dial-core{
