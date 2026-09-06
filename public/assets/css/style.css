@@ -426,15 +426,21 @@ img{ max-width: 100%; display:block; }
   stroke: var(--cream-glow-lit); stroke-width:2.2; stroke-linecap:round;
 }
 
+/* display:none by DEFAULT, and a class opens it — not the hidden attribute. [hidden]'s
+   display:none comes from the UA stylesheet and loses to any class selector, so a rule
+   saying display:flex here left the overlay open from first paint, covering the page and
+   swallowing every click. The attribute is still kept in sync for assistive tech; it is
+   just not what does the hiding. */
 .search-overlay{
   position:fixed; inset:0; z-index:2000;
   background: rgba(8,12,13,0.62);
   -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
-  display:flex; justify-content:center;
+  display:none; justify-content:center;
   /* Near the top, not centred: the list grows downwards, and a panel that re-centres itself
      as results arrive moves the thing you are reading. */
   padding: clamp(40px, 12vh, 130px) 20px 20px;
 }
+.search-overlay.open{ display:flex; }
 html.search-open{ overflow:hidden; }
 
 .search-panel{

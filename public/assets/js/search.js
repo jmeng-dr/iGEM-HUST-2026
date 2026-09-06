@@ -176,6 +176,7 @@
     open = true;
     lastFocus = document.activeElement;
     overlay.hidden = false;
+    overlay.classList.add("open");
     fab.setAttribute("aria-expanded", "true");
     document.documentElement.classList.add("search-open");
     input.value = "";
@@ -186,6 +187,7 @@
   function hide() {
     if (!open) return;
     open = false;
+    overlay.classList.remove("open");
     overlay.hidden = true;
     fab.setAttribute("aria-expanded", "false");
     document.documentElement.classList.remove("search-open");
@@ -235,6 +237,9 @@
     if (document.body) document.body.dataset.searchBooted = "1";
     offAll();
     open = false;
+    var o = document.getElementById("searchOverlay");
+    if (o) { o.classList.remove("open"); o.hidden = true; }
+    document.documentElement.classList.remove("search-open");
     initPage();
   }
   /* Not recorded: offAll() would otherwise remove the hook that calls it. */
