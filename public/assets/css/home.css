@@ -413,8 +413,8 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    The wing content between 43% and 50% is always underneath the body strip: rotating
    only moves it INWARD (43% maps to 46.1% at the 50deg extreme) and nothing from
    outside crosses in, so the strip's edge never exposes a seam or a gap. */
+.bf-part{ position: absolute; inset: 0; }
 .bf-wing{
-  position: absolute; inset: 0;
   animation: bf-flap-l 0.85s ease-in-out infinite;
   will-change: transform;
 }
@@ -484,12 +484,29 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   animation: bf-shade 0.85s ease-in-out infinite;
   will-change: opacity;
 }
-/* Transparent at the hinge, ramping to the far tip. `to left` measures from the right
-   edge, so its 57% is x = 43% — the left wing's hinge; `to right` measures from the
-   left, so its 57% is x = 57%, the right wing's. A deep blue-black rather than a
-   neutral one, which against this artwork reads as soot. */
-.bf-wing-l .bf-shade{ background: linear-gradient(to left,  rgba(3,12,20,0) 57%, rgba(3,12,20,0.82) 96%); }
-.bf-wing-r .bf-shade{ background: linear-gradient(to right, rgba(3,12,20,0) 57%, rgba(3,12,20,0.82) 96%); }
+/* DARK AT THE HINGE, clearing toward the tip — the ambient-occlusion reading: two
+   wings folding toward each other close a valley over the thorax, and the deepest part
+   of that valley is where they meet. (The other reading, dark at the TIP, is wing
+   twist: a flexible wing's outer edge lags the base and so turns furthest from the
+   light. To go back to it, swap the two rgba stops in each of the three rules below.)
+
+   This one only works if the BODY is shaded too. The darkest pixels now land exactly on
+   the seam, and the body strip does not rotate, so leaving it unshaded would put a hard
+   step down both of its edges — the same defect the uniform filter:brightness() had.
+   Its gradient is dark at 43% and 57%, clearing to nothing at the centre line, which
+   meets each wing's hinge value exactly. Alignment across the seam is guaranteed for
+   free: a rotation leaves its own axis fixed, and the hinges ARE the seams, so the two
+   sides agree at every angle of the stroke.
+
+   `to left` measures from the right edge, so its 57% is x = 43%, the left wing's hinge;
+   `to right` measures from the left, so its 57% is x = 57%, the right wing's. A deep
+   blue-black rather than a neutral one, which against this artwork reads as soot. */
+.bf-wing-l .bf-shade{ background: linear-gradient(to left,  rgba(3,12,20,0.82) 57%, rgba(3,12,20,0) 96%); }
+.bf-wing-r .bf-shade{ background: linear-gradient(to right, rgba(3,12,20,0.82) 57%, rgba(3,12,20,0) 96%); }
+.bf-body   .bf-shade{
+  background: linear-gradient(to right,
+    rgba(3,12,20,0.82) 43%, rgba(3,12,20,0) 50%, rgba(3,12,20,0.82) 57%);
+}
 
 @keyframes bf-shade{
   0%, 100%{ opacity: 0.10; }

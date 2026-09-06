@@ -18,15 +18,18 @@ import headExtra from '../partials/index.head.html?raw';
          is last so it paints over the wings' inner edges. See "9. BUTTERFLY WING FLAP"
          in home.css for the geometry. -->
     <div id="butterfly" aria-hidden="true">
-      <div class="bf-wing bf-wing-l">
+      <div class="bf-part bf-wing bf-wing-l">
         <img src="/assets/img/butterfly.webp" alt="" width="800" height="747" decoding="async">
         <i class="bf-shade"></i>
       </div>
-      <div class="bf-wing bf-wing-r">
+      <div class="bf-part bf-wing bf-wing-r">
         <img src="/assets/img/butterfly.webp" alt="" width="800" height="747" decoding="async">
         <i class="bf-shade"></i>
       </div>
-      <img class="bf-body" src="/assets/img/butterfly.webp" alt="" width="800" height="747" decoding="async">
+      <div class="bf-part bf-body">
+        <img src="/assets/img/butterfly.webp" alt="" width="800" height="747" decoding="async">
+        <i class="bf-shade"></i>
+      </div>
     </div>
   </Fragment>
 
