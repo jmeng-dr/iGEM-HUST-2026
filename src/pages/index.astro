@@ -23,7 +23,14 @@ import headExtra from '../partials/index.head.html?raw';
          wheel-stop list is still the indicator. -->
     <div class="wheel-dial-wrap" aria-hidden="true">
       <div class="dial" id="wheelDial">
-        <img class="dial-core" src="/assets/img/medallion.webp" alt="" width="1000" height="716" decoding="async">
+        <!-- The one asset the page renders larger than its own resolution, so it is the one
+             worth a <picture>: AVIF first (163 KB against WebP's 301) keeps the full-size
+             re-export affordable. Everything else on the page is comfortably over-resolved
+             and stays a plain webp <img>. -->
+        <picture>
+          <source srcset="/assets/img/medallion.avif" type="image/avif">
+          <img class="dial-core" src="/assets/img/medallion.webp" alt="" width="1187" height="850" decoding="async">
+        </picture>
         <svg class="dial-arcs" viewBox="0 0 200 200" aria-hidden="true">
           <circle class="dial-arc" cx="100" cy="100" r="94" pathLength="100" transform="rotate(-45 100 100)"></circle>
           <circle class="dial-arc" cx="100" cy="100" r="94" pathLength="100" transform="rotate(45 100 100)"></circle>
