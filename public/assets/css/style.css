@@ -166,7 +166,12 @@ img{ max-width: 100%; display:block; }
 .site-nav .brand{
   font-family: var(--font-display); font-size: 1.3rem; font-weight:700;
   color: var(--kingfisher-1); display:flex; align-items:center; gap:8px;
+  /* The brand is a sibling of <nav>, not inside it, so the rule that keeps the nav links
+     clear of the global a:hover underline never reached it — and an underline under a
+     wordmark reads as a defect rather than as an affordance. */
+  text-decoration: none;
 }
+.site-nav .brand:hover{ text-decoration: none; }
 .site-nav.on-dark .brand{ color: var(--cream-glow-lit); }
 .site-nav .brand .swatch{
   width:14px; height:14px; border-radius:50%;
