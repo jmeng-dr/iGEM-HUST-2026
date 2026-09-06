@@ -756,11 +756,19 @@ h2 > .credit-tag, h3 > .credit-tag, h4 > .credit-tag{ white-space: nowrap; }
   justify-content:center; align-items:center;
   gap: clamp(24px, 5vw, 60px);
 }
+/* The seal itself is the target, so the link is only a wrapper: no underline, no colour of
+   its own, and the focus ring goes round the mark rather than round a zero-height box. */
+.footer-seal-link{
+  display:block; line-height:0;
+  border-radius: 6px; text-decoration:none !important;
+}
+.footer-seal-link:focus-visible{ outline: 2px solid var(--kingfisher-3); outline-offset: 4px; }
 .footer-seal{
   height: 84px; width:auto; display:block;
-  opacity: 0.92; transition: opacity 0.25s;
+  opacity: 0.92; transition: opacity 0.25s, transform 0.25s;
 }
-.footer-seal:hover{ opacity: 1; }
+.footer-seal-link:hover .footer-seal,
+.footer-seal-link:focus-visible .footer-seal{ opacity: 1; transform: translateY(-2px); }
 
 @media (max-width: 860px){
   .site-footer .footer-main{ grid-template-columns: 1fr 1fr; }

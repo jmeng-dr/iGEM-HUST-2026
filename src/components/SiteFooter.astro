@@ -18,6 +18,32 @@ const NAV_LEFT = [
   { href: 'Wet-Lab-Experiments.html', label: 'Wet Lab' },
   { href: 'Attributions.html', label: 'Team' },
 ];
+/* Each seal links to that institution's own site. Verified rather than assumed, and the
+ * result is not three English sites: HUST and the College of Life Science and Technology
+ * each publish one — the college's is the address its own Chinese homepage links to — and
+ * Qiming College does not publish an English site at all, so it points at the only official
+ * site it has. Inventing an English URL for it would have been the wrong kind of tidy.
+ *
+ * The college's English site has no valid certificate for its own hostname (HUST's wildcard
+ * covers one label, not two), so it is reachable over http only. */
+const SEALS = [
+  {
+    src: 'assets/img/seal-hust.webp', w: 300, h: 234,
+    alt: 'Huazhong University of Science and Technology',
+    href: 'https://english.hust.edu.cn/',
+  },
+  {
+    src: 'assets/img/seal-college.webp', w: 300, h: 300,
+    alt: 'HUST College of Life Science and Technology',
+    href: 'http://english.life.hust.edu.cn/',
+  },
+  {
+    src: 'assets/img/seal-qiming.webp', w: 120, h: 120,
+    alt: 'Qiming College, HUST',
+    href: 'https://qiming.hust.edu.cn/',
+  },
+];
+
 const NAV_RIGHT = [
   { href: 'Project-Description.html', label: 'Project' },
   { href: 'Human-Practices.html', label: 'Human Practices' },
@@ -56,12 +82,13 @@ const NAV_RIGHT = [
 
   <div class="footer-institutions-band">
     <div class="container footer-institutions">
-      <img class="footer-seal" src="assets/img/seal-hust.webp" width="300" height="234" loading="lazy" decoding="async"
-        alt="Huazhong University of Science and Technology" />
-      <img class="footer-seal" src="assets/img/seal-college.webp" width="300" height="300" loading="lazy" decoding="async"
-        alt="HUST College of Life Science and Technology" />
-      <img class="footer-seal" src="assets/img/seal-qiming.webp" width="120" height="120" loading="lazy" decoding="async"
-        alt="Qiming College, HUST" />
+      {SEALS.map((s) => (
+        <a class="footer-seal-link" href={s.href} target="_blank" rel="noopener noreferrer"
+           aria-label={`${s.alt} (opens in a new tab)`}>
+          <img class="footer-seal" src={s.src} width={s.w} height={s.h}
+               loading="lazy" decoding="async" alt={s.alt} />
+        </a>
+      ))}
     </div>
   </div>
 </footer>
