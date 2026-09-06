@@ -47,7 +47,6 @@
   /* Assigned inside initOnce so they close over its locals; called by refreshPage. */
   var markCurrentPage = function () {};
   var buildSectionTracking = function () {};
-  var refreshRing = function () {};
   var refreshNavState = function () {};
 
   function initOnce() {
@@ -565,51 +564,6 @@
     };
 
 
-    /* Ring navigator: floating bubble (fixed bottom-right, every page) opens a full-screen
-       ring menu of the 5 top-level destinations. Escape / outside-click / the close button
-       all dismiss it; focus moves into the ring on open and back to the bubble on close.
-
-       Unlike the nav, this is NOT persisted — it is rebuilt with every page — so its own
-       listeners are attached fresh each time and go away with the nodes they were on. Only
-       the document-level Escape is bound once, here, or a new one would stack per page. */
-    document.addEventListener("keydown", function (e) {
-      if (e.key !== "Escape") return;
-      var rn = document.getElementById("ringNav");
-      if (rn && rn.classList.contains("open")) closeRing(rn);
-    });
-
-    function closeRing(ringNav) {
-      var ringTrigger = document.getElementById("ringNavTrigger");
-      ringNav.classList.remove("open");
-      ringNav.setAttribute("aria-hidden", "true");
-      if (ringTrigger) {
-        ringTrigger.setAttribute("aria-expanded", "false");
-        ringTrigger.focus();
-      }
-    }
-
-    refreshRing = function () {
-      var ringTrigger = document.getElementById("ringNavTrigger");
-      var ringNav = document.getElementById("ringNav");
-      var ringClose = document.getElementById("ringNavClose");
-      if (!ringTrigger || !ringNav) return;
-      ringTrigger.addEventListener("click", function () {
-        ringNav.classList.add("open");
-        ringNav.setAttribute("aria-hidden", "false");
-        ringTrigger.setAttribute("aria-expanded", "true");
-        var firstNode = ringNav.querySelector(".ring-node");
-        if (firstNode) firstNode.focus();
-      });
-      if (ringClose) ringClose.addEventListener("click", function () { closeRing(ringNav); });
-      ringNav.addEventListener("click", function (e) {
-        if (e.target === ringNav) closeRing(ringNav);
-      });
-      ringNav.querySelectorAll(".ring-node").forEach(function (n) {
-        var target = (n.getAttribute("href") || "").split("/").pop();
-        n.classList.toggle("active", target === here);
-      });
-    };
-
     /* The bar is persisted, so it cannot carry a per-page class; BaseLayout puts the variant
        on <body> and this copies it across after each swap. Without it the home page's dark,
        full-bleed bar would follow you onto every interior page. */
@@ -629,7 +583,6 @@
     refreshNavState();
     markCurrentPage();
     buildSectionTracking();
-    refreshRing();
     var y = document.getElementById("year");
     if (y) y.textContent = new Date().getFullYear();
   }

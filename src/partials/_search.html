@@ -1,0 +1,41 @@
+<!-- Floating search button and the palette it opens.
+
+     This replaced a "ring navigator": a full-screen dialog holding the same five top-level
+     links the bar already shows. It offered strictly less than the bar — no sections, no
+     current-page marking — for the price of a modal, and sat over the text while doing it.
+
+     Search is what the site actually lacked. Project and Wet Lab run to 25-30k characters
+     each, the rail only lists h2s and only appears above 1640px, and the drop-downs carry
+     seven anchors between them; until now the only way to find a part number or a protocol
+     was to scroll. The index is built from the pages themselves at build time (see
+     scripts/build-search-index.mjs) and fetched on first open, so it costs nothing until
+     someone wants it. -->
+<button class="search-fab" id="searchFab" type="button"
+        aria-label="Search this wiki" aria-haspopup="dialog" aria-expanded="false">
+  <svg class="search-fab-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <circle cx="11" cy="11" r="6.5" />
+    <line x1="15.8" y1="15.8" x2="20.5" y2="20.5" />
+  </svg>
+</button>
+
+<div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true"
+     aria-label="Search this wiki" hidden>
+  <div class="search-panel" role="document">
+    <div class="search-field">
+      <svg class="search-field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="11" cy="11" r="6.5" />
+        <line x1="15.8" y1="15.8" x2="20.5" y2="20.5" />
+      </svg>
+      <input id="searchInput" class="search-input" type="text" role="combobox"
+             autocomplete="off" autocapitalize="off" spellcheck="false"
+             aria-controls="searchResults" aria-expanded="true" aria-autocomplete="list"
+             placeholder="Search protocols, parts, models…" />
+      <kbd class="search-esc">Esc</kbd>
+    </div>
+    <p class="search-status" id="searchStatus" role="status" aria-live="polite"></p>
+    <ul class="search-results" id="searchResults" role="listbox" aria-label="Search results"></ul>
+    <p class="search-foot">
+      <kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>↵</kbd> to open · <kbd>Esc</kbd> to close
+    </p>
+  </div>
+</div>

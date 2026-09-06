@@ -2,6 +2,7 @@ import { defineConfig } from 'astro/config';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildSearchIndex } from './scripts/build-search-index.mjs';
 
 // Astro emits its own bundles as root-absolute URLs (/_astro/...). Every asset this site
 // references by hand is relative, deliberately, so that one build works at a domain root,
@@ -32,6 +33,9 @@ function relativeAstroAssets() {
         };
         walk(root);
         console.log(`[relative-astro-assets] rewrote /_astro/ in ${touched} file(s)`);
+        /* After the rewrite, so the ids this adds are not clobbered, and over the emitted
+           HTML so what gets indexed is exactly what a reader sees. */
+        buildSearchIndex(root);
       },
     },
   };

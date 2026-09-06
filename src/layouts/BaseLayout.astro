@@ -10,7 +10,7 @@
 import { ClientRouter } from 'astro:transitions';
 import SiteNav from '../components/SiteNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import RingNav from '../components/RingNav.astro';
+import SiteSearch from '../components/SiteSearch.astro';
 
 interface Props {
   title: string;
@@ -82,10 +82,11 @@ const {
   <div id="main" tabindex="-1"></div>
   <slot />
   <SiteFooter safetyHref={safetyHref} />
-  <RingNav />
+  <SiteSearch />
   <script is:inline>document.getElementById("year").textContent = new Date().getFullYear();</script>
   <script is:inline src="assets/js/nav.js"></script>
   <script is:inline src="assets/js/pagenav.js"></script>
+  <script is:inline src="assets/js/search.js"></script>
   {/* Loaded on every page, not just the home page. Under client-side routing a script that
       only exists in one page's markup is never fetched if the visitor arrives anywhere else
       first, and then arriving at the home page gets a page with no behaviour at all. Both

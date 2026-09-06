@@ -1,0 +1,9 @@
+---
+// Floating search button and the palette it opens. Markup in src/partials/_search.html,
+// behaviour in /assets/js/search.js, index built by scripts/build-search-index.mjs.
+//
+// This replaced a "ring navigator" that held the same five top-level links the bar already
+// shows — strictly less than the bar, for the price of a modal.
+import searchMarkup from '../partials/_search.html?raw';
+---
+<Fragment set:html={searchMarkup} />
