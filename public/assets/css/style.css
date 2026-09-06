@@ -481,7 +481,15 @@ img{ max-width: 100%; display:block; }
    so without a shared ground they read as three unrelated logos. */
 .site-footer .footer-main{
   display:grid;
-  grid-template-columns: 1.35fr 1fr 1fr;
+  /* Content-sized tracks with the slack pushed BETWEEN them, not fr tracks that divide the
+     width up regardless of what is in them. At 1.35fr 1fr 1fr every column was wider than
+     its own text — the first by about as much as the last — and since nothing sits to the
+     right of the last one, all of that read as the footer being pushed left. space-between
+     puts the first column on the left margin and the last on the right, which is where the
+     top nav's first and last items are, so the two agree at both edges rather than only at
+     the left. `gap` stays the minimum for when the content is wide enough to need it. */
+  grid-template-columns: auto auto auto;
+  justify-content: space-between;
   gap: clamp(28px, 5vw, 72px);
   align-items:start;
   padding-top: 14px;
