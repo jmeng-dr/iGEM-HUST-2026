@@ -292,32 +292,74 @@
     window.addEventListener("resize", onScroll);
   }
 
-  /* ---------------- 3b. Stacked panels: the recede under an incoming panel ---------------- */
-  /* The overlap itself is pure CSS (.stack / .stack-hold in home.css). This only supplies
-     the depth cue: --cover on the OUTGOING panel, 0 while the incoming one is still below
-     the fold and 1 once it covers the screen. CSS turns that into a small scale-down and a
-     scrim. Without it the outgoing panel is merely occluded, which reads as clipping
-     rather than as depth — occlusion alone gives the eye nothing to read the layering by.
+  /* ---------------- 3b. Stacked panels: the hand-off ---------------- */
+  /* Two adjacent full-screen blocks cannot share a fixed gap that is both small enough to
+     leave no dead space in between and large enough to keep each off screen while the
+     other is centred. Writing hm/ht for the two block heights, BOTH endpoints demand the
+     same thing:
 
-     One number per pair, and it is the same number the dial's exit uses: how far the
-     incoming panel's top edge has travelled up the screen. */
+         block centred, the other must be off screen  ->  gap >= V/2 - h/2
+
+     and a block centred in its own viewport-tall panel contributes (V - h)/2 of margin at
+     each end, so the standing gap is (V-hm)/2 + (V-ht)/2 — about twice what is needed.
+     Halving it is therefore exactly right, and lands on the boundary rather than past it:
+     with the totems centred, the modules' bottom edge sits at y = 0, flush.
+
+     Better still, that constraint only BINDS AT THE ENDPOINTS. In between, the gap may go
+     tighter than any fixed value could, which is what this does: the incoming block is
+     pulled up early (T, largest at the start, zero when it lands centred) and the outgoing
+     one accelerates away (M, c^1.5 so it is barely moving at first and clearing fast by
+     the end). Same total travel for both, redistributed — so it reads as acceleration, not
+     as a jump.
+
+       T(c) = (V - ht)/2 * (1 - c)      at c = 0 this puts the incoming block's top edge
+                                        exactly on the fold: as early as it can possibly
+                                        be without intruding
+       M(c) = (V/2 + hm/2) * c^1.5      at c = 1 the outgoing block's bottom is exactly
+                                        on y = 0
+
+     The two curves happen to leave only ~0.02V of clearance at their worst point when the
+     blocks are the same height, and nothing guarantees they are, so the overlap is also
+     checked outright each frame and M raised if it would ever go negative. Correct by
+     measurement rather than by assuming the content. */
   function initStack() {
+    function contentOf(el) { return el && el.querySelector(":scope > .container"); }
     var pairs = [];
     var wheelSticky = document.querySelector(".wheel-sticky");
     var toc = document.getElementById("toc");
     var video = document.getElementById("promo-video");
-    if (wheelSticky && toc) pairs.push([wheelSticky, toc]);
-    if (toc && video) pairs.push([toc, video]);
+    if (wheelSticky && toc) pairs.push({ outEl: wheelSticky, inEl: toc });
+    if (toc && video) pairs.push({ outEl: toc, inEl: video });
+    pairs = pairs.filter(function (p) {
+      p.out = contentOf(p.outEl); p.in = contentOf(p.inEl);
+      return p.out && p.in;
+    });
     if (!pairs.length) return;
 
+    var PAD = 24;   /* px of clearance the two blocks must never eat into */
     var ticking = false;
+
     function update() {
       ticking = false;
       var V = window.innerHeight || 800;
       for (var i = 0; i < pairs.length; i++) {
-        var top = pairs[i][1].getBoundingClientRect().top;
-        var cover = Math.min(1, Math.max(0, 1 - top / V));
-        pairs[i][0].style.setProperty("--cover", cover.toFixed(3));
+        var p = pairs[i];
+        /* The SECTION's rect, not the container's — the container carries the transform
+           and would report its own displacement back into the input. */
+        var c = Math.min(1, Math.max(0, 1 - p.inEl.getBoundingClientRect().top / V));
+        var hm = p.out.offsetHeight, ht = p.in.offsetHeight;
+
+        var T = Math.max(0, (V - ht) / 2) * (1 - c);
+        var M = (V / 2 + hm / 2) * Math.pow(c, 1.5);
+
+        var inTop  = V * (1 - c) + V / 2 - T - ht / 2;
+        var outBot = V / 2 + hm / 2 - M;
+        var slack  = inTop - outBot;
+        if (slack < PAD) M += PAD - slack;    /* clear the outgoing further, never hold the
+                                                 incoming back — that is the dead space */
+
+        p.out.style.setProperty("--shift", (-M).toFixed(1) + "px");
+        p.in.style.setProperty("--shift", (-T).toFixed(1) + "px");
       }
     }
     function onScroll() {
