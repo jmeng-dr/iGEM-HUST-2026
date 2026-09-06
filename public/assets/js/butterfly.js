@@ -30,6 +30,7 @@
      SMOOTH_TAU  — glide/lag in seconds. Higher = floatier, lower = tighter to scroll
      START_PX    — how far down the page it appears
      MAX_OPACITY — how present it is over the content
+     FLAP_*      — how hard the wingbeat responds to travel speed
 */
 (function () {
   document.addEventListener("DOMContentLoaded", initButterfly);
@@ -56,6 +57,19 @@
     var FADE_OUT_AT = 0.93;  /* progress at which it starts fading back out */
     var MAX_OPACITY = 0.8;
     var SMOOTH_TAU  = 0.10;  /* seconds of glide */
+    /* Wingbeat vs. travel speed. The wings have a resting beat in CSS (.bf-wing in
+       home.css); these scale it up as the butterfly moves faster, so a fast scroll
+       reads as the thing actually flying off rather than as the same idle loop sliding
+       across the screen.
+
+       The signal is the SMOOTHED travel speed in px/s, not raw scroll velocity: it is
+       already glided by the follower below, and it is what is actually on screen — a
+       burst of wheel events during a pinned section moves the page a long way and the
+       butterfly hardly at all, and the wings should follow the butterfly. */
+    var FLAP_REF_SPEED = 900;  /* px/s of travel that buys one extra beat's worth of rate */
+    var FLAP_MAX_EXTRA = 2.4;  /* ceiling, so rate stays within 1 .. 3.4 */
+    var FLAP_TAU       = 0.18; /* seconds for the rate itself to catch up */
+
     var SWAY_DEG    = 7;     /* gentle roll on top of the heading, so it banks */
     var SWAY_HZ     = 0.22;
     var SAMPLES     = 700;
@@ -129,6 +143,26 @@
 
     var target = 0, smooth = 0, running = false, lastT = 0;
 
+    /* The wing and shade animations are declared in CSS; this reaches them through the
+       Web Animations API to change their RATE. playbackRate is the right control here:
+       it preserves currentTime and only alters how fast the clock runs from now on,
+       whereas rewriting animation-duration re-reads the elapsed time against the new
+       duration and jumps the wings mid-stroke.
+
+       All five (two wings, three shades) are declared with the same duration on
+       elements present in the initial HTML, so they start together; startTime is
+       levelled once anyway, because a phase split between a wing and its own shading
+       would be obvious. */
+    var flapAnims = el.getAnimations ? el.getAnimations({ subtree: true }) : [];
+    if (flapAnims.length) {
+      var t0 = flapAnims[0].startTime;
+      for (var fi = 0; fi < flapAnims.length; fi++) flapAnims[fi].startTime = t0;
+    }
+    var flapRate = 1, prevSmooth = 0;
+    function setFlapRate(r) {
+      for (var i = 0; i < flapAnims.length; i++) flapAnims[i].playbackRate = r;
+    }
+
     function draw(p, timeMs) {
       var pt = atDistance(p * total);
       var sway = reduce.matches ? 0 : Math.sin(timeMs / 1000 * SWAY_HZ * Math.PI * 2) * SWAY_DEG;
@@ -145,6 +179,14 @@
       /* Frame-rate-independent follower, so it behaves the same at 60Hz and 144Hz
          rather than being proportionally faster on a fast display. */
       smooth += (target - smooth) * (1 - Math.exp(-dt / SMOOTH_TAU));
+
+      /* smooth is progress along a path of `total` px, so this is travel in px/s. */
+      var speed = Math.abs(smooth - prevSmooth) / dt * total;
+      prevSmooth = smooth;
+      var want = 1 + Math.min(FLAP_MAX_EXTRA, speed / FLAP_REF_SPEED);
+      flapRate += (want - flapRate) * (1 - Math.exp(-dt / FLAP_TAU));
+      setFlapRate(flapRate);
+
       draw(smooth, now);
       /* Keep animating while catching up, or while visible (for the sway). Park
          otherwise; a scroll or resize wakes it again. */
@@ -152,6 +194,8 @@
         requestAnimationFrame(frame);
       } else {
         running = false;
+        flapRate = 1;
+        setFlapRate(1);   /* parked and out of sight; do not leave the wings racing */
       }
     }
 
@@ -161,7 +205,7 @@
     }
 
     buildPath();
-    smooth = target = rawProgress();
+    smooth = target = prevSmooth = rawProgress();
 
     if (reduce.matches) {
       /* No animation loop at all: draw once, then only on scroll/resize. */
