@@ -240,10 +240,20 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    Each .stack begins one viewport EARLY, which is the slide. .stack-hold is two viewports
    tall: one for its own slide in, one to hold its panel pinned while the NEXT one covers
    it. The last panel needs no hold. */
-.stack{ position: relative; z-index: 1; margin-top: -100vh; margin-top: -100dvh; }
+.stack{
+  position: relative; z-index: 1;
+  margin-top: -100vh; margin-top: -100dvh;
+  /* One viewport for the slide in, one for the panel to DWELL at centre. The dwell is not
+     decoration: the totems are the only interactive thing on this page, and without it the
+     window where the panel is centred and neither neighbour intrudes is a few pixels of
+     scroll — impossible to stop the mouse in. Nothing moves through it except the
+     butterfly, which is driven off page progress and carries on regardless. */
+  min-height: 200vh; min-height: 200dvh;
+}
 /* min-height, not height: if a panel's content ever exceeds a viewport the hold has to
-   grow with it rather than have the panel overflow its own track. */
-.stack-hold{ min-height: 200vh; min-height: 200dvh; }
+   grow with it rather than have the panel overflow its own track. Three viewports: slide
+   in, dwell, then hold the panel pinned while the NEXT one takes over. */
+.stack-hold{ min-height: 300vh; min-height: 300dvh; }
 /* The panels are TRANSPARENT. An earlier version gave them an opaque ground so they
    could cover each other, which was wrong twice over: it hid the things that should
    never be interrupted — the fixed wash, the medallion, the butterfly are all page-level
@@ -255,11 +265,18 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    Nothing needs to be covered. Only the CONTENT moves: the incoming panel's block slides
    up, the outgoing one's fades and drifts back. The background is continuous because it
    was never sectioned in the first place. */
+/* A ROW flex box with align-items:center, matching .wheel-sticky — not a column one.
+   Stacking it in a column makes .container a cross-axis flex item, and .container carries
+   margin:0 auto; an auto margin on the cross axis suppresses stretch, so the panel
+   collapsed to its fit-content width and everything in it came out narrow. width:100% then
+   restores ordinary block sizing inside the row: 100% of the panel, capped by .container's
+   own max-width, centred by its auto margins. */
 .stack > section{
   position: sticky; top: 0;
   min-height: 100vh; min-height: 100dvh;
-  display: flex; flex-direction: column; justify-content: center;
+  display: flex; align-items: center;
 }
+.stack > section > .container{ width: 100%; }
 /* Pure translation, no fade and no scale: the two blocks move at DIFFERENT speeds so the
    gap between them closes through the middle of the hand-off and re-opens at the end. The
    incoming one is pulled up early, the outgoing one accelerates away — it is pushed out,
