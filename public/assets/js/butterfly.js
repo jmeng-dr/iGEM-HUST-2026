@@ -78,8 +78,13 @@
     var FLAP_TAU       = 0.18;  /* seconds for rate and amplitude to catch up */
     var FLAP_BASE_HZ   = 1.18;  /* resting beat — the 0.85s period this had in CSS */
     var FLAP_MID_DEG   = 20;    /* the stroke is centred above flat, as a real one is */
-    var FLAP_AMP_DEG   = 42;    /* resting half-stroke: -22deg to +62deg */
-    var FLAP_AMP_GAIN  = 0.40;  /* extra amplitude at full speed: up to -38deg .. +78deg */
+    /* Rest and full speed are set independently: the flat-out stroke is
+       FLAP_AMP_DEG * (1 + FLAP_AMP_GAIN), so shrinking the rest without widening the
+       gain would drag the top of the range down with it. 30 * 1.96 = 58.8 keeps the
+       fast stroke exactly where it was while the rest drops back to roughly the span
+       the CSS keyframes used to hold. */
+    var FLAP_AMP_DEG   = 30;    /* resting half-stroke: -10deg to +50deg */
+    var FLAP_AMP_GAIN  = 0.96;  /* at full speed: -38.8deg to +78.8deg, as before */
     var FLAP_PERSP     = 420;   /* px; was the perspective() in the keyframes */
 
     var SWAY_DEG    = 7;     /* gentle roll on top of the heading, so it banks */
