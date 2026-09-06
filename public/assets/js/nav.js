@@ -1,5 +1,18 @@
 // Shared across every wiki page: mobile nav toggle, dropdowns, active-link highlight, ring navigator.
 (function () {
+  /* Debug mode. Decided once, here, so the instrumentation below can be skipped rather
+     than merely ignored — it used to build strings and count events for every visitor.
+     Sticks for the session because nav links carry no query string and the thing most
+     worth investigating is a navigation; ?diag=0 clears it. */
+  var DIAG = (function () {
+    try {
+      if (location.search.indexOf("diag=0") >= 0) sessionStorage.removeItem("navdiag");
+      else if (location.search.indexOf("diag") >= 0) sessionStorage.setItem("navdiag", "1");
+      return sessionStorage.getItem("navdiag") === "1";
+    } catch (e) { return location.search.indexOf("diag") >= 0; }
+  })();
+  window.__navDiagOn = DIAG;   // the overlay at the foot of this file reads it
+
   // The cross-document view transition declared in style.css (@view-transition
   // { navigation: auto }) surfaces "AbortError: Transition was skipped" in the
   // console whenever the browser decides to skip it — which it does often, and on
@@ -106,11 +119,31 @@
         }
       });
     });
-    document.addEventListener("click", function () {
+    function closeDropdowns() {
       dropdowns.forEach(function (d) {
         d.classList.remove("open");
         d.querySelector(".nav-drop-trigger").setAttribute("aria-expanded", "false");
       });
+    }
+    document.addEventListener("click", closeDropdowns);
+
+    /* Escape closes what is open, innermost first, and hands focus back to the control that
+       opened it. Expected of anything that expands, and the stacked menu covers most of a
+       phone screen with no other way out from a keyboard. */
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape" || !navEl) return;
+      var anyOpen = false;
+      dropdowns.forEach(function (d) { if (d.classList.contains("open")) anyOpen = true; });
+      if (anyOpen) {
+        closeDropdowns();
+        e.stopPropagation();
+        return;
+      }
+      if (navEl.classList.contains("nav-open")) {
+        navEl.classList.remove("nav-open");
+        if (toggle) toggle.focus();
+        e.stopPropagation();
+      }
     });
 
     /* The bar's own scroll behaviour, on phones only.
@@ -133,10 +166,6 @@
       var hidden = 0;                 // px the bar is currently translated up
       var lastY = window.scrollY;
       var navTicking = false;
-      /* A jump to an anchor is a large scroll the reader did not perform, and with
-         scroll-behavior:smooth it arrives as a whole run of events. On a slow load the
-         browser can also apply it well after DOMContentLoaded, which is why `load` re-arms
-         this rather than only the initial hash check doing so. */
       /* True from the moment a jump is asked for until the reader's next real gesture (or a
          generous ceiling, in case no gesture ever comes). A clock alone could not do this:
          a smooth scroll across a long page takes as long as it takes, and any window short
@@ -151,11 +180,6 @@
         anchorTimer = setTimeout(function () { anchorActive = false; }, 2500);
         revealNav();
       }
-      /* Nothing hides the bar until the reader has physically touched the screen. Every
-         scroll before that is the browser's — restoring a position, landing on a fragment,
-         re-landing after the fonts swap — and none of it is someone reading their way down
-         the page. This is a fact about the session rather than a window of time, which is
-         why it replaces guessing how long a cold load might take. */
       /* ONE signal: the reader has actually MOVED the page. Not touchstart, not pointerdown
          — a tap is not a decision to read downwards, and both of those fire on the very tap
          that asked for the jump. Using them meant a single touch anywhere cancelled the
@@ -181,6 +205,7 @@
              where the target is now, in document coordinates, minus the bar, minus a gap.
 
          CSS keeps scroll-padding-top as the no-script fallback. */
+
       /* How much of the LAYOUT viewport's top is currently hidden behind the browser's own
          chrome. On Android Chrome this is 93px right after a cross-page navigation, because
          the URL bar re-expands over the page without changing scrollY — which is the whole
@@ -196,16 +221,20 @@
          visual viewport changes is the only way the two can agree. Cleared the moment the
          reader scrolls, so this can never fight them. */
       var pendingTarget = null;
+      var relandBudget = 0;
 
       function jumpTo(target, smooth) {
+        if (target !== pendingTarget) relandBudget = 5;   // a new destination, a fresh budget
         pendingTarget = target;
         measureNav();
         var top = window.scrollY + target.getBoundingClientRect().top
                   - (chromeInset() + (navH || 77) + 10);
-        D.insetAtJump = chromeInset();
-        D.jump = "to " + Math.round(top) + " (from " + Math.round(window.scrollY) +
-                 ", rect.top " + Math.round(target.getBoundingClientRect().top) +
-                 ", navH " + navH + ")";
+        if (DIAG) {
+          D.insetAtJump = chromeInset();
+          D.jump = "to " + Math.round(top) + " (from " + Math.round(window.scrollY) +
+                   ", rect.top " + Math.round(target.getBoundingClientRect().top) +
+                   ", navH " + navH + ")";
+        }
         /* A correction worth less than a couple of pixels is not worth a repaint. Landing
            runs up to four times — the browser's own jump, then after load, after the fonts
            swap, and again when the URL bar changes the inset — and the ones that change
@@ -249,9 +278,11 @@
         var dy = y - lastY;
         lastY = y;
         if (!dy) return;
-        D.scrolls++;
-        var ci = chromeInset();
-        if (ci > D.insetMax) D.insetMax = ci;
+        if (DIAG) {
+          D.scrolls++;
+          var ci = chromeInset();
+          if (ci > D.insetMax) D.insetMax = ci;
+        }
         navEl.classList.remove("nav-snap");   // from here on it follows the gesture
 
         if (navEl.classList.contains("nav-open")) {
@@ -265,14 +296,16 @@
           }
           return;
         }
-        if (!mobileNav.matches) { hidden = 0; applyNav(); return; }
+        /* Desktop never hides the bar, so there is nothing to write; the old code cleared
+           a transform that had never been set, once per scroll frame. */
+        if (!mobileNav.matches) { if (hidden) { hidden = 0; applyNav(); } return; }
         if (!readerScrolled) { revealNav(); return; }
         if (anchorActive) { revealNav(); return; }
 
         if (!navH) measureNav();
         var before = hidden;
         hidden = Math.min(navH, Math.max(0, hidden + dy));
-        if (!before && hidden) D.firstHide = "dy=" + Math.round(dy) + " y=" + Math.round(y);
+        if (DIAG && !before && hidden) D.firstHide = "dy=" + Math.round(dy) + " y=" + Math.round(y);
         applyNav();
       }
 
@@ -281,7 +314,14 @@
       if (window.visualViewport) {
         var onViewportChange = function () {
           syncStickyTop();
-          if (!readerScrolled && pendingTarget) jumpTo(pendingTarget, false);
+          /* Correcting the landing when the inset changes is necessary — the URL bar expands
+             after the jump — but it must be able to STOP. jumpTo scrolls, scrolling moves
+             the visual viewport, and that fires this again; without a budget an idling URL
+             bar could keep nudging the page indefinitely. Five is more than the two or three
+             the real sequence needs, and jumpTo already declines a correction under 3px. */
+          if (readerScrolled || !pendingTarget || relandBudget <= 0) return;
+          relandBudget--;
+          jumpTo(pendingTarget, false);
         };
         visualViewport.addEventListener("resize", onViewportChange);
         visualViewport.addEventListener("scroll", onViewportChange);
@@ -317,21 +357,30 @@
                " hidden=" + Math.round(hidden) + " navH=" + navH;
       }});
       document.addEventListener("click", function (e) {
+        /* Never take over a click the reader has qualified. Ctrl/Cmd/Shift/Alt and the
+           middle button all mean "open this somewhere else", and preventDefault would have
+           silently swallowed every one of them. defaultPrevented likewise: something closer
+           to the element has already decided. */
+        if (e.defaultPrevented || e.button !== 0 ||
+            e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
         var a = e.target.closest && e.target.closest('a[href*="#"]');
-        if (!a) { D.path = "not-a-fragment-link"; return; }
+        if (!a) { if (DIAG) D.path = "not-a-fragment-link"; return; }
+        if (a.target && a.target !== "_self") return;      // opens elsewhere; not ours
         claimAnchor();
 
-        D.href = a.getAttribute("href") || "";
-        if (a.closest(".page-sidenav")) { D.path = "sidenav (pagenav.js)"; return; }
-        var parts = D.href.split("#");
-        if (!parts[1]) { D.path = "no fragment"; return; }
+        var href = a.getAttribute("href") || "";
+        if (DIAG) D.href = href;
+        if (a.closest(".page-sidenav")) { if (DIAG) D.path = "sidenav (pagenav.js)"; return; }
+        var parts = href.split("#");
+        if (!parts[1]) { if (DIAG) D.path = "no fragment"; return; }
         var file = parts[0].split("/").pop();
-        D.file = file;
-        if (file && file !== here) { D.path = "cross-page -> browser"; return; }
+        if (DIAG) D.file = file;
+        if (file && file !== here) { if (DIAG) D.path = "cross-page -> browser"; return; }
         var target = document.getElementById(decodeURIComponent(parts[1]));
-        D.found = !!target;
-        if (!target) { D.path = "target MISSING"; return; }
-        D.path = "handled here";
+        if (DIAG) { D.found = !!target; }
+        if (!target) { if (DIAG) D.path = "target MISSING"; return; }
+        if (DIAG) D.path = "handled here";
 
         e.preventDefault();
         navEl.classList.remove("nav-open");
@@ -344,6 +393,14 @@
           requestAnimationFrame(function () {
             jumpTo(target, true);
             claimAnchor();
+            /* Follow the jump with FOCUS. Suppressing the default navigation also suppresses
+               the focus move the browser would have made, which quietly broke the skip link
+               and left every keyboard and screen-reader user still at the top of the page
+               with the view somewhere else. preventScroll because the scroll is ours. */
+            var focusable = /^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(target.tagName) ||
+                            target.hasAttribute("tabindex");
+            if (!focusable) target.setAttribute("tabindex", "-1");
+            try { target.focus({ preventScroll: true }); } catch (err) { target.focus(); }
           });
         });
       }, true);
@@ -494,15 +551,7 @@
    Open e.g.  .../Project-Description.html?diag=1#modelling
    --------------------------------------------------------------------------- */
 (function () {
-  /* Sticks for the session: nav links carry no query string, so switching it on once has
-     to survive the very navigation being investigated. ?diag=0 turns it off. */
-  var on = false;
-  try {
-    if (location.search.indexOf("diag=0") >= 0) sessionStorage.removeItem("navdiag");
-    else if (location.search.indexOf("diag") >= 0) sessionStorage.setItem("navdiag", "1");
-    on = sessionStorage.getItem("navdiag") === "1";
-  } catch (e) { on = location.search.indexOf("diag") >= 0; }
-  if (!on) return;
+  if (!window.__navDiagOn) return;
   document.addEventListener("DOMContentLoaded", function () {
     var box = document.createElement("pre");
     box.style.cssText =

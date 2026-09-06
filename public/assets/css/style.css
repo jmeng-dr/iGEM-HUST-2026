@@ -309,6 +309,8 @@ img{ max-width: 100%; display:block; }
   /* Animated open/close. display cannot be transitioned, so the panel stays in flow and
      collapses by max-height instead — no magic number is exposed to the layout because the
      cap only has to EXCEED the tallest menu (7 items, ~310px); it is not the height used.
+     34rem leaves room for a menu half again as long before it would silently clip, without
+     being so far past the real height that the easing reads wrong.
      visibility is switched with the transition rather than display so a collapsed panel
      stays out of the tab order, and it is delayed on the way out so the collapse is
      visible before it disappears. */
@@ -328,7 +330,7 @@ img{ max-width: 100%; display:block; }
      through a click, and Enter on a focused trigger fires one. */
   .nav-dropdown.open .nav-drop-menu{
     display: block;
-    max-height: 26rem; opacity: 1; visibility: visible;
+    max-height: 34rem; opacity: 1; visibility: visible;
     padding: 2px 0 8px 14px;
     transition: max-height .26s ease, opacity .22s ease .04s, padding .26s ease,
                 visibility 0s;
