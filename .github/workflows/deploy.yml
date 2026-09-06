@@ -1,0 +1,43 @@
+# Build the Astro site and publish it to GitHub Pages.
+#
+# Enable it once, in the repository: Settings -> Pages -> Build and deployment ->
+# Source: "GitHub Actions". No branch to choose; this workflow is the source.
+#
+# withastro/action installs from the lockfile, runs `astro build`, and uploads dist/ as
+# the Pages artifact. Nothing here needs to know the site's URL: every asset is referenced
+# relatively, so the same artifact works at a project-site prefix (/repo/) or at a domain
+# root without rebuilding.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:      # lets you re-run it by hand from the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race. Queue rather than cancel, so a push during a deploy still
+# ends up published rather than being dropped.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: withastro/action@v3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -34,10 +34,10 @@ const {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title set:html={title}></title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16.png" />
-  <link rel="icon" type="image/png" sizes="48x48" href="/assets/img/favicon-48.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicon-180.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/img/favicon-48.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon-180.png" />
   <meta name="theme-color" content="#0e6e6a" />
   {description && <meta name="description" content={description} />}
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,7 +46,7 @@ const {
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   />
-  <link rel="stylesheet" href="/assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
   {headExtra && <Fragment set:html={headExtra} />}
 </head>
 <body class={bodyClass || undefined}>
@@ -58,8 +58,8 @@ const {
   <SiteFooter safetyHref={safetyHref} />
   <RingNav />
   <script is:inline>document.getElementById("year").textContent = new Date().getFullYear();</script>
-  <script is:inline src="/assets/js/nav.js"></script>
-  <script is:inline src="/assets/js/pagenav.js"></script>
+  <script is:inline src="assets/js/nav.js"></script>
+  <script is:inline src="assets/js/pagenav.js"></script>
   <slot name="body-end" />
 </body>
 </html>
