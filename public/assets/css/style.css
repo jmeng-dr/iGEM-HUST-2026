@@ -81,7 +81,22 @@ html{
    cut, in browsers that support it. No-op (plain navigation) elsewhere. */
 /* No @view-transition here: <ClientRouter /> owns the transition now and declares its own.
    Two declarations would be one too many, and the cross-document version this replaced is
-   moot anyway — with client-side routing there is no second document. */
+   moot anyway — with client-side routing there is no second document.
+
+   Its default animation IS turned off. A root cross-fade holds the outgoing and incoming
+   snapshots at partial opacity at the same moment, so whatever is behind them shows
+   through — and this site goes between a dark home page and light interior pages, which
+   makes that a visible flash of the wrong colour every single time. Nothing is gained by
+   dissolving between two layouts that share their entire frame anyway: the nav is
+   persisted and does not move, so an instant content swap reads as one page changing
+   rather than as two pages arguing.
+
+   Named elements are left alone — this only silences the root. */
+::view-transition-old(root),
+::view-transition-new(root){
+  animation: none;
+  mix-blend-mode: normal;
+}
 
 body{
   margin:0;
