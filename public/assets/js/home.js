@@ -305,23 +305,35 @@
      Halving it is therefore exactly right, and lands on the boundary rather than past it:
      with the totems centred, the modules' bottom edge sits at y = 0, flush.
 
-     Better still, that constraint only BINDS AT THE ENDPOINTS. In between, the gap may go
-     tighter than any fixed value could, which is what this does: the incoming block is
-     pulled up early (T, largest at the start, zero when it lands centred) and the outgoing
-     one accelerates away (M, c^1.5 so it is barely moving at first and clearing fast by
-     the end). Same total travel for both, redistributed — so it reads as acceleration, not
-     as a jump.
+     Better still, that constraint only BINDS AT THE ENDPOINTS. In between the gap may go
+     tighter than any fixed value could, and since the tightest point IS the effect, it is
+     set directly rather than left to emerge from two hand-shaped motion curves:
 
-       T(c) = (V - ht)/2 * (1 - c)      at c = 0 this puts the incoming block's top edge
-                                        exactly on the fold: as early as it can possibly
-                                        be without intruding
-       M(c) = (V/2 + hm/2) * c^1.5      at c = 1 the outgoing block's bottom is exactly
-                                        on y = 0
+       T(c) = (V - ht)/2 * (1 - c)      the incoming block, pulled up early. At c = 0 this
+                                        puts its top edge exactly on the fold — as early as
+                                        it can be without intruding — and at c = 1 it is
+                                        zero, so the block lands centred.
 
-     The two curves happen to leave only ~0.02V of clearance at their worst point when the
-     blocks are the same height, and nothing guarantees they are, so the overlap is also
-     checked outright each frame and M raised if it would ever go negative. Correct by
-     measurement rather than by assuming the content. */
+       G(c) = mix(G0,G1,c) - (mix(G0,G1,0.5) - GAP_MIN) * sin(pi*c)
+                                        the gap itself. Its endpoints are forced, not
+                                        chosen: G0 = V/2 - hm/2 and G1 = V/2 - ht/2 are
+                                        exactly the values at which one block is flush with
+                                        an edge of the screen while the other is centred.
+                                        The sine dips it to GAP_MIN in between and vanishes
+                                        at both ends, so it cannot disturb either.
+
+       M(c) = G(c) - V(1-c) + (hm+ht)/2 + T(c)
+                                        the outgoing block's travel, SOLVED from the gap
+                                        rather than shaped by hand. It comes out monotonic,
+                                        leaving at under half the average rate and ending
+                                        at over 1.5x it — which is the squeeze itself: the
+                                        incoming block closes on one that is barely moving,
+                                        and then that one shoots away. Both endpoints fall
+                                        out for free, M(0) = 0 and M(1) = V/2 + hm/2.
+
+     The overlap is still checked outright each frame. By construction it cannot go below
+     GAP_MIN, but that construction assumes both blocks fit inside the viewport and nothing
+     guarantees the content will. */
   function initStack() {
     function contentOf(el) { return el && el.querySelector(":scope > .container"); }
     var pairs = [];
@@ -336,7 +348,8 @@
     });
     if (!pairs.length) return;
 
-    var PAD = 24;   /* px of clearance the two blocks must never eat into */
+    var GAP_MIN = 8;   /* px: the tightest the two blocks are ever allowed to squeeze */
+    var PAD = 4;       /* px of hard clearance, for content that does not fit the viewport */
     var ticking = false;
 
     /* The footer's arrival, treated as one more hand-off. The footer normally begins where
@@ -383,7 +396,12 @@
         var hm = p.out.offsetHeight, ht = p.in.offsetHeight;
 
         var T = Math.max(0, (V - ht) / 2) * (1 - c);
-        var M = (V / 2 + hm / 2) * Math.pow(c, 1.5);
+
+        var G0 = Math.max(0, V / 2 - hm / 2);   /* outgoing centred, incoming on the fold */
+        var G1 = Math.max(0, V / 2 - ht / 2);   /* incoming centred, outgoing flush at y=0 */
+        var mid = (G0 + G1) / 2;
+        var G = G0 + (G1 - G0) * c - Math.max(0, mid - GAP_MIN) * Math.sin(Math.PI * c);
+        var M = G - V * (1 - c) + (hm + ht) / 2 + T;
 
         var inTop  = V * (1 - c) + V / 2 - T - ht / 2;
         var outBot = V / 2 + hm / 2 - M;
