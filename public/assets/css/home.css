@@ -456,8 +456,14 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 #butterfly{
   position: fixed;
   left: 0; top: 0;
-  width: 196px; height: 196px;
-  margin-left: -98px; margin-top: -98px;
+  /* Sized against the viewport's SHORTER side, so it keeps the same visual weight on a
+     small screen instead of taking a fixed 196px out of a much smaller frame. 196 remains
+     the ceiling, so a large screen renders exactly as before; the floor keeps the wing
+     veining and the pink ribbon legible. The negative margins must stay half the size, so
+     they are expressed the same way — the transform has to address the CENTRE. */
+  --bf-size: clamp(132px, 15vmin, 196px);
+  width: var(--bf-size); height: var(--bf-size);
+  margin-left: calc(var(--bf-size) / -2); margin-top: calc(var(--bf-size) / -2);
   z-index: 6;
   opacity: 0;
   pointer-events: none;
@@ -594,7 +600,9 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 /* On a phone the same path crosses a much narrower column, so the butterfly ends up
    sitting on the text. Shrink it there. */
 @media (max-width: 760px){
-  #butterfly{ width: 124px; height: 124px; margin-left: -62px; margin-top: -62px; }
+  /* On a phone the same path crosses a much narrower column, so it wants to be smaller than
+     the general rule would give it. */
+  #butterfly{ --bf-size: clamp(96px, 22vmin, 124px); }
 }
 @media (prefers-reduced-motion: reduce){
   #butterfly{ opacity: 0 !important; }
@@ -635,12 +643,17 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   position: fixed;
   left: 0;
   top: 0;
-  /* 46vw as well as 92dvh: sized only against height, a tall narrow window gave this the
-     full 860px, and since its centre sits on x = 0 the visible half alone covered more than
-     half the screen and sat under the module list. Now its visible half can never exceed
-     23% of the viewport's width. */
-  width: min(92dvh, 46vw, 860px);
-  height: min(92dvh, 46vw, 860px);
+  /* Bounded by the GUTTER, not by a fraction of the viewport. Its centre sits on x = 0, so
+     what is visible is half its width, and the content column is centred — which means the
+     space actually available beside the text is (100vw - content-width)/2. A 46vw cap did
+     not know that: on a 1690px screen it produced a 777px dial whose visible 388px reached
+     83px past a 305px gutter and straight into the module list.
+
+     The + 120px is the column's own left padding, which is empty by construction, so the
+     artwork may run under that but never under a word. Still capped by height and by 860,
+     so nothing changes on a large screen. */
+  width: min(92dvh, calc(100vw - var(--content-width) + 120px), 860px);
+  height: min(92dvh, calc(100vw - var(--content-width) + 120px), 860px);
   z-index: 0;
   pointer-events: none;
   will-change: transform;

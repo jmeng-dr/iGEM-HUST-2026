@@ -498,7 +498,17 @@
          moves in, not all of it. */
       if (footer && lastPanel) {
         var enc = Math.min(V, Math.max(0, V - footer.getBoundingClientRect().top));
-        lastPanel.__acc += -enc / 2;
+        /* Re-centre in what the footer has not taken — but only as far as the block still
+           FITS there. Half the encroachment is the right shift when the block is smaller
+           than the free band; when it is not, that same shift drives its top up behind the
+           sticky bar, which is what a shorter screen was showing: a 640px block, a 330px
+           footer and a 942px viewport leave 612px of free band, and the block simply does
+           not go in it. Clamped so its top can never rise above the bar. */
+        var hLast = lastPanel.offsetHeight;
+        var navBar = document.querySelector(".site-nav");
+        var navH = navBar ? navBar.getBoundingClientRect().height : 0;
+        var maxShift = Math.max(0, V / 2 - hLast / 2 - navH - 12);
+        lastPanel.__acc += -Math.min(enc / 2, maxShift);
       }
 
       for (i = 0; i < pairs.length; i++) {
