@@ -501,11 +501,19 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
    `to left` measures from the right edge, so its 57% is x = 43%, the left wing's hinge;
    `to right` measures from the left, so its 57% is x = 57%, the right wing's. A deep
    blue-black rather than a neutral one, which against this artwork reads as soot. */
-.bf-wing-l .bf-shade{ background: linear-gradient(to left,  rgba(3,12,20,0.82) 57%, rgba(3,12,20,0) 96%); }
-.bf-wing-r .bf-shade{ background: linear-gradient(to right, rgba(3,12,20,0.82) 57%, rgba(3,12,20,0) 96%); }
+/* One knob for the depth of the shading, so the three gradients cannot drift apart —
+   they have to agree at the seam or the step comes back. --bf-dark is written out as
+   rgba rather than `transparent`, which is rgba(0,0,0,0) and would drag the ramp
+   toward neutral black on its way to nothing. */
+#butterfly{
+  --bf-dark:  rgba(3,12,20,0.55);
+  --bf-clear: rgba(3,12,20,0);
+}
+.bf-wing-l .bf-shade{ background: linear-gradient(to left,  var(--bf-dark) 57%, var(--bf-clear) 96%); }
+.bf-wing-r .bf-shade{ background: linear-gradient(to right, var(--bf-dark) 57%, var(--bf-clear) 96%); }
 .bf-body   .bf-shade{
   background: linear-gradient(to right,
-    rgba(3,12,20,0.82) 43%, rgba(3,12,20,0) 50%, rgba(3,12,20,0.82) 57%);
+    var(--bf-dark) 43%, var(--bf-clear) 50%, var(--bf-dark) 57%);
 }
 
 @keyframes bf-shade{
