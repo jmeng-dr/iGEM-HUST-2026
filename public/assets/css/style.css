@@ -206,6 +206,141 @@ img{ max-width: 100%; display:block; }
   }
 }
 .site-nav.on-dark nav a:hover, .site-nav.on-dark nav a.active{ color: var(--cream-glow-lit); border-bottom-color: var(--kingfisher-3); }
+
+/* ---------- the inline search field in the bar ---------- */
+/* One search, two presentations. On a wide viewport it is a field in the bar — a magnifier,
+   a rule to type on, and results dropping down under it — because that is where people look
+   for search and because typing a word or two needs no full-screen room. Below the
+   navigation's own 860px breakpoint there is no room for a field, so the floating button and
+   its palette take over. Same breakpoint as the menu, so the two can never disagree; both
+   controls are always in the DOM and the swap is pure CSS, which is why dragging a window
+   narrow is correct live with nothing to re-run.
+
+   No box: a rule under the text is enough to say "type here", and a bordered pill in a bar
+   whose other five items are bare words reads as a button that wandered in from elsewhere. */
+.nav-search{
+  position: relative;
+  display: none; align-items: center; gap: 0;
+  flex: 0 1 auto; min-width: 0;
+  color: var(--text-mid);
+}
+.nav-search-btn{
+  all: unset; box-sizing: border-box; cursor: pointer;
+  display: flex; align-items: center; color: inherit;
+  padding: 6px 2px; border-bottom: 2px solid transparent;
+  transition: color 0.18s, border-color 0.18s;
+}
+.nav-search-btn:focus-visible{ outline:2px solid var(--kingfisher-2); outline-offset:3px; }
+.nav-search-icon{
+  width:17px; height:17px; flex-shrink:0; display:block; fill:none;
+  stroke: currentColor; stroke-width:2.1; stroke-linecap:round;
+}
+/* Closed by default, and it takes up NO ROOM while closed — no width, no padding, no rule.
+   That is what buys the width to open into: with a field standing there permanently the bar
+   had 164px to spare at 1024px, and with it folded away it has 314px. A magnifier alone is
+   also the more honest resting state, since a bar with five words and one empty rule in it
+   reads as an unfinished form. */
+.nav-search-input{
+  all: unset; box-sizing: border-box;
+  width: 0; padding: 0; margin: 0;
+  border-bottom: 0 solid rgba(0,0,0,0.20);
+  opacity: 0; pointer-events: none;
+  font-family: var(--font-body); font-size: 0.9rem; color: var(--text-dark);
+  transition: width 0.22s ease, padding 0.22s ease, margin 0.22s ease,
+              opacity 0.16s ease, border-color 0.18s;
+}
+/* 140px, not 220. Measured, the room left beside the five nav items is 164px at 1024px and
+   grows about 0.7px per pixel of viewport from there — so a 220px field opens into a second
+   row on a 1024px window, which is the one thing this whole arrangement exists to avoid.
+   Wide windows get the wide field. */
+.nav-search.open .nav-search-input{
+  width: 140px; padding: 3px 2px 4px; margin-left: 8px;
+  border-bottom-width: 1.5px; border-bottom-color: var(--kingfisher-2);
+  opacity: 1; pointer-events: auto;
+}
+@media (min-width: 1180px){
+  .nav-search.open .nav-search-input{ width: 220px; }
+}
+.nav-search.open{ color: var(--kingfisher-1); }
+.site-nav.on-dark .nav-search{ color: var(--text-on-dark-dim); }
+.site-nav.on-dark .nav-search-input{ color: var(--text-on-dark); }
+.site-nav.on-dark .nav-search.open{ color: var(--cream-glow-lit); }
+.site-nav.on-dark .nav-search.open .nav-search-input{ border-bottom-color: var(--kingfisher-3); }
+
+/* The results, hung under the field and aligned to its right edge — the same trick the
+   Project/Lab menus already use, so it sits in the bar's own stacking context and needs no
+   z-index of its own. Light panel on both nav variants: it is a reading surface, and one
+   that changed character between the dark home page and the light interior pages would read
+   as two different features. */
+.nav-search-drop{
+  position: absolute; top: calc(100% + 14px); right: 0;
+  width: min(460px, calc(100vw - 40px));
+  background: var(--paper); color: var(--text-dark);
+  border: 1px solid rgba(0,0,0,0.08); border-radius: var(--radius-md);
+  box-shadow: 0 18px 46px rgba(0,0,0,0.22);
+  overflow: hidden;
+}
+.nav-search-drop[hidden]{ display:none; }
+.nav-search-status{
+  margin:0; padding: 9px 14px 0;
+  font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase;
+  color: var(--text-mid);
+}
+.nav-search-results{
+  list-style:none; margin:0; padding: 6px;
+  max-height: min(62vh, 520px); overflow-y:auto; overscroll-behavior: contain;
+}
+
+/* The platform scrollbar inside a small floating panel is a piece of the operating system
+   sitting in the middle of the page — 17px wide on Windows, with stepper arrows at both
+   ends. A thin teal thumb on no track is the same information at a tenth of the weight.
+   `scrollbar-width` is the standard property and wins where it is supported; the -webkit-
+   pseudo-elements are there for the Safari versions that predate it. */
+.nav-search-results, .search-results{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(23,163,152,0.34) transparent;
+}
+.nav-search-results::-webkit-scrollbar, .search-results::-webkit-scrollbar{ width: 10px; }
+.nav-search-results::-webkit-scrollbar-track, .search-results::-webkit-scrollbar-track{
+  background: transparent;
+}
+.nav-search-results::-webkit-scrollbar-thumb, .search-results::-webkit-scrollbar-thumb{
+  background: rgba(23,163,152,0.34); border-radius: 999px;
+  border: 3px solid transparent; background-clip: content-box;
+}
+.nav-search-results::-webkit-scrollbar-thumb:hover, .search-results::-webkit-scrollbar-thumb:hover{
+  background: rgba(23,163,152,0.55); background-clip: content-box;
+}
+.nav-search-drop .sh-title{ font-size: 0.93rem; }
+.nav-search-drop .sh-text{ font-size: 0.8rem; }
+.nav-search-drop .search-empty{ padding: 14px; font-size:0.88rem; }
+
+@media (min-width: 861px){ .nav-search{ display:flex; } }
+
+/* Between the two breakpoints the bar keeps a magnifier but loses the field. Measured, the
+   room left beside five nav items is 164px at 1024, 116px at 960, 69px at 900 and 47px at
+   862 — and 47px is not a text field, it is a stub. Flex also wraps before it shrinks, so a
+   field that will not fit takes the whole row onto a second line and makes the bar 107px
+   tall. Below 1024 the icon alone stands in, opening the same palette the phone uses; the
+   floating button does not come back until the navigation itself collapses at 860. Which
+   one a click gets is decided by asking the layout (offsetParent), not by a second copy of
+   these media queries in the script. */
+@media (max-width: 1023px){
+  .nav-search-input, .nav-search-drop{ display:none; }
+}
+@media (hover: hover) and (pointer: fine){
+  .nav-search-btn:hover{ color: var(--kingfisher-1); border-bottom-color: var(--kingfisher-2); }
+  .site-nav.on-dark .nav-search-btn:hover{
+    color: var(--cream-glow-lit); border-bottom-color: var(--kingfisher-3);
+  }
+}
+/* With the field beside it the button is an adornment, not a control of its own — an
+   underline appearing under it next to the field's own rule reads as two separate things. */
+@media (min-width: 1024px){
+  .nav-search-btn:hover{ border-bottom-color: transparent; }
+  .site-nav.on-dark .nav-search-btn:hover{ border-bottom-color: transparent; }
+}
+
 .nav-toggle{ display:none; }
 @media (max-width: 860px){
   /* BLOCK, not a column flex box. The base rule carries flex-wrap:wrap, and in a wrapping
@@ -418,6 +553,10 @@ img{ max-width: 100%; display:block; }
   display:flex; align-items:center; justify-content:center;
   transition: transform 0.2s, box-shadow 0.2s;
 }
+/* One entry point per viewport, never two: above the navigation's own breakpoint search
+   lives in the bar instead. This has to sit AFTER the rule above — same specificity, and
+   the later one wins; written earlier in the file it silently did nothing. */
+@media (min-width: 861px){ .search-fab{ display:none; } }
 .search-fab:hover, .search-fab:focus-visible{
   transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,0.42);
 }
@@ -435,16 +574,23 @@ img{ max-width: 100%; display:block; }
   position:fixed; inset:0; z-index:2000;
   background: rgba(8,12,13,0.62);
   -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
-  display:none; justify-content:center;
-  /* Near the top, not centred: the list grows downwards, and a panel that re-centres itself
-     as results arrive moves the thing you are reading. */
-  padding: clamp(40px, 12vh, 130px) 20px 20px;
+  display:none; justify-content:center; align-items:center;
+  padding: clamp(20px, 6vh, 60px) 20px;
 }
 .search-overlay.open{ display:flex; }
-html.search-open{ overflow:hidden; }
+/* No overflow:hidden on <html>. Hiding the overflow takes the scrollbar away with it: on a
+   space-taking scrollbar that widens the page by ~15px and slides everything behind the
+   panel to the right, and it costs the reader the position cue they had a second ago. The
+   bar is left drawn exactly where it was and search.js blocks the SCROLL instead. */
 
 .search-panel{
-  width:100%; max-width: 660px; max-height: 100%;
+  /* A FIXED height, not one that follows the content. Centred vertically, a panel that
+     resized itself as results arrived would drag the input box up and down under the
+     cursor on every keystroke; at a constant height the field never moves and only the
+     list inside it changes. `align-items:center` on the overlay is also what stops the
+     panel stretching to the full viewport, which is why it used to be one line of text in
+     a 950px box. */
+  width:100%; max-width: 660px; height: min(620px, 100%);
   display:flex; flex-direction:column;
   background: var(--paper); color: var(--text-dark);
   border-radius: var(--radius-lg);
@@ -503,9 +649,39 @@ html.search-open{ overflow:hidden; }
 }
 .search-foot kbd{ margin: 0 2px; }
 
+/* The word you searched for, flared where you land. A search result drops you into the
+   middle of a long page, and the heading only tells you which section you are in — the
+   flash tells you which WORDS made it a match, which is the question you actually had.
+   Wrapped by search.js and unwrapped again when the animation is over, so nothing about
+   this survives in the document. */
+/* ZERO horizontal padding and margin. Padding with a compensating negative margin is the
+   usual way to give a highlight some breathing room, and it nets out to the same advance
+   width on paper — but it splits the inline run twice more and the text visibly stepped
+   sideways as it lit up. The breathing room comes from box-shadow instead, which paints
+   outside the box and takes part in no layout at all. */
+mark.search-flash{
+  background: rgba(23,163,152,0.30); color: inherit;
+  border-radius: 3px; padding: 0; margin: 0;
+  animation: search-flash 1.2s ease-out forwards;
+}
+/* Two quick pulses, then a fade. One long glow is easy to arrive after and miss; a blink
+   that repeats is caught by peripheral vision, which is the whole job — the reader is
+   looking at a page they have never seen and needs to be told where to look. */
+@keyframes search-flash{
+  0%,  15%{ background: rgba(23,163,152,0.62); box-shadow: 0 0 0 3px rgba(23,163,152,0.30); }
+  27%     { background: rgba(23,163,152,0.04); box-shadow: 0 0 0 0 rgba(23,163,152,0); }
+  39%, 54%{ background: rgba(23,163,152,0.62); box-shadow: 0 0 0 3px rgba(23,163,152,0.30); }
+  /* All the way to transparent, so that taking the marks back out is invisible rather
+     than a small pop of colour disappearing. */
+  100%    { background: rgba(23,163,152,0); box-shadow: 0 0 0 0 rgba(23,163,152,0); }
+}
+@media (prefers-reduced-motion: reduce){
+  mark.search-flash{ animation:none; background: rgba(23,163,152,0.24); }
+}
+
 @media (max-width: 640px){
   .search-fab{ right:16px; bottom:16px; width:50px; height:50px; }
-  .search-overlay{ padding: 12px 12px 0; }
+  .search-overlay{ padding: 12px; }   /* symmetric: the panel is centred now */
   .search-panel{ max-width:none; border-radius: var(--radius-md); }
   .search-foot{ display:none; }   /* no keyboard to tell anyone about */
 }

@@ -16,6 +16,23 @@ function relativeAstroAssets() {
   return {
     name: 'relative-astro-assets',
     hooks: {
+      /* Dev only. The index is a product of the BUILD — the hook below generates it from
+         the emitted HTML — so under `npm run dev` no such file exists and the palette
+         fetched a 404, which search.js could only report as "no matches". Serving the last
+         built copy keeps search testable in dev; when there is none, the 503 lets the
+         palette say the index is missing instead of lying about the corpus. */
+      'astro:server:setup': ({ server }) => {
+        server.middlewares.use('/assets/search-index.json', (req, res) => {
+          const built = path.join(process.cwd(), 'dist', 'assets', 'search-index.json');
+          if (!fs.existsSync(built)) {
+            res.statusCode = 503;
+            res.end('search index not built - run `npm run build`');
+            return;
+          }
+          res.setHeader('Content-Type', 'application/json');
+          res.end(fs.readFileSync(built));
+        });
+      },
       'astro:build:done': ({ dir }) => {
         // fileURLToPath, not dir.pathname: the latter is percent-encoded and keeps a
         // leading slash before the drive letter, neither of which fs understands.

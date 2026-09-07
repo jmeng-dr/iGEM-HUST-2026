@@ -33,5 +33,18 @@
         </div>
       </div>
       <a href="Attributions.html">Team</a>
+      <div class="nav-search" id="navSearch">
+        <button type="button" class="nav-search-btn" id="navSearchBtn" aria-label="Search this wiki">
+          <svg class="nav-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"></circle><path d="M20.5 20.5 16 16"></path></svg>
+        </button>
+        <input class="nav-search-input" id="navSearchInput" type="text" role="combobox"
+               aria-label="Search this wiki" aria-autocomplete="list" aria-expanded="false"
+               aria-controls="navSearchResults" autocomplete="off" autocapitalize="off"
+               spellcheck="false" />
+        <div class="nav-search-drop" id="navSearchDrop" hidden>
+          <p class="nav-search-status" id="navSearchStatus" role="status" aria-live="polite"></p>
+          <ul class="nav-search-results" id="navSearchResults" role="listbox" aria-label="Search results"></ul>
+        </div>
+      </div>
     </nav>
   </div>

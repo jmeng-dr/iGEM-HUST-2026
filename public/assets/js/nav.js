@@ -236,12 +236,33 @@
       var pendingTarget = null;
       var relandBudget = 0;
 
+      /* Where in the viewport a landing comes to rest.
+       *
+       * Normally just under the bar: someone who picked a section from the nav or the rail
+       * wants to start reading at its heading, with the whole section below it.
+       *
+       * A landing that came from a SEARCH RESULT is centred instead. There the heading is
+       * not the destination, it is the label on the destination — the reader is looking for
+       * a specific thing, and a match pinned against the top edge with nothing above it
+       * reads as "the top of a page" rather than "here is the passage you asked for".
+       *
+       * Never on the home page: its sections are held in place by the scroll choreography
+       * and do not sit at a scroll offset that centring could mean anything about. */
+      var landAlign = "top";
+      function canCentre() { return document.body.dataset.nav !== "home"; }
+      function landOffset(target) {
+        var navTop = chromeInset() + (navH || 77) + 10;
+        if (landAlign !== "center") return navTop;
+        var room = window.innerHeight - navTop;
+        var h = Math.min(target.getBoundingClientRect().height, room);
+        return navTop + Math.max(0, (room - h) / 2);
+      }
+
       function jumpTo(target, smooth) {
         if (target !== pendingTarget) relandBudget = 5;   // a new destination, a fresh budget
         pendingTarget = target;
         measureNav();
-        var top = window.scrollY + target.getBoundingClientRect().top
-                  - (chromeInset() + (navH || 77) + 10);
+        var top = window.scrollY + target.getBoundingClientRect().top - landOffset(target);
         if (DIAG) {
           D.insetAtJump = chromeInset();
           D.jump = "to " + Math.round(top) + " (from " + Math.round(window.scrollY) +
@@ -296,6 +317,13 @@
           var ci = chromeInset();
           if (ci > D.insetMax) D.insetMax = ci;
         }
+        /* The scroll-away bar is for PHONES. Reclaiming 77px matters on a screen that has
+           600 of them and matters very little on a monitor, while the cost is the same on
+           both: the navigation and, now, the search field are gone for as long as anyone is
+           reading downwards. On the desktop the trade never paid, and search in the bar
+           makes that plainer — so above the breakpoint the bar simply stays. */
+        if (!mobileNav.matches) { if (hidden) revealNav(); return; }
+
         navEl.classList.remove("nav-snap");   // from here on it follows the gesture
 
         if (navEl.classList.contains("nav-open")) {
@@ -418,6 +446,9 @@
           d.classList.remove("open");
           d.querySelector(".nav-drop-trigger").setAttribute("aria-expanded", "false");
         });
+        /* Set before the jump, and read again by every reland pass, so the correction lands
+           where the first jump did instead of dragging the section back to the top. */
+        landAlign = target && a.dataset.jump === "center" && canCentre() ? "center" : "top";
         history.replaceState(null, "", target ? "#" + frag : url.pathname);
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
@@ -444,6 +475,15 @@
          menu and its "the reader is already scrolling" flag straight across the swap. */
       resetAnchorState = function () {
         readerScrolled = false;
+        /* A search result on ANOTHER page leaves its intent here, because the click that
+           carried it happened on the page we just left. */
+        landAlign = "top";
+        try {
+          if (location.hash && sessionStorage.getItem("searchLandAt") === location.hash && canCentre()) {
+            landAlign = "center";
+          }
+          sessionStorage.removeItem("searchLandAt");
+        } catch (err) { /* private mode: the landing is simply not centred */ }
         anchorActive = !!location.hash;
         pendingTarget = null;
         relandBudget = 0;
@@ -578,7 +618,62 @@
     };
   }
 
+  /* Give every heading the id the BUILD gives it.
+   *
+   * The ids the search index points at are written into the HTML by
+   * scripts/build-search-index.mjs at build time. Under `npm run dev` nothing has been
+   * built, so they are not there: every search result's anchor is a fragment that matches
+   * no element, and the browser does the only thing it can with one of those — it goes to
+   * the top of the page. Measured: the dev server serves 0 heading ids where the built
+   * site serves 55. That is the whole of "the search result only goes to the top".
+   *
+   * pagenav.js already invents ids, but a different set: h2 only, written onto the
+   * enclosing <section> rather than the heading, slugged from un-stripped text, and
+   * disambiguated with "-x". Useful for its own rail, no use to an index built elsewhere.
+   *
+   * So this repeats the build's rule exactly — the same slug, badges dropped to a space
+   * the same way, the same -2/-3 disambiguation against every id already in the document,
+   * and the same operation on innerHTML rather than textContent so that a tag boundary
+   * separates words the way it does at build time. On a built page every heading already
+   * has an id and this loop does nothing. */
+  var BADGE_RE =
+    /<span[^>]*class="[^"]*\b(?:credit-tag|tag-new|tag-rev|req-badge|status|pending)\b[^"]*"[^>]*>[\s\S]*?<\/span>/gi;
+
+  function headingSlug(html) {
+    var t = html
+      .replace(BADGE_RE, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&#39;|&rsquo;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/\s+/g, " ")
+      .trim();
+    return t.toLowerCase()
+      .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "section";
+  }
+
+  function ensureHeadingIds() {
+    var body = document.querySelector(".page-body");
+    if (!body) return;                     // home page and the redirect stubs, as at build
+    var used = {}, all = document.querySelectorAll("[id]"), i;
+    for (i = 0; i < all.length; i++) used[all[i].id] = true;
+    var heads = body.querySelectorAll("h2, h3, h4");
+    for (i = 0; i < heads.length; i++) {
+      if (heads[i].id) continue;
+      var base = headingSlug(heads[i].innerHTML), id = base, n = 2;
+      while (used[id]) id = base + "-" + n++;
+      used[id] = true;
+      heads[i].id = id;
+    }
+  }
+
   function refreshPage() {
+    ensureHeadingIds();                    // before anything reads or lands on an anchor
     here = location.pathname.split("/").pop() || "index.html";
     refreshNavState();
     markCurrentPage();
