@@ -9,9 +9,17 @@
 # root without rebuilding.
 name: Deploy to GitHub Pages
 
+# PUBLISHING IS PAUSED. The push trigger is commented out deliberately, so that work can
+# carry on landing on main without any of it reaching the public URL. Nothing else here is
+# changed, and nothing is lost: to publish again, uncomment the two lines below, or just run
+# this workflow by hand from the Actions tab, which still works exactly as before.
+#
+# Taking the LIVE site down is a separate thing and cannot be done from here — it needs
+# Settings -> Pages -> Unpublish site on github.com. Pausing this only stops new deploys;
+# whatever was last published stays served until that button is pressed.
 on:
-  push:
-    branches: [main]
+  # push:
+  #   branches: [main]
   workflow_dispatch:      # lets you re-run it by hand from the Actions tab
 
 permissions:
