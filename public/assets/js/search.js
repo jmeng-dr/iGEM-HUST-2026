@@ -65,29 +65,29 @@
     return data;
   }
 
+  /* HOW OFTEN, not how prominently.
+   *
+   * The old ranking was a pile of weighted bonuses: 40 for the term being anywhere in the
+   * heading, 30 more if the heading started with it, 12 for the breadcrumb, 6 for the body,
+   * 4 more if the body hit was at a word start. It answered the question "which section
+   * looks most like a match" — and it could put a section that names the word once in its
+   * title above one that is actually about it and says it eleven times.
+   *
+   * The count answers the question the reader asked. Occurrences across the heading, the
+   * breadcrumb and the section's text, added up over every word in the query.
+   *
+   * Ties keep the order the index was built in, which is site order: the pages in the order
+   * the bar lists them, and within a page the sections top to bottom. Array.sort is stable,
+   * so this needs no code — but it does need the index to be built in that order, which is
+   * what the ORDER list in build-search-index.mjs is for. */
+  function countIn(hay, t) {
+    if (!hay) return 0;
+    var n = 0;
+    for (var i = hay.indexOf(t); i >= 0; i = hay.indexOf(t, i + t.length)) n++;
+    return n;
+  }
   function scoreOne(entry, t) {
-    var h = entry._h, c = entry._c, x = entry._x;
-    var s = 0;
-    var i = h.indexOf(t);
-    if (i >= 0) {
-      s += 40;
-      if (i === 0) s += 30;                                   // the heading starts with it
-      else if (/[\s(\-–—/]/.test(h[i - 1])) s += 15;          // a whole word within it
-    }
-    /* The page's NAME, and only on the page's own entry. A wiki's pages are known by their
-       names — "project", "team", "wet lab" — and not one of those words need appear in the
-       h1 the page actually opens with: Project opens "From waste cotton to wearable
-       structural colour", Team opens "Who built what". Without this, searching the name of
-       a page did not find the page. Scored on section entries too it would flood — every
-       heading on Project would match "project". */
-    if (entry._t && entry._t.indexOf(t) >= 0) s += 45;
-    if (c.indexOf(t) >= 0) s += 12;
-    var j = x.indexOf(t);
-    if (j >= 0) {
-      s += 6;
-      if (j === 0 || /[\s(\-–—/]/.test(x[j - 1])) s += 4;
-    }
-    return s;
+    return countIn(entry._h, t) + countIn(entry._c, t) + countIn(entry._x, t);
   }
 
   function search(q) {
@@ -96,24 +96,23 @@
     var hits = [];
     for (var i = 0; i < index.length; i++) {
       var e = index[i], total = 0, all = true;
+      /* THE ONE THING THAT STILL OUTRANKS A COUNT: asking for a page by its name.
+         A page's own entry has no body text to count, so on frequency alone it loses to
+         every section that mentions the name in passing — and "project" would answer with
+         whichever paragraph says the word most often instead of the Project page. The wiki's
+         vocabulary is in its URLs and its titles, so a query that IS a page's name is a
+         request for that page, and it goes first. */
       var namesPage = e.d === 1 && !!e._t;
       for (var k = 0; k < ts.length; k++) {
-        var s = scoreOne(e, ts[k]);
-        if (!s) { all = false; break; }
         if (namesPage && e._t.indexOf(ts[k]) < 0) namesPage = false;
-        total += s;
+        var n = scoreOne(e, ts[k]);
+        if (!n && !namesPage) { all = false; break; }
+        total += n;
       }
       if (!all) continue;
-      /* When the query IS the name of a page, that page wins outright. A flat bonus was not
-         enough: "wet lab" put the Team page's "Wet Lab" roster section above the Wet Lab
-         page, and "project" put a redirect stub reading "This content now lives on Project"
-         above Project itself, because a heading match with a word-start bonus outscores
-         anything a page entry could carry. Asking for a page by name and being given a
-         signpost to it is a bad answer. */
-      if (e.d === 1) total += namesPage ? 60 : 8;
-      hits.push({ e: e, s: total });
+      hits.push({ e: e, n: total, name: namesPage ? 1 : 0 });
     }
-    hits.sort(function (a, b) { return b.s - a.s; });
+    hits.sort(function (a, b) { return (b.name - a.name) || (b.n - a.n); });
     return hits.slice(0, 24).map(function (h) { return h.e; });
   }
 
@@ -222,7 +221,7 @@
         p.replaceChild(document.createTextNode(m.textContent), m);
         p.normalize();
       });
-    }, 1300);   // just past the end of the animation, which fades to transparent
+    }, 2200);   // just past the end of the animation, which fades to transparent
   }
 
   /* ONE ENGINE, TWO PRESENTATIONS: the inline field in the bar on a wide viewport, the
@@ -267,6 +266,16 @@
     });
   }
 
+  /* Scroll the LIST, never the document. scrollIntoView({block:"nearest"}) walks up every
+     scrollable ancestor, so as soon as the results ran past the bottom of the window it
+     scrolled the page as well — the reader pressed Down to look at result three and the
+     article behind the panel moved. */
+  function reveal(box, el) {
+    var b = box.getBoundingClientRect(), e = el.getBoundingClientRect();
+    if (e.top < b.top) box.scrollTop -= b.top - e.top;
+    else if (e.bottom > b.bottom) box.scrollTop += e.bottom - b.bottom;
+  }
+
   function highlight(listEl, inputEl, i) {
     var items = listEl.querySelectorAll(".search-hit");
     if (!items.length) return -1;
@@ -278,7 +287,7 @@
       el.setAttribute("aria-selected", on ? "true" : "false");
     });
     inputEl.setAttribute("aria-activedescendant", items[i].id);
-    items[i].scrollIntoView({ block: "nearest" });
+    reveal(listEl, items[i]);
     return i;
   }
 
@@ -317,6 +326,27 @@
     show();
   }
 
+  /* The sheet is anchored to the bottom of the window, which is exactly where a phone puts
+     its keyboard. Android Chrome resizes the layout viewport when the keyboard opens and so
+     solves this for us; iOS does not — the sheet stays where it was, under the keyboard,
+     with the caret in it and nothing visible. visualViewport reports how much of the window
+     is covered, and the overlay is padded by that much so the field rides above it. */
+  function fitKeyboard() {
+    var vv = window.visualViewport;
+    if (!vv || !overlay) return;
+    var covered = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+    overlay.style.setProperty("--kb", Math.round(covered) + "px");
+  }
+  function watchKeyboard(yes) {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    var m = yes ? "addEventListener" : "removeEventListener";
+    vv[m]("resize", fitKeyboard);
+    vv[m]("scroll", fitKeyboard);
+    if (yes) fitKeyboard();
+    else if (overlay) overlay.style.removeProperty("--kb");
+  }
+
   var lastFocus = null;
   function show() {
     if (open) return;
@@ -326,10 +356,12 @@
     overlay.classList.add("open");
     triggers.forEach(function (t) { t.setAttribute("aria-expanded", "true"); });
     document.documentElement.classList.add("search-open");
+    document.documentElement.style.scrollPaddingTop = "0px";   // as above, for the palette
     lockScroll(true);
+    watchKeyboard(true);
     input.value = "";
     render("");
-    input.focus();
+    input.focus({ preventScroll: true });
     /* Recomputed, not just re-rendered: anything typed while the index was still in
        flight scored against an empty corpus, and nothing else would run the query again. */
     loadIndex().then(function () {
@@ -345,8 +377,10 @@
     overlay.hidden = true;
     triggers.forEach(function (t) { t.setAttribute("aria-expanded", "false"); });
     document.documentElement.classList.remove("search-open");
+    document.documentElement.style.scrollPaddingTop = "";
     lockScroll(false);
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
+    watchKeyboard(false);
+    if (lastFocus && lastFocus.focus) { try { lastFocus.focus({ preventScroll: true }); } catch (e) { lastFocus.focus(); } }
   }
 
   function initPage() {
@@ -410,7 +444,19 @@
     if (!navWrap || !navInput) return false;
     if (getComputedStyle(navInput).display === "none") return false;
     navWrap.classList.toggle("open", on);
-    if (on) { navInput.focus(); navInput.select(); }
+    /* Switch off html{scroll-padding-top} while the field has focus. The browser keeps
+       trying to lift the caret clear of that padding, and a caret inside a position:sticky
+       bar can NEVER get clear of it — the bar stays where it is however far the page
+       scrolls — so it tried again on every keystroke and walked the article upwards.
+       Measured: typing "cnc" moved the page 174px with the padding on, 0px with it off.
+       The padding is there for anchor landings, which nobody is doing while typing here. */
+    document.documentElement.style.scrollPaddingTop = on ? "0px" : "";
+    /* preventScroll, or the page jumps. Focusing an element makes the browser scroll to
+       reveal it, and it reckons that from the element's position in the DOCUMENT — the bar
+       is position:sticky, so its layout position is the very top of the page, and at the
+       instant of focus the field is still 0px wide with its opening transition barely
+       started. Clicking search from halfway down an article dragged the article upwards. */
+    if (on) { navInput.focus({ preventScroll: true }); navInput.select(); }
     else { navInput.value = ""; navOpen(false); navInput.blur(); }
     return true;
   }
@@ -430,6 +476,11 @@
     navOpen(true);
     navAt = navRes.length ? highlight(navList, navInput, 0) : -1;
   }
+  /* Set by a cross-page hit on the way out, spent by boot() on the way in. A plain module
+     variable is enough: client-side routing keeps this script and its scope alive across
+     the swap — the same reason the field itself is still the same element. */
+  var foldOnArrival = false;
+
   function navReset() {
     if (!navInput) return;
     navInput.value = "";
@@ -480,10 +531,28 @@
     navList.addEventListener("click", function (e) {
       var a = e.target.closest("a");
       if (!a) return;
+      /* A modified click is a request for a new tab, not a navigation here: leave the bar
+         and the browser's default alone, and record nothing, because the landing the other
+         tab makes is not this one. */
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
       recordLanding(a, terms(navInput.value));
-      /* Fold the whole thing away, not just the list. On a cross-page hit navReset() would
-         do it at the other end, but a hit on THIS page never swaps, so nothing else would —
-         and the bar was left holding the query under the answer to it. */
+      /* FOLD ON THE OTHER SIDE, not on this one.
+         Routing here is client-side and the bar carries transition:persist, so the field is
+         the same element before and after — it could simply be folded on the way out. It
+         could not: .site-nav is a named view-transition element, so for the length of the
+         transition what is on screen is a STILL of it. The fold started, the still froze it
+         half closed, and the next still had it shut — a flicker, not a gesture. Holding the
+         navigation until the fold finished fixed the look and cost a fifth of a second on
+         every cross-page hit, which is the wrong thing to spend on a search result.
+
+         So the navigation goes now, and the fold is played once the swap is over and no
+         snapshot is standing in front of it. Same-page hits have nothing in their way and
+         fold here, as before. */
+      var url;
+      try { url = new URL(a.getAttribute("href"), location.href); } catch (err) { url = null; }
+      if (url && url.pathname !== location.pathname) { foldOnArrival = true; navOpen(false); return; }
+      /* Fold the whole thing away, not just the list — the bar was left holding the query
+         under the answer to it. */
       navExpand(false);
     });
     /* Any click outside the field dismisses the list — including one on the bar itself, so
@@ -505,7 +574,18 @@
     document.documentElement.classList.remove("search-open");
     lockScroll(false);
     navInit();
-    navReset();       // the bar persists across pages; its field must not
+    if (foldOnArrival) {
+      foldOnArrival = false;
+      /* Two frames: astro:page-load can still land with the transition's snapshot on screen,
+         and a fold that starts under it is a fold nobody sees. */
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          if (!navExpand(false)) navReset();
+        });
+      });
+    } else {
+      navReset();     // the bar persists across pages; its field must not
+    }
     initPage();
 
     /* A result on ANOTHER page: the click that carried it happened before the swap, so the

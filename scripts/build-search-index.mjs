@@ -57,7 +57,23 @@ const strip = (html) =>
     .trim();
 
 export function buildSearchIndex(root) {
-  const pages = fs.readdirSync(root).filter((f) => f.endsWith('.html'));
+  /* SITE ORDER, not the directory's. Results are now ranked by how often the query appears
+     in each section, and sections that tie are left in the order they were indexed — so that
+     order has to be the order a reader would walk the site, top of the page to the bottom,
+     Home before Team. Read off the disk it was alphabetical, which put Attributions first and
+     the home page in the middle of the Project pages. Anything not named here keeps its
+     alphabetical place at the end; the two redirect stubs are dropped below anyway. */
+  const ORDER = [
+    'index.html',
+    'Project-Description.html',
+    'Wet-Lab-Experiments.html',
+    'Human-Practices.html',
+    'Attributions.html',
+  ];
+  const rank = (f) => { const i = ORDER.indexOf(f); return i < 0 ? ORDER.length : i; };
+  const pages = fs.readdirSync(root)
+    .filter((f) => f.endsWith('.html'))
+    .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
   const entries = [];
 
   for (const file of pages) {
@@ -144,7 +160,12 @@ export function buildSearchIndex(root) {
         d: depth,
         c: trail.slice(0, depth - 2).filter(Boolean).join(' › '),
         t: title,
-        x: strip(patched.slice(from, to)).slice(0, 1200),
+        /* 4000, up from 1200. The cap used to exist only to keep the file small, and a
+           snippet never needs more than the first couple of hundred characters — but the
+           ranking counts occurrences in this string now, so anything cut off is a match that
+           does not count. Nine of the 129 sections were being truncated, and they are the
+           long ones, which is to say the ones most likely to be the best answer. */
+        x: strip(patched.slice(from, to)).slice(0, 4000),
       });
     });
 

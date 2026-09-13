@@ -551,7 +551,7 @@ img{ max-width: 100%; display:block; }
   background: linear-gradient(135deg, var(--kingfisher-2), var(--kingfisher-3));
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
   display:flex; align-items:center; justify-content:center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 /* One entry point per viewport, never two: above the navigation's own breakpoint search
    lives in the bar instead. This has to sit AFTER the rule above — same specificity, and
@@ -654,39 +654,115 @@ img{ max-width: 100%; display:block; }
    flash tells you which WORDS made it a match, which is the question you actually had.
    Wrapped by search.js and unwrapped again when the animation is over, so nothing about
    this survives in the document. */
-/* ZERO horizontal padding and margin. Padding with a compensating negative margin is the
-   usual way to give a highlight some breathing room, and it nets out to the same advance
-   width on paper — but it splits the inline run twice more and the text visibly stepped
-   sideways as it lit up. The breathing room comes from box-shadow instead, which paints
-   outside the box and takes part in no layout at all. */
+/* ZERO padding and margin, and the colour is not on the mark at all — it is on a ::before
+   behind it. Three reasons, all learned the hard way:
+
+   LAYOUT. Padding with a compensating negative margin is the usual way to give a highlight
+   breathing room and it nets out to the same advance width on paper, but it splits the inline
+   run twice more and the text visibly stepped sideways as it lit up. An absolutely positioned
+   pseudo-element takes part in no layout whatsoever.
+
+   ONE LAYER, SOFT EDGED. A flat band with a hard boundary reads as an object laid on top of
+   the sentence, and an object has an edge, which is a second thing to look at. Every attempt
+   to make that edge polite from the mark itself — a smaller radius, a paler rim, a spread
+   box-shadow — produced a box with trim: two tones and two outlines, worse than one. Here the
+   band is a single rounded rectangle with blur(2px) over it. filter on the pseudo-element
+   cannot reach the text, so the colour goes soft and the glyphs stay sharp.
+
+   THE FADE IS OPACITY. It used to be the background gradient that faded, and the browser
+   would not interpolate between two gradients: the highlight held for a second and then
+   vanished in one frame, with no fade at all. Opacity on an element that contains nothing but
+   colour has nothing to interpolate wrongly.
+
+   The band is inset 0.06em at the sides so it hugs the word rather than reaching into the
+   spaces around it, and 1.25em tall — cap height plus descender, plus a little for the blur
+   to eat. */
 mark.search-flash{
-  background: rgba(23,163,152,0.30); color: inherit;
-  border-radius: 3px; padding: 0; margin: 0;
-  animation: search-flash 1.2s ease-out forwards;
+  background: none; color: inherit;
+  padding: 0; margin: 0;
+  /* position + z-index:0, which is to say: make this a stacking context. The band below is
+     at z-index -1 so that the text paints over it, and without a stacking context here that
+     -1 does not stop at the mark — it sinks past the paragraph and behind the page's own
+     background, and the highlight is simply invisible. */
+  position: relative;
+  z-index: 0;
 }
-/* Two quick pulses, then a fade. One long glow is easy to arrive after and miss; a blink
-   that repeats is caught by peripheral vision, which is the whole job — the reader is
-   looking at a page they have never seen and needs to be told where to look. */
+mark.search-flash::before{
+  content: "";
+  position: absolute;
+  left: -0.06em; right: -0.06em;
+  top: 50%; height: 1.25em;
+  transform: translateY(-50%);
+  background: rgba(23,163,152,0.62);
+  border-radius: 4px;
+  filter: blur(2px);
+  z-index: -1;
+  pointer-events: none;
+  animation: search-flash 2s ease-in forwards;
+}
+/* NO BLINK. It used to pulse twice before settling, on the argument that a repeated blink is
+   what peripheral vision catches — but the thing being announced is already a whole section
+   lighting up at once, in a colour nothing else on the page uses, directly under the reader's
+   eye after a jump. That is not something anyone misses. The blink was a third notification
+   on top of two, and it drew attention to itself rather than to the words.
+
+   So: on, held at full strength for a second, then gone over another second. The fade eases
+   IN — ease-out would dump most of the colour immediately and then trail a barely-visible
+   tint, which reads as the highlight ending early and then loitering. */
 @keyframes search-flash{
-  0%,  15%{ background: rgba(23,163,152,0.62); box-shadow: 0 0 0 3px rgba(23,163,152,0.30); }
-  27%     { background: rgba(23,163,152,0.04); box-shadow: 0 0 0 0 rgba(23,163,152,0); }
-  39%, 54%{ background: rgba(23,163,152,0.62); box-shadow: 0 0 0 3px rgba(23,163,152,0.30); }
-  /* All the way to transparent, so that taking the marks back out is invisible rather
-     than a small pop of colour disappearing. */
-  100%    { background: rgba(23,163,152,0); box-shadow: 0 0 0 0 rgba(23,163,152,0); }
+  0%, 50%{ opacity: 1; }
+  100%   { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce){
-  mark.search-flash{ animation:none; background: rgba(23,163,152,0.24); }
+  mark.search-flash::before{ animation: none; opacity: 1; background: rgba(23,163,152,0.34); }
 }
 
+/* ---------- on a phone the palette is a bottom SHEET ---------- */
+/* It rises from the corner the button is in, grows UPWARDS as results arrive, and stops
+   well short of the top — because the way out has to stay visible. A sheet that covers the
+   screen has to teach you a gesture to dismiss it; one that leaves the page showing only
+   has to be missed. The scrim is light for the same reason: what is behind it is not
+   decoration, it is the exit.
+   Same 860px breakpoint as everything else, so the sheet and the floating button that opens
+   it can never disagree about which layout this is. */
+@media (max-width: 860px){
+  .search-overlay{
+    align-items: flex-end;
+    padding: 0;
+    padding-bottom: var(--kb, 0px);   /* the on-screen keyboard; see fitKeyboard in search.js */
+    background: rgba(8,12,13,0.34);
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  .search-panel{
+    width: 100%; max-width: none;
+    /* Content-driven, capped — the sheet is as tall as it needs to be and never taller than
+       62% of the screen, which is what leaves the page above it tappable. */
+    height: auto; max-height: 62dvh;
+    /* column-reverse puts the FIRST child last: the field ends up at the bottom under your
+       thumb, and results stack upward above it, which is the direction they arrive from. */
+    flex-direction: column-reverse;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -16px 44px rgba(0,0,0,0.42);
+    animation: search-sheet 0.22s ease-out;
+  }
+  /* The rule under the field belongs above it now that the field is at the bottom. */
+  .search-field{ border-bottom: 0; border-top: 1px solid rgba(0,0,0,0.10); }
+  .search-status{ padding: 10px 16px 0; }
+  /* min-height:0 so the list may shrink inside a flex column: without it a long result set
+     makes the panel overflow its own max-height instead of scrolling inside it. */
+  .search-results{ flex: 0 1 auto; min-height: 0; }
+  .search-foot{ display:none; }   /* no keyboard to tell anyone about */
+  /* The button becomes the sheet: it withdraws as the sheet arrives rather than sitting on
+     top of it. */
+  html.search-open .search-fab{ opacity: 0; transform: scale(0.72); pointer-events: none; }
+}
+@keyframes search-sheet{ from{ transform: translateY(24px); opacity: 0.45; } }
 @media (max-width: 640px){
   .search-fab{ right:16px; bottom:16px; width:50px; height:50px; }
-  .search-overlay{ padding: 12px; }   /* symmetric: the panel is centred now */
-  .search-panel{ max-width:none; border-radius: var(--radius-md); }
-  .search-foot{ display:none; }   /* no keyboard to tell anyone about */
 }
 @media (prefers-reduced-motion: reduce){
   .search-fab{ transition:none; }
+  .search-panel{ animation:none; }
 }
 
 /* ---------- generic page header (plain interior pages) ---------- */
