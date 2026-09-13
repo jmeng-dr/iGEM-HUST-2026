@@ -30,8 +30,6 @@
 
   function initPage() {
     initPreface();
-    // initCursorOrb();  // disabled — cursor-replacement effect felt more disorienting than
-    //                      delightful. Implementation kept intact below; uncomment to bring back.
     initWheel();
     initStack();
     initTOC();
@@ -54,7 +52,39 @@
     var cue = section.querySelector(".scroll-cue");
     if (!wash) return;
 
-    var EFFECT_DISTANCE_PX = 450; // must match the "+ 450px" in #preface's height, home.css
+    /* 675, was 450. Every hold on this page was lengthened by half again — see the note on
+       WHEEL_STEP_PX below. */
+    var EFFECT_DISTANCE_PX = 675; // must match the "+ 675px" in #preface's height, home.css
+
+    /* Split the epigraph into words so each can come into focus in turn — see section 10 of
+       home.css. Done in script rather than in the markup so the quote stays one readable
+       sentence in the source, and so that a reader with no JS, or one who has asked for less
+       motion, simply gets the finished line. <br> and the spaces are carried across
+       untouched: rebuilding the line from words alone would lose the author's break. */
+    (function focusQuote() {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      var h = section.querySelector(".quote-mark h2");
+      if (!h || h.querySelector(".lit-word")) return;
+      var out = [], words = [];
+      Array.prototype.slice.call(h.childNodes).forEach(function (node) {
+        if (node.nodeType !== 3) { out.push(node); return; }
+        node.nodeValue.split(/(\s+)/).forEach(function (piece) {
+          if (!piece) return;
+          if (/^\s+$/.test(piece)) { out.push(document.createTextNode(piece)); return; }
+          var w = document.createElement("span");
+          w.className = "lit-word";
+          w.textContent = piece;
+          out.push(w);
+          words.push(w);
+        });
+      });
+      if (!words.length) return;
+      h.innerHTML = "";
+      out.forEach(function (n) { h.appendChild(n); });
+      var attr = section.querySelector(".attribution");
+      if (attr) { attr.classList.add("lit-word"); words.push(attr); }
+      words.forEach(function (w, i) { w.style.animationDelay = (i * 95) + "ms"; });
+    })();
 
     function onScroll() {
       var raw = Math.min(1, Math.max(0, window.scrollY / EFFECT_DISTANCE_PX));
@@ -77,37 +107,6 @@
   }
 
   /* ---------------- 2. Cursor-following orb ("clue") ---------------- */
-  function initCursorOrb() {
-    var orb = document.getElementById("cursor-orb");
-    if (!orb) return;
-    var tx = window.innerWidth * 0.2, ty = window.innerHeight * 0.2; // start near top-left
-    var x = tx, y = ty;
-    var shown = false;
-
-    on(window, "mousemove", function (e) {
-      tx = e.clientX; ty = e.clientY;
-      if (!shown) {
-        shown = true;
-        orb.classList.add("visible");
-        document.body.classList.add("cursor-hidden");
-      }
-    });
-    on(window, "mouseleave", function () {
-      orb.classList.remove("visible");
-      document.body.classList.remove("cursor-hidden");
-    });
-
-    function tick() {
-      // easing "lag" gives the orb a floating, trailing feel
-      x += (tx - x) * 0.14;
-      y += (ty - y) * 0.14;
-      orb.style.left = x + "px";
-      orb.style.top = y + "px";
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-
   /* ---------------- 3. Intro wheel: scroll-driven, steps through the 4 modules ---------------- */
   /* Pinned the same way #preface is (see initPreface) — .wheel-scroll-track is taller than the
      viewport by WHEEL_STEP_PX * stop-count (must match the "+ 1200px" in home.css), and
@@ -126,10 +125,27 @@
     var dial = document.getElementById("wheelDial");
     var dialWrap = document.querySelector(".wheel-dial-wrap");
     var arcs = document.querySelectorAll(".dial-arc");
-    var toc = document.getElementById("toc");
+    var sectors = document.querySelectorAll(".dial-sector");
 
-    var WHEEL_STEP_PX = 300; // must match "1200px" (= this * stops.length) in home.css
-    var FADE_MS = 160;       // must be <= the transition duration set on .wp-content in home.css
+    /* Restart an animation that is very likely already running: drop the class, force the
+       style to be recomputed, put it back. Without the reflow the browser coalesces the two
+       changes into no change at all, and stepping quickly through the modules would light
+       the first one and then nothing. */
+    function relight(el) {
+      if (!el) return;
+      el.classList.remove("lit");
+      void el.offsetWidth;
+      el.classList.add("lit");
+    }
+
+    /* 450, was 300: a module now takes half again as much scrolling to change. The first
+       version was tuned to a scroll wheel, where 300px is two comfortable notches — but a
+       trackpad delivers that in one flick, and four modules went by in the time it took to
+       read one of them. Everything that HOLDS on this page was stretched by the same factor
+       at the same time (the preface effect above, the totems' dwell and the last panel's, in
+       home.css), so the page keeps one pace rather than having a slow part and a fast part. */
+    var WHEEL_STEP_PX = 450; // must match "1800px" (= this * stops.length) in home.css
+    var FADE_MS = 220;       // must be <= the transition duration set on .wp-content in home.css
     var currentIndex = -1;
     var pendingIndex = null; // an index requested mid-fade, applied once the current fade settles
 
@@ -143,6 +159,9 @@
       content.querySelector(".wp-what").textContent = d.what;
       content.querySelector(".wp-methods").textContent = d.methods;
       content.querySelector(".wp-consequence").textContent = d.consequence;
+      /* The lens crosses the panel — see "THE LIT REVEAL" in home.css. The row in the list
+         needs nothing here; its own colour transition covers it. */
+      relight(panel);
     }
 
     /* The dial's entrance. It already scrolls up with the section, because the wrap is
@@ -269,6 +288,12 @@
     function turnDial(index) {
       for (var i = 0; i < arcs.length; i++) {
         arcs[i].classList.toggle("active", i === index);
+      }
+      /* The wheel turns -index*90deg, so sector `index` is the one that ends up at the
+         marker — which is why the emphasis is keyed to the same number rather than to a
+         measured angle. */
+      for (var k = 0; k < sectors.length; k++) {
+        sectors[k].classList.toggle("on", k === index);
       }
     }
 
@@ -417,11 +442,12 @@
     var footer = document.querySelector(".site-footer");
     var lastPanel = pairs.length ? pairs[pairs.length - 1].in : null;
     var briefStack = document.querySelector(".stack-brief");
-    /* Of viewport height, between the panel landing and the footer coming up. 0.5 to match
-       the totems: .stack-hold is 250dvh — one viewport to slide in, HALF for the dwell, one
-       to stay pinned while the next panel takes over — so half a viewport is what a dwell
-       is on this page, and the last panel had no reason to be the exception. */
-    var VIDEO_DWELL = 0.5;
+    /* Of viewport height, between the panel landing and the footer coming up. 0.75 to match
+       the totems: .stack-hold is 275dvh — one viewport to slide in, THREE QUARTERS for the
+       dwell, one to stay pinned while the next panel takes over — so three quarters of a
+       viewport is what a dwell is on this page, and the last panel had no reason to be the
+       exception. Was 0.5, alongside every other hold here. */
+    var VIDEO_DWELL = 0.75;
     /* Whether the footer is allowed to overlap the last panel at all. It rises from BEHIND
        that panel — the panel is the one with a stacking layer — so this only works while the
        panel can vacate the room the footer needs. When it cannot, pulling the footer up does

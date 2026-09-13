@@ -31,13 +31,13 @@ body.home{ background: transparent; }
    deliberately extending *behind* the nav bar rather than trying to compute "viewport minus
    nav height" — the nav already has its own opaque+blurred background on every page, so
    this is invisible, and it removes an entire category of measurement-timing bugs.
-   #preface itself is taller than one screen by exactly 450px (must match EFFECT_DISTANCE_PX
+   #preface itself is taller than one screen by exactly 675px (must match EFFECT_DISTANCE_PX
    in home.js) — that extra height is what position:sticky "spends" holding .preface-sticky
    in place while the colour effect plays, then releases into normal scrolling. */
 #preface{
   position: relative;
-  height: calc(100vh + 450px);
-  height: calc(100dvh + 450px);
+  height: calc(100vh + 675px);
+  height: calc(100dvh + 675px);
   /* no background here — #bg-wash (fixed, page-level, below) plus body.home's base black
      show through instead, so preface and intro-wheel read as one continuous surface rather
      than two separately-coloured boxes with a seam between them. */
@@ -85,21 +85,6 @@ body.home{ background: transparent; }
 @keyframes bob{ 0%,100%{ transform: translateY(0) rotate(45deg);} 50%{ transform: translateY(6px) rotate(45deg);} }
 
 /* ---------------- 2. CURSOR ORB (page-wide clue) ---------------- */
-#cursor-orb{
-  position: fixed; top:0; left:0; width: 13px; height:13px; border-radius:50%;
-  background: radial-gradient(circle at 35% 32%, var(--cream-glow-lit), var(--kingfisher-2) 70%);
-  box-shadow: 0 0 18px 4px var(--kingfisher-glow);
-  pointer-events:none; z-index: 9999; transform: translate(-50%,-50%);
-  opacity:0; transition: opacity 0.3s ease;
-}
-#cursor-orb.visible{ opacity: 1; }
-/* To swap in a custom icon instead of the glow dot:
-   #cursor-orb{ background:url('../img/clue-icon.png') center/contain no-repeat; box-shadow:none; } */
-
-/* Real OS cursor hidden while the orb is following it — the orb is the only pointer shown.
-   !important + the universal selector because plenty of elements (links, buttons, .wheel-stop,
-   .totem) set their own `cursor: pointer`, which would otherwise win over a plain inherited value. */
-body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 
 /* ---------------- 3. INTRO WHEEL (scroll-driven — steps through the 4 modules) ---------------- */
 /* Same pin pattern as #preface: .wheel-sticky holds the viewport still while .wheel-scroll-track's
@@ -146,12 +131,12 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 }
 #intro-wheel h2{ color: var(--text-on-dark); font-size: clamp(1.95rem,3.5vw,2.8rem); font-weight:700; letter-spacing:-0.005em; margin-bottom: 36px; }
 
-/* 2 viewports + 1200px. The first 1200 (= WHEEL_STEP_PX * 4, keep in sync with home.js)
+/* 2 viewports + 1800px. The first 1800 (= WHEEL_STEP_PX * 4, keep in sync with home.js)
    is spent stepping the modules; the extra viewport keeps .wheel-sticky PINNED while the
    totems slide up over it. Without it the sticky released the instant the last module
    landed and the section slid away, which is what left a screen of nothing between the
    two. */
-.wheel-scroll-track{ position: relative; height: calc(200vh + 1200px); height: calc(200dvh + 1200px); }
+.wheel-scroll-track{ position: relative; height: calc(200vh + 1800px); height: calc(200dvh + 1800px); }
 .wheel-sticky{
   position: sticky; top: 0;
   height: 100vh; height: 100dvh;
@@ -178,15 +163,21 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   /* Inactive rows read as "quieter", not "greyed out". --text-on-dark-dim (#b9b0a0)
      is a warm grey that goes muddy against the dark teal; the active cream at 74%
      alpha keeps the same hue family and stays clearly legible. */
-  color: rgba(239,231,214,0.74);
+  /* Well back, so that the module being talked about is unmistakably the lit one. At 0.74
+     the four rows read as a list with one of them slightly brighter; the whole point of the
+     wheel is that only one of them is the subject at a time. */
+  color: rgba(239,231,214,0.42);
   transition: color 0.3s;
 }
 .wheel-stop::before{
   content:""; position:absolute; left:-7px; top:50%; transform: translateY(-50%);
   width:12px; height:12px; border-radius:50%; background: var(--ink-soft);
-  border: 2px solid var(--kingfisher-3); transition: all 0.3s;
+  /* The ring goes back with the row. At full --kingfisher-3 the four bullets were the
+     brightest thing in the list, so the eye read a column of four markers with a label
+     beside each instead of one module being spoken about. */
+  border: 2px solid rgba(47,143,214,0.30); transition: all 0.3s;
 }
-.wheel-stop .n{ font-family: var(--font-display); font-size:1.4rem; opacity:0.78; transition: opacity 0.3s, color 0.3s; }
+.wheel-stop .n{ font-family: var(--font-display); font-size:1.4rem; opacity:0.52; transition: opacity 0.3s, color 0.3s; }
 .wheel-stop .label{ font-weight:600; }
 /* The module list now sits on top of a fully-lit medallion. A shadow keeps it
    legible over the busy artwork without dimming the artwork itself; over the plain
@@ -198,7 +189,10 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   text-shadow: 0 1px 3px rgba(0,0,0,0.85), 0 0 16px rgba(0,0,0,0.5);
 }
 .wheel-stop.active{ color: var(--text-on-dark); }
-.wheel-stop.active::before{ background: var(--kingfisher-2); box-shadow: 0 0 12px var(--kingfisher-glow); }
+.wheel-stop.active::before{
+  background: var(--kingfisher-2); border-color: var(--kingfisher-3);
+  box-shadow: 0 0 12px var(--kingfisher-glow);
+}
 .wheel-stop.active .n{ opacity: 1; color: var(--kingfisher-3); }
 
 .wheel-panel{
@@ -217,9 +211,12 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 .wheel-panel .wp-content{
   width:100%;
   opacity: 1; transform: translateY(0);
-  transition: opacity 0.32s ease, transform 0.32s ease;
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
-.wheel-panel .wp-content.fade-out{ opacity: 0; transform: translateY(10px); }
+/* No push. The lens is what brings the text in now — it starts with the whole panel ahead
+   of the front and therefore blank, and reveals as it travels. A block sliding in underneath
+   that would be a second entrance for the same words. */
+.wheel-panel .wp-content.fade-out{ opacity: 0; }
 .wheel-panel h3{ font-family: var(--font-display); color: var(--cream-glow-lit); font-size:1.5rem; margin-bottom:0.2em; }
 .wheel-panel .tagline{ color: var(--kingfisher-3); font-size:0.85rem; margin-bottom:20px; }
 .wheel-panel .wp-row{ margin-bottom: 16px; }
@@ -252,24 +249,26 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 .stack{
   position: relative; z-index: 1;
   margin-top: -100vh; margin-top: -100dvh;
-  /* One viewport for the slide in, one for the panel to DWELL at centre. The dwell is not
-     decoration: the totems are the only interactive thing on this page, and without it the
-     window where the panel is centred and neither neighbour intrudes is a few pixels of
-     scroll — impossible to stop the mouse in. Nothing moves through it except the
-     butterfly, which is driven off page progress and carries on regardless. */
-  min-height: 200vh; min-height: 200dvh;
+  /* One viewport for the slide in, ONE AND A HALF for the panel to DWELL at centre. The
+     dwell is not decoration: the totems are the only interactive thing on this page, and
+     without it the window where the panel is centred and neither neighbour intrudes is a few
+     pixels of scroll — impossible to stop the mouse in. Nothing moves through it except the
+     butterfly, which is driven off page progress and carries on regardless.
+     The slide itself is untouched: it is a movement, not a hold, and stretching it would only
+     make the totems crawl. Every DWELL on the page went up by half. */
+  min-height: 250vh; min-height: 250dvh;
 }
 /* min-height, not height: if a panel's content ever exceeds a viewport the hold has to
    grow with it rather than have the panel overflow its own track. Slide in (1), dwell
-   (0.5), then hold the panel pinned while the NEXT one takes over (1). */
-.stack-hold{ min-height: 250vh; min-height: 250dvh; }
-/* The last panel's dwell now matches the totems' — half a viewport, the same as the middle
-   term of .stack-hold's 250dvh — so this fallback is one viewport to slide in plus half to
-   dwell. home.js overwrites it at runtime with viewport * (1 + dwell), plus the footer's
+   (0.75, was 0.5), then hold the panel pinned while the NEXT one takes over (1). */
+.stack-hold{ min-height: 275vh; min-height: 275dvh; }
+/* The last panel's dwell matches the totems' — three quarters of a viewport, the same as
+   the middle term of .stack-hold's 275dvh — so this fallback is one viewport to slide in plus
+   three quarters to dwell. home.js overwrites it at runtime with viewport * (1 + dwell), plus the footer's
    measured height when the footer is going to travel across the panel: the dwell is the
    quantity worth controlling and CSS cannot know how tall the footer is. This value only
    applies if the script never runs. */
-.stack-brief{ min-height: 150vh; min-height: 150dvh; }
+.stack-brief{ min-height: 175vh; min-height: 175dvh; }
 /* The panels are TRANSPARENT. An earlier version gave them an opaque ground so they
    could cover each other, which was wrong twice over: it hid the things that should
    never be interrupted — the fixed wash, the medallion, the butterfly are all page-level
@@ -661,9 +660,65 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
      width, hence the extra 40px — an allowance leaving single digits of clearance is not a
      bound, it is a coincidence. 92dvh keeps it inside a short viewport, and its centre is on
      x = 0, so half of whatever this resolves to is what you actually see. */
-  --dial-span: 52vmin;
-  width: min(var(--dial-span), 92dvh, calc(100vw - var(--content-width) - 40px));
-  height: min(var(--dial-span), 92dvh, calc(100vw - var(--content-width) - 40px));
+  /* The brief's rule, adopted verbatim: diameter = 90% of the visible height. It was
+     written for the other site, but it is a better rule than a vmin fraction for the same
+     reason there — the medallion hangs off the side of the screen, so its size should be
+     governed by the dimension it is NOT escaping through. */
+  /* Set against what a 1440px-high screen actually renders: 82.8dvh is 1192px there, which
+     is 0.9x the 1325px the wheel had been showing. */
+  --dial-span: 82.8dvh;
+  /* Resolved ONCE into --dial-size, because the offset below is a fraction of it and the
+     two must not be able to disagree.
+
+     The 0.875 is what showing more of the medallion costs. With its centre on x = 0 half
+     of it was visible, so the width could be twice the gutter; showing 4/7 makes the
+     visible part 8/7 of what it was, so the width that still fits is 7/8 of what it was. */
+  /* The +112px is reclaimed slack, measured on the built page rather than derived. With the
+     bound at just (100vw - column - 40) * 0.875 the medallion stopped exactly 84px short of
+     the first line of text at EVERY width where the gutter is what limits it — 1280, 1440,
+     1512, 1536, 1920, all 84px — and that was invisible margin doing nothing. Taking 64 of
+     those back leaves 20px of clearance and makes the visible medallion about a third wider
+     on a 16-inch screen. 112 is 64 x 7/4, because only 4/7 of the width is on screen.
+
+     This matters because below roughly 1900px --dial-span never gets a vote: the gutter
+     decides, and raising the span there does exactly nothing. */
+  /* Two bounds, not three. A 92dvh term used to sit in here as a safety net and had quietly
+     become the one that decided the size on a tall screen — so two rounds of resizing the
+     wheel changed nothing at all on a 1440px-high display, while the hub's compensating
+     scale went on applying and grew the centre by 11%. --dial-span is itself in dvh and is
+     the vertical knob; a second vertical bound could only ever shadow it. */
+  /* THE SHRINK IS ON THE GUTTER BOUND ONLY, not on both.
+     Module 4's ornament reaches 1.473 of the wheel's radius where the narrowest sector stops
+     at 1.006, so it is the one that runs into the module list. The first answer was to take a
+     tenth off whichever bound won — which taxed the wide screens, where the height is what
+     decides the size and there was never a collision to pay for, and still left the narrow
+     ones overlapping. Both halves of that were wrong.
+     So: the height bound is back to its full value, and the width bound — the one that only
+     ever binds on a screen too narrow to hold the wheel beside a 1080px column — is where the
+     shrinking happens, and it is the SLOPE that was changed, not the constant.
+     The difference matters. Cutting the +112px constant is "every width loses the same number
+     of pixels", which is a bigger proportional loss the narrower the screen — that sounds
+     right and measures wrong: it took 54px of clearance off 1920 while the narrow screens it
+     was aimed at ended up with room to spare. Lowering the slope from 0.875 to 0.75 is the
+     opposite shape: the wheel keeps nearly all of its size where the gutter is generous and
+     gives back more and more of it as the gutter closes, which is where the collision
+     actually lives. Solved for, rather than guessed: the two constants are what put module 4
+     about 25px past the rail at 1920 and about 15px past it at 1512, and clear of it below
+     that.
+     Wide screens are out of this entirely — above roughly 2000px the height bound wins and
+     the wheel is at its full size, which is where the 0.9 that used to sit out here was
+     costing 120px of medallion to solve a collision that does not happen there. */
+  --dial-size: min(var(--dial-span),
+                   calc(((100vw - var(--content-width) - 40px) * 0.75 + 102px) * 1.17));
+  width: var(--dial-size);
+  height: var(--dial-size);
+  /* Four sevenths on screen instead of a half. The wrap is the centre of rotation, so
+     moving it right by one fourteenth of the diameter puts that centre at r/7 and the
+     visible width at 8r/7 -- which is 4/7 of the whole. Done with `left` rather than the
+     transform because home.js owns the transform, writing the Y on every frame, and two
+     authors on one property is a bug waiting for a scroll. */
+  left: calc(var(--dial-size) / 14);
+
   z-index: 0;
   pointer-events: none;
   will-change: transform;
@@ -678,7 +733,7 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
   inset: 0;
   transform: translate(-50%, -50%) rotate(0deg);
   transform-origin: 50% 50%;
-  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 1.05s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
   /* Full brightness, like the reference. Readability of the module list that sits
      over it is handled by the text-shadow on .wheel-stop below, rather than by
@@ -687,34 +742,96 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
      the value it starts from and the one used if the script never runs. */
   opacity: 0.92;
 }
-.dial-core{
+/* Every piece fills the same square and shares its centre, so stacking them reassembles the
+   wheel and the only per-piece difference is which quarter turn it sits at. No filters: an
+   earlier version rotated the artwork's hue with the pointer, which demonstrated
+   angle-dependent colour nicely and was the wrong thing to do to a painting somebody drew by
+   hand. */
+.dial-sector, .dial-hub{
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: contain;
   display: block;
 }
-.dial-arcs{
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  overflow: visible;
+.dial-sector{
+  transform: rotate(calc(var(--q) * 90deg));
+  transform-origin: 50% 50%;
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.9s ease, opacity 0.9s ease;
+  /* The three that are not being talked about go genuinely BACK, not just slightly quieter.
+     0.82 opacity was a nod at the idea rather than the idea: four sectors all lit and one of
+     them a little brighter reads as a ring with a bright patch, not as one exhibit under a
+     lamp and three waiting their turn. */
+  opacity: 0.5;
+  filter: brightness(0.58) saturate(0.85);
+  /* A shade smaller as well as darker. Against the lit sector's 1.055 that is a seven per
+     cent step, which is what gives the ring its relief — dimming alone flattens. */
+  transform: rotate(calc(var(--q) * 90deg)) scale(0.985);
 }
-.dial-arc{
-  fill: none;
-  stroke: var(--kingfisher-2);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-dasharray: 22 78;   /* pathLength=100, so this is a ~79-degree arc */
-  opacity: 0.4;
-  transition: stroke 0.4s ease, opacity 0.4s ease, stroke-width 0.4s ease;
+/* --q is the sector's index PLUS ONE, and the +1 is the whole point.
+   home.js turns the wheel by rot = -index*90, and each sector carries its own rotate(q*90),
+   so sector i ends up at (q_i - index) * 90 degrees clockwise from straight up. The sector
+   being talked about has to land at 3 o'clock — that is the one the page actually shows,
+   since the wheel hangs off the left edge and only its right side is on screen — which is
+   +90, so q_index = index + 1. With q = index it landed at 12 o'clock instead: highlighted,
+   and half of it off the top of the viewport. */
+.dial-sector[data-sector="0"]{ --q: 1; }
+.dial-sector[data-sector="1"]{ --q: 2; }
+.dial-sector[data-sector="2"]{ --q: 3; }
+.dial-sector[data-sector="3"]{ --q: 4; }
+/* The one being talked about, lifted out of the ring: larger, brighter, and casting a
+   shadow the others do not. Scaling about the wheel's own centre is what makes it grow
+   OUTWARD along its radius rather than drift sideways — which is only true because every
+   sector was normalised onto a square centred on that point. */
+.dial-sector.on{
+  opacity: 1;
+  transform: rotate(calc(var(--q) * 90deg)) scale(1.055);
+  filter: brightness(1.1) drop-shadow(0 10px 22px rgba(0,0,0,0.5))
+          drop-shadow(0 0 26px var(--kingfisher-glow));
+  /* ABOVE its neighbours. The sectors overlap where their flourishes interleave, and paint
+     order otherwise follows the source, so whichever sector happened to come later covered
+     the edge of the lit one — the highlighted piece was being drawn UNDER the next one along.
+     It sits above the other three and still below the hub, which is the middle of the wheel
+     and belongs on top of every sector's inner tip. */
+  z-index: 1;
 }
-/* Marker, not headline: at 3.5 in a 200 viewBox scaled to 860px this rendered as a
-   ~15px cream band that outshouted the medallion it was meant to annotate. */
-.dial-arc.active{
-  opacity: 0.9;
-  stroke: var(--kingfisher-3);
-  stroke-width: 2.2;
-  filter: drop-shadow(0 0 6px var(--kingfisher-glow));
+/* The hub reads as a separate plate resting on the ring, not as part of the same painting:
+   it sits above, it throws a shadow onto what is underneath, and home.js holds it still
+   while the ring turns beneath it. transform-origin is the wheel's centre, which is also
+   this element's own centre, so the counter-rotation pivots exactly where it should. */
+.dial-hub{
+  z-index: 2;
+  transform-origin: 50% 50%;
+  /* Smaller than it was drawn, so the ring's inner edge is uncovered and there is a gap
+     between the two — without one, a densely painted hub and a densely painted ring meet
+     edge to edge and read as a single busy surface. The scale lives here rather than in the
+     script, which only composes it with the counter-rotation it has to compute. */
+  /* Divided by the 0.9 the ring just shrank by, so the hub keeps the size it had: this
+     scale is a fraction of the wheel, and the wheel moved underneath it. */
+  --hub-scale: 0.729;
+  /* Full strength, and separated by SHADOW rather than by dimming. Turning the hub down to
+     0.82 did part it from the ring, but it also put the centre of the wheel in shade, which
+     is the one place the eye goes first. Two shadows instead: a tight one that reads as
+     contact, and a wide soft one that reads as height. A plate lifted off the ring, not a
+     plate turned down. */
+  /* Three, from tight to loose: a near-black line right under the edge so the plate reads
+     as SITTING on the ring, a strong contact shadow just outside it, and a light ambient one
+     for height. The contact shadow is what does the work — the wide soft one on its own only
+     ever made the hub look like it was floating in fog. */
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.95))
+          drop-shadow(0 4px 8px rgba(0,0,0,0.9))
+          drop-shadow(0 12px 28px rgba(0,0,0,0.24));
+  /* Rotates WITH the ring. It was held still for a while, which made the turn much easier to
+     read, but a centre that stays put while its own ornament turns around it reads as two
+     objects rather than one piece — and this is one painting cut into five. The scale stays;
+     it is the gap between hub and ring that gives the wheel its depth, not the motion. */
+  transform: scale(var(--hub-scale, 1));
 }
+/* The four teal arcs that used to ring the medallion are gone. They were a second progress
+   indicator for something the module list already indicates, and at this size they read as
+   a stray blue band around the artwork rather than as a marker on it. home.js still toggles
+   .active over what is now an empty NodeList, which costs nothing and leaves the wheel
+   code unchanged. */
 
 /* The heading and module list must sit above the dial. */
 .wheel-sticky > .container{ position: relative; z-index: 2; }
@@ -725,4 +842,100 @@ body.cursor-hidden, body.cursor-hidden *{ cursor: none !important; }
 }
 @media (prefers-reduced-motion: reduce){
   .dial{ transition: none; }
+}
+
+
+/* ---------------- 9. MUSEUM CASES, AND THE LIT REVEAL ---------------- */
+/* From the 6Sep2026 art notes, which were written against the other build. Two of the ideas
+   in them are about craft rather than about that page's structure, so they belong here too.
+
+   THE CASES. A 1px border is a diagram convention: it says "there is a box here". A case in
+   a museum is not drawn with a line — it is a pane of glass standing a little off the wall,
+   so it reads as slightly brighter than what is behind it, throws a soft shadow, and catches
+   one bright edge of light along its top. That is what replaces the hairlines.
+
+   backdrop-filter is in here because the notes ask for it, but it is honest about what it
+   can do on this page: most of what sits behind these panels is a smooth dark gradient, and
+   blurring a gradient produces a gradient. It earns its keep in the one place it matters —
+   where the medallion or the butterfly passes behind a panel — and the fill, the shadow and
+   the top edge do the rest of the work. */
+.wheel-panel, .toc-stage, .promo-frame{
+  border: none;
+  background: rgba(255,255,255,0.045);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
+  backdrop-filter: blur(14px) saturate(1.08);
+  box-shadow:
+    0 18px 44px rgba(0,0,0,0.34),
+    inset 0 1px 0 rgba(255,255,255,0.10);
+}
+
+/* THE LIT REVEAL — each line pushes in from the left, in turn.
+ *
+ * Reverted here, deliberately, after a long detour: a rise-and-settle wave, then the same
+ * per word, then a magnified lens travelling on a diagonal, then a soft glow behind it, then
+ * a flat front with the text brightened. Each was an honest answer to the note before it and
+ * each one made the panel harder to read than the last — the lens versions could not avoid
+ * ghosting for a structural reason, and every glow version traded contrast at the glyph edge
+ * for the impression of light. What survives is the plain version: the lines arrive from the
+ * left, one after another, and nothing else happens.
+ *
+ * Opacity, never brightness. Two of those versions ramped brightness and both spent their
+ * time showing the sentence in a colour nobody chose — cream text at a fifth strength is
+ * grey mud on a dark ground. Opacity only ever produces the real colour, or nothing. */
+@keyframes wp-lit{
+  from{ transform: translateX(-16px); opacity: 0; }
+  to  { transform: none; opacity: 1; }
+}
+.wheel-panel.lit .wp-content > *{
+  animation: wp-lit 950ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.wheel-panel.lit .wp-content > *:nth-child(1){ animation-delay: 0ms; }
+.wheel-panel.lit .wp-content > *:nth-child(2){ animation-delay: 150ms; }
+.wheel-panel.lit .wp-content > *:nth-child(3){ animation-delay: 300ms; }
+.wheel-panel.lit .wp-content > *:nth-child(4){ animation-delay: 450ms; }
+.wheel-panel.lit .wp-content > *:nth-child(5){ animation-delay: 600ms; }
+
+@media (prefers-reduced-motion: reduce){
+  .wheel-panel.lit .wp-content > *{ animation: none; }
+}
+
+/* The row in the list needs no keyframe at all: .wheel-stop already carries
+   `transition: color 0.3s`, so it travels from the inactive colour to the active one on its
+   own, and never passes through a dark value on the way. Animating it was inventing a
+   problem in order to solve it. */
+
+/* The notes ask for the CURRENT quarter of the dial to be emphasised. Our medallion is one
+   painting rather than four quarters, so there is no quarter to single out — but the intent,
+   that the turn should read as presenting something rather than as decoration, carries over
+   to the whole piece. Applied to the image, so it does not collide with the transform
+   home.js writes on .dial every frame. */
+/* No arrival flare on the sector. The switch already shows one piece going dark and another
+   coming up — a flash on top of that is a third event announcing what two have just said. */
+
+
+
+/* ---------------- 10. THE EPIGRAPH COMES INTO FOCUS ---------------- */
+/* The art notes ask, for their new third screen, that a full-screen statement arrive with
+   its characters entering left to right, softly lit. Our equivalent of that screen is the
+   epigraph inside the glow, and the idea transfers — but not the technique.
+
+   That screen is light text on dark. Ours is dark ink on a bright cream glow, and a soft
+   light bloom behind dark text on a light ground does not read as illumination, it reads as
+   a smudge. What does read correctly on this surface is FOCUS: each word starts washed out
+   and out of focus, as though the glow behind it has not resolved into writing yet, and
+   comes into focus in turn. Same sentence — the text growing out of the light — in the
+   grammar of a bright surface rather than a dark one.
+
+   Words rather than characters. A character-by-character reveal on a nine-word epigraph
+   reads as a progress bar, and this is a landing screen: it has to look finished within a
+   second and a half, not be spelled out. */
+@keyframes quote-focus{
+  from{ opacity: 0.12; filter: blur(5px); }
+  to  { opacity: 1; filter: blur(0); }
+}
+#preface .lit-word{
+  animation: quote-focus 1150ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce){
+  #preface .lit-word{ animation: none; }
 }

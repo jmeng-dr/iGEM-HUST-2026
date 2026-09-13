@@ -189,6 +189,13 @@
     var shades = el.querySelectorAll(".bf-shade");
     var flapRate = 1, flapPhase = 0, prevSmooth = 0;
 
+    /* Which way it is FACING, as extra degrees on top of the path tangent: 0 forward, 180
+       reversed. atDistance returns the tangent in the direction of increasing distance, so
+       scrolling back up used to send it down the path tail-first. A real one turns around,
+       and turning at a fixed angular rate reads as a banked turn rather than as a flip. */
+    var face = 0, faceTarget = 0;
+    var TURN_DEG_PER_S = 1240;       // 180 degrees in about a sixth of a second
+
     /* Phase is ACCUMULATED (phase += hz * dt) rather than recomputed from absolute
        time. Deriving it from the clock would mean that every change of frequency
        reinterprets the whole elapsed time and the wings jump mid-stroke — the same
@@ -213,7 +220,7 @@
     function draw(p, timeMs) {
       var pt = atDistance(p * total);
       var sway = reduce.matches ? 0 : Math.sin(timeMs / 1000 * SWAY_HZ * Math.PI * 2) * SWAY_DEG;
-      var deg = pt.angle * 180 / Math.PI + 90 + sway;
+      var deg = pt.angle * 180 / Math.PI + 90 + sway + face;
       el.style.transform =
         "translate3d(" + pt.x.toFixed(1) + "px," + pt.y.toFixed(1) + "px,0)" +
         " rotate(" + deg.toFixed(2) + "deg) scale(" + pt.s.toFixed(3) + ")";
@@ -232,8 +239,15 @@
       smooth += (target - smooth) * (1 - Math.exp(-dt / SMOOTH_TAU));
 
       /* smooth is progress along a path of `total` px, so this is travel in px/s. */
-      var speed = Math.abs(smooth - prevSmooth) / dt * total;
+      var delta = smooth - prevSmooth;
+      var speed = Math.abs(delta) / dt * total;
       prevSmooth = smooth;
+
+      /* Half a pixel of travel before it commits to a direction, so the follower settling
+         its own overshoot at the end of a scroll cannot spin it round. */
+      if (Math.abs(delta) * total > 0.5) faceTarget = delta < 0 ? 180 : 0;
+      var step = TURN_DEG_PER_S * dt, gap = faceTarget - face;
+      face = Math.abs(gap) <= step ? faceTarget : face + (gap > 0 ? step : -step);
       var want = 1 + Math.min(FLAP_MAX_EXTRA, speed / FLAP_REF_SPEED);
       flapRate += (want - flapRate) * (1 - Math.exp(-dt / FLAP_TAU));
       drawWings(dt);
