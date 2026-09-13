@@ -90,6 +90,22 @@
     return countIn(entry._h, t) + countIn(entry._c, t) + countIn(entry._x, t);
   }
 
+  /* Is this term a piece of the page's NAME, in the sense that someone typing it is asking
+     for the page? Not the same question as "does the name contain these letters", which is
+     what this used to test and which is far too generous: "es" is inside "description" and
+     inside "practices", so two letters were enough to make Project and Human Practices claim
+     to have been asked for by name and take the top two rows — as page-level entries, with no
+     body to highlight and no snippet to show, so they arrived blank as well as wrong.
+     A name is made of words. The term has to start one, and be long enough to be a name and
+     not a fragment: "pro" asking for Project is a reasonable reading, "es" is not. */
+  function namesIt(name, t) {
+    if (!name || t.length < 3) return false;
+    for (var i = name.indexOf(t); i >= 0; i = name.indexOf(t, i + 1)) {
+      if (i === 0 || /[\s\-–—/(]/.test(name.charAt(i - 1))) return true;
+    }
+    return false;
+  }
+
   function search(q) {
     var ts = terms(q);
     if (!ts.length || !index) return [];
@@ -104,7 +120,7 @@
          request for that page, and it goes first. */
       var namesPage = e.d === 1 && !!e._t;
       for (var k = 0; k < ts.length; k++) {
-        if (namesPage && e._t.indexOf(ts[k]) < 0) namesPage = false;
+        if (namesPage && !namesIt(e._t, ts[k])) namesPage = false;
         var n = scoreOne(e, ts[k]);
         if (!n && !namesPage) { all = false; break; }
         total += n;
@@ -127,19 +143,81 @@
     return out.split("\u0001").join("<mark>").split("\u0002").join("</mark>");
   }
 
-  /* A window of the body text around the first term, so the snippet shows the match rather
-     than always the first sentence of the section. */
+  /* UP TO TWO WINDOWS of the body text, each opened on a cluster of matches.
+   *
+   * One window opened on the first occurrence made the list misreport its own order. Results
+   * are ranked by how often the query appears, but a window is 190 characters against a
+   * median section of 387: a long section with six hits spread through it showed one, while a
+   * short section with three hits together showed all three — and short sections sit lower
+   * down, so the further you scrolled the more lit words you saw. The ranking was right and
+   * the evidence for it read backwards.
+   *
+   * Two windows rather than a longer one. Lengthening it buys the same 190 characters again
+   * whether or not there is anything in them, and the matches in a long section are not
+   * spread evenly — they come in clusters, with paragraphs of setting-up in between. Two
+   * clusters, joined by an ellipsis, cover about as much of a median section as it has.
+   *
+   * Not split per paragraph, which was the other way to close the gap. A section is the unit
+   * a reader wants: "the part that is about this", not "the sentences containing the word".
+   * At the median a section IS one paragraph anyway, so splitting would change nothing for
+   * half the site and, for the other half, would turn one section that says a word six times
+   * into six results that say it once — and the ranking would then be about which paragraph
+   * repeats itself, not which section is on the subject. */
+  /* Half the text a row used to carry: two windows of 95 characters rather than two of 190.
+     Halved on the WINDOW rather than by dropping to a single fragment, which would have cost
+     the same characters — because the fragment count is what makes the lit words agree with
+     the ranking, and the width is only how much setting each one comes wrapped in. A row is
+     for deciding whether to click, not for reading. */
+  var WINDOW = 95, LEAD = 30, FRAGMENTS = 2;
   function snippet(entry, ts) {
     var x = entry.x || "";
     if (!x) return "";
-    var at = -1;
-    for (var i = 0; i < ts.length && at < 0; i++) at = x.toLowerCase().indexOf(ts[i]);
-    if (at < 0) at = 0;
-    var from = Math.max(0, at - 60);
-    var cut = x.slice(from, from + 190);
-    if (from > 0) cut = "…" + cut.replace(/^\S*\s/, "");
-    if (from + 190 < x.length) cut = cut.replace(/\s\S*$/, "") + "…";
-    return mark(cut, ts);
+    var low = x.toLowerCase();
+    var hits = [];
+    ts.forEach(function (t) {
+      for (var i = low.indexOf(t); i >= 0; i = low.indexOf(t, i + t.length)) hits.push(i);
+    });
+    hits.sort(function (a, b) { return a - b; });
+    if (!hits.length) hits.push(0);
+
+    /* Take the densest window, drop every hit it covers, repeat. Dropping rather than
+       advancing past it is what stops the second fragment from being a near-duplicate of the
+       first, offset by a few words. */
+    var spans = [];
+    var left = hits.slice();
+    while (spans.length < FRAGMENTS && left.length) {
+      var from = 0, best = -1, covered = 0;
+      for (var k = 0; k < left.length; k++) {
+        var start = Math.max(0, left[k] - LEAD);
+        var n = 0;
+        for (var j = k; j < left.length && left[j] < start + WINDOW; j++) n++;
+        /* Strictly greater, so a tie keeps the EARLIER window: reading a section from as
+           near its beginning as the evidence allows is the better of two equal answers. */
+        if (n > best) { best = n; from = start; covered = n; }
+      }
+      spans.push(from);
+      left = left.filter(function (h) { return h < from || h >= from + WINDOW; });
+      if (!covered) break;
+    }
+    spans.sort(function (a, b) { return a - b; });
+
+    /* Overlapping or touching windows are one window. Two fragments that share text would
+       show the same sentence twice with an ellipsis between them. */
+    var merged = [];
+    spans.forEach(function (f) {
+      var last = merged[merged.length - 1];
+      if (last && f <= last.to) { last.to = Math.max(last.to, f + WINDOW); return; }
+      merged.push({ from: f, to: f + WINDOW });
+    });
+
+    var out = "";
+    merged.forEach(function (m, i) {
+      var cut = x.slice(m.from, m.to);
+      if (m.from > 0) cut = "…" + cut.replace(/^\S*\s/, "");
+      if (m.to < x.length) cut = cut.replace(/\s\S*$/, "") + "…";
+      out += (i ? " " : "") + mark(cut, ts);
+    });
+    return out;
   }
 
   /* ---------- arriving at a result ---------- */
@@ -258,7 +336,11 @@
       li.setAttribute("aria-selected", "false");
       li.innerHTML =
         '<a data-jump="center" href="' + e.p + (e.a ? "#" + e.a : "") + '">' +
-          '<span class="sh-where">' + esc(e.t) + (e.c ? " › " + esc(e.c) : "") + "</span>" +
+          /* The breadcrumb is marked too, not just escaped. A page's own entry has no body to
+             show and a hero h1 that need not contain the query at all, so when it matched on
+             its NAME there was nothing lit anywhere in the row — it read as a result that had
+             arrived for no reason. The name is what matched; the name is where to show it. */
+          '<span class="sh-where">' + mark(e.t, ts) + (e.c ? " › " + mark(e.c, ts) : "") + "</span>" +
           '<span class="sh-title">' + mark(e.h, ts) + "</span>" +
           (e.x ? '<span class="sh-text">' + snippet(e, ts) + "</span>" : "") +
         "</a>";
