@@ -9,10 +9,38 @@ interface Props {
 }
 const { variant = 'default' } = Astro.props;
 const cls = variant === 'home' ? 'site-nav on-dark home-topbar' : 'site-nav';
+
+/* THE CURRENT PAGE IS MARKED HERE, AT BUILD TIME, not by nav.js on arrival.
+   nav.js still does it — it has to, because the bar is persisted and a client-side
+   navigation never re-renders this file — but on a FRESH load it was the only thing doing
+   it, and it was too late. The scripts sit at the foot of the body and are render-blocking,
+   so the browser is free to paint while it waits for nav.js to arrive: one frame of the bar
+   with nothing marked, then the mark appearing. Moving nav.js's boot earlier cannot fix that,
+   because the paint happens during the wait FOR nav.js. Markup can, because it is already
+   there.
+
+   The rule is nav.js's, kept deliberately identical: a top-level link marks itself, a link
+   inside a dropdown marks its trigger instead — two elements both claiming to be the current
+   page is worse than neither. On arrival nav.js clears and re-applies within one task, so
+   there is no frame in between and nothing moves. */
+const file = (Astro.url.pathname.replace(/\/$/, '').split('/').pop() || 'index') + '';
+const here = /\.html$/.test(file) ? file : file + '.html';
+let inner = navInner;
+if (here === 'index.html' || here === '.html') {
+  inner = inner.replace('<a href="index.html">Home</a>',
+                        '<a class="active" aria-current="page" href="index.html">Home</a>');
+} else if (here === 'Attributions.html') {
+  inner = inner.replace('<a href="Attributions.html">Team</a>',
+                        '<a class="active" aria-current="page" href="Attributions.html">Team</a>');
+} else {
+  /* The AI pages are not in the bar at all; this simply finds nothing for them. */
+  inner = inner.replace('<a class="nav-drop-trigger" href="' + here + '"',
+                        '<a class="nav-drop-trigger active" href="' + here + '"');
+}
 ---
 {/* transition:persist belongs HERE, on the element itself: a directive on the component tag
     is not forwarded to what the component renders unless the props are spread, so putting it
     at the call site silently did nothing. This is what survives a client-side navigation —
     the bar is never rebuilt, which is the whole point of the router. Its light/dark variant
     therefore cannot come from `cls` on a later page, so nav.js re-applies it from <body>. */}
-<header class={cls} transition:persist="site-nav"><Fragment set:html={navInner} /></header>
+<header class={cls} transition:persist="site-nav"><Fragment set:html={inner} /></header>

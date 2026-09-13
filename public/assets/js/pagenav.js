@@ -58,12 +58,7 @@
   window.addEventListener("resize", onScroll);
 
   function build() {
-    /* Both DOMContentLoaded and astro:page-load fire on the first load. The flag lives on
-       <body>, which the router replaces on every swap, so it clears itself per page. */
-    if (document.body) {
-      if (document.body.dataset.railBuilt === "1") return;
-      document.body.dataset.railBuilt = "1";
-    }
+    if (document.body && document.body.dataset.railBuilt === "1") return;
     entries = [];
     links = [];
     var stale = document.querySelector(".page-sidenav-rail");
@@ -74,6 +69,14 @@
 
     var headings = Array.prototype.slice.call(body.querySelectorAll("h2"));
     if (headings.length < 3) return;          // not enough structure to be worth a rail
+
+    /* Claimed only once the rail is actually going to exist. Both DOMContentLoaded and
+       astro:page-load fire on the first load, and the flag is what stops the second one from
+       building a second rail; it lives on <body>, which the router replaces on every swap, so
+       it clears itself per page. Set any earlier it also fires on the passes that return
+       empty-handed, and a first attempt made before .page-body was parsed would lock out
+       every attempt after it. */
+    if (document.body) document.body.dataset.railBuilt = "1";
 
     function slug(text) {
       return text.trim().toLowerCase()
@@ -174,9 +177,16 @@
     update();
   }
 
-  /* astro:page-load covers the first load as well as every navigation; the readyState check
-     is the fallback for a build without <ClientRouter />. */
+  /* astro:page-load covers every navigation. The immediate call covers the first load, and
+     it is immediate on purpose: this script sits at the foot of the body, so everything the
+     rail is built from is already parsed, while DOMContentLoaded — which is what this used to
+     wait for — can land AFTER the first paint. That was one frame of article with no rail
+     followed by a rail appearing beside it, which on a reload reads as a flash. Building
+     during parsing means the rail is in the first frame that has anything in it at all.
+
+     DOMContentLoaded is kept as a fallback for the case where the markup somehow is not there
+     yet; it costs nothing, because a build that produced a rail has set the flag. */
   document.addEventListener("astro:page-load", build);
+  build();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build);
-  else build();
 })();

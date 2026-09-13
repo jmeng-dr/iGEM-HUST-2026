@@ -1,5 +1,11 @@
   <div class="container">
-    <a class="brand" href="index.html"><img class="brand-mark" src="assets/img/logo.webp" alt="" width="512" height="535" decoding="async" /> 点翠 · Diǎn Cuì</a>
+    <a class="brand" href="index.html"><!-- decoding="sync" and a high fetch priority, against the usual advice, because this one
+         image is IN the first paint. Left async the bar was laid out and painted with a hole
+         where the mark goes and the mark arrived a frame or two later, which on a reload is a
+         visible blink at the top of the page. It is 8 KB and 512px square; there is nothing to
+         be gained by deferring its decode and a flash to be paid for it. Preloaded in the head
+         as well, so the fetch starts with the stylesheet rather than after it. -->
+    <img class="brand-mark" src="assets/img/logo.webp" alt="" width="512" height="535" decoding="sync" fetchpriority="high" /> 点翠 · Diǎn Cuì</a>
     <button class="nav-toggle" aria-label="Toggle navigation">Menu</button>
     <nav>
       <a href="index.html">Home</a>

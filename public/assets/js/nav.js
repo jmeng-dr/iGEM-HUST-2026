@@ -1,4 +1,90 @@
 // Shared across every wiki page: mobile nav toggle, dropdowns, active-link highlight, ring navigator.
+
+/* A RELOAD KEEPS YOUR PLACE, even on a page whose URL names a section.
+ *
+ * The browser restores the scroll position of a reloaded page by itself, and on the home
+ * page that is exactly what happens. On every other page it did not, and the reason is the
+ * fragment: arriving from a search hit, or from any nav link that points into a page, leaves
+ * #some-heading in the address bar, and scrolling to a fragment beats restoring a position.
+ * So a reader three screens into Wet Lab pressed F5 and was thrown back to the top of
+ * whichever subsection the URL happened to name, however long ago they had landed there.
+ *
+ * The fragment has done its job by then — it aimed the original jump — and on a reload it is
+ * only a stale instruction, so it is taken out of the URL before the browser acts on it.
+ *
+ * AND THE POSITION IS SET DURING PARSING, not on load. Leaving it to the browser's own
+ * restoration did not work: replaceState invalidates the position it had stored for the
+ * entry, so nothing restored it and the fallback here did all the work — at load, which is
+ * after the first paint. The page appeared at the top and then jumped, every single reload.
+ * This script sits at the foot of the body, so the document is parsed by the time it runs and
+ * the scroll can be set synchronously, before anything has been painted.
+ *
+ * It is re-applied at DOMContentLoaded and at load because late layout can still move the
+ * floor under it — an image that arrives without dimensions, a font that swaps. Never against
+ * a reader who has already started scrolling: being dragged somewhere a moment after arriving
+ * is worse than landing at the top.
+ *
+ * A normal navigation is untouched. Clicking a search result must land on the section it
+ * names, which is the whole point of the link. */
+(function () {
+  /* THE KEY IS NOT A CONSTANT. It used to be "scrollAt:" + location.pathname, read once —
+     which is wrong on a client-side-routed site, because this script is not re-run on a
+     navigation. After one in-page jump the key still named the page we came FROM, so every
+     scroll on the new page was filed under the old page's name, the reload found nothing
+     under its own, and the position was lost. Scrolling a page reached directly still worked,
+     which is exactly why it looked like the jump was at fault.
+
+     `path` is tracked rather than read at save time because a save can happen while a
+     navigation is mid-flight, and location has already moved on by then: the position being
+     saved belongs to the page being left. */
+  var path = location.pathname;
+  function keyFor(p) { return "scrollAt:" + p; }
+  var t = 0;
+  function save() {
+    try { sessionStorage.setItem(keyFor(path), String(Math.round(window.pageYOffset))); } catch (e) {}
+  }
+  addEventListener("scroll", function () {
+    if (t) return;
+    t = setTimeout(function () { t = 0; save(); }, 250);
+  }, { passive: true });
+  /* Before leaving, while the offset still belongs to this page — the throttle above can be
+     up to a quarter second behind, which on a fast click is the whole scroll. */
+  document.addEventListener("astro:before-preparation", save);
+  document.addEventListener("astro:page-load", function () { path = location.pathname; });
+  /* pagehide rather than unload: unload does not fire on a phone, where the tab is frozen
+     and later discarded rather than closed. */
+  addEventListener("pagehide", save);
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") save();
+  });
+
+  var entry = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+  var reload = entry ? entry.type === "reload"
+                     : !!(performance.navigation && performance.navigation.type === 1);
+  if (!reload) return;
+
+  if (location.hash) {
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  }
+
+  var want = parseInt(sessionStorage.getItem(keyFor(location.pathname)), 10);
+  if (!(want > 0)) return;
+  /* We own the position now. Left on "auto" the browser would make its own attempt after
+     load, on top of ours, which is a second jump. */
+  try { history.scrollRestoration = "manual"; } catch (e) {}
+
+  var touched = false;
+  ["wheel", "touchstart", "keydown", "pointerdown"].forEach(function (ev) {
+    addEventListener(ev, function () { touched = true; }, { passive: true, once: true });
+  });
+  function place() {
+    if (touched || Math.abs(window.pageYOffset - want) < 2) return;
+    window.scrollTo(0, want);
+  }
+  place();                                            // before the first paint
+  document.addEventListener("DOMContentLoaded", place);
+  addEventListener("load", function () { place(); requestAnimationFrame(place); });
+})();
 (function () {
   /* Debug mode. Decided once, here, so the instrumentation below can be skipped rather
      than merely ignored — it used to build strings and count events for every visitor.
