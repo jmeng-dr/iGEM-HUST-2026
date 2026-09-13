@@ -3,6 +3,17 @@
 # Enable it once, in the repository: Settings -> Pages -> Build and deployment ->
 # Source: "GitHub Actions". No branch to choose; this workflow is the source.
 #
+# THAT SETTING IS NOT PERMANENT. Unpublishing the site and publishing it again puts Source
+# back to "Deploy from a branch", and GitHub then runs its built-in Jekyll builder over the
+# repository ROOT on every push, alongside this workflow. It fails, every time, because the
+# --- fences at the top of an .astro file look like YAML front matter and what is inside them
+# is TypeScript: "Invalid YAML front matter in src/pages/Project-Description.astro".
+#
+# Do not fix that error. The failure is the only thing keeping it harmless — a Jekyll build
+# that SUCCEEDED would publish a rendering of the source tree and bury the real site. Adding
+# .nojekyll would do exactly that. The fix is to put Source back to "GitHub Actions", which
+# stops the builder being triggered at all.
+#
 # withastro/action installs from the lockfile, runs `astro build`, and uploads dist/ as
 # the Pages artifact. Nothing here needs to know the site's URL: every asset is referenced
 # relatively, so the same artifact works at a project-site prefix (/repo/) or at a domain
