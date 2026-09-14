@@ -156,9 +156,10 @@
       var d = stop.dataset;
       content.querySelector(".wp-title").textContent = d.title;
       content.querySelector(".wp-tagline").textContent = d.tagline;
-      content.querySelector(".wp-what").textContent = d.what;
-      content.querySelector(".wp-methods").textContent = d.methods;
-      content.querySelector(".wp-consequence").textContent = d.consequence;
+      /* One paragraph now, where there used to be three labelled rows. The chapter copy is
+         prose: splitting it across What is it / Methods / Consequence would have meant
+         writing those headings over text that does not answer them. */
+      content.querySelector(".wp-lead").textContent = d.body;
       /* The lens crosses the panel — see "THE LIT REVEAL" in home.css. The row in the list
          needs nothing here; its own colour transition covers it. */
       relight(panel);
@@ -239,15 +240,19 @@
 
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    /* One expression now, where this used to be two legs joined at the totems. #toc is a
-       stacked panel: it slides its own height-of-a-viewport up over the pinned modules
-       and then sticks. So its top going V -> 0 IS the whole exit, and there is no second
-       phase to measure — nor could there be, since the panel is opaque and hides the dial
-       from the moment it covers the screen. */
+    /* Measured off the totems' STACK, and off exactly the same run as the hand-off itself —
+       which is what keeps the two in step.
+       It used to read #toc's own top going from a viewport down to zero. That was the same run
+       once, but the stacks overlap by two viewports now rather than one (so that the outgoing
+       panel is still pinned while the incoming one rises), and #toc therefore starts moving a
+       whole viewport earlier than it used to. A viewport is two modules' worth of scrolling, so
+       the wheel began leaving as module 2 ended — with half the sequence still to come. The
+       stack's top crossing zero is the moment the panel actually starts rising over the wheel,
+       and one viewport later it has covered the screen; that is the exit, and nothing else is. */
     function exitProgress() {
-      if (!toc) return 0;
+      if (!toc || !toc.parentElement) return 0;
       var V = window.innerHeight || 800;
-      return Math.min(1, Math.max(0, 1 - toc.getBoundingClientRect().top / V));
+      return Math.min(1, Math.max(0, -toc.parentElement.getBoundingClientRect().top / V));
     }
 
     /* progress is 0 where the entrance begins, 1 the moment the track pins and module 1
@@ -404,12 +409,18 @@
      the viewport and nothing guarantees the content will. */
   function initStack() {
     function contentOf(el) { return el && el.querySelector(":scope > .container"); }
+    /* Every panel hands over to the one after it, in the order they appear. This used to name
+       the two it knew about — the totems and the video — so a section added between them was
+       not part of the choreography at all: it scrolled past normally while the panels around it
+       slid and held, and the footer, which is seated against the LAST panel, was pulled up over
+       it. Reading the document instead means the sequence is whatever the markup says. */
+    var panels = [document.querySelector(".wheel-sticky")]
+      .concat(Array.prototype.slice.call(document.querySelectorAll(".stack > section")))
+      .filter(Boolean);
     var pairs = [];
-    var wheelSticky = document.querySelector(".wheel-sticky");
-    var toc = document.getElementById("toc");
-    var video = document.getElementById("promo-video");
-    if (wheelSticky && toc) pairs.push({ outEl: wheelSticky, inEl: toc });
-    if (toc && video) pairs.push({ outEl: toc, inEl: video });
+    for (var pi = 1; pi < panels.length; pi++) {
+      pairs.push({ outEl: panels[pi - 1], inEl: panels[pi] });
+    }
     pairs = pairs.filter(function (p) {
       p.out = contentOf(p.outEl); p.in = contentOf(p.inEl);
       return p.out && p.in;
@@ -424,7 +435,14 @@
     /* 0.45 rather than 0.75: the top hand-off had been running looser than it was set to,
        because its pull-up was being clobbered (see update()), and that looser value was the
        one that looked right. This is roughly it, now applied to both. */
-    var SQUEEZE = 0.45;
+    /* How far each block's pace departs from a constant one, and therefore how deep the gap
+       gets in the middle of the run. 0.18 rather than the 0.45 the old curve used: the two are
+       not the same knob. The old one took a hump out of a gap that was otherwise linear; this
+       one bends both blocks' paths, and both bends close the gap, so the same number squeezes
+       about twice as hard. 0.18 puts the narrowest gap back at the 85px or so the page has been showing, which is also
+       the headroom that keeps a fast scroll from closing it completely — see the note in
+       update() about the frame the compositor is ahead by. */
+    var SQUEEZE = 0.18;
     var GAP_MIN = 8;      /* px: an absolute floor as well, for a pair that starts tiny */
     var PAD = 4;          /* px of hard clearance, for content that does not fit the viewport */
     var ticking = false;
@@ -475,7 +493,7 @@
         /* The track only needs the footer's height on top when the footer is going to travel
            across it. Without the pull it would just be dead scroll. */
         briefStack.style.minHeight =
-          Math.round(Vh * (1 + VIDEO_DWELL) + (footerPulls ? fh : 0)) + "px";
+          Math.round(Vh * (2 + VIDEO_DWELL) + (footerPulls ? fh : 0)) + "px";
       }
     }
     seatFooter();
@@ -497,25 +515,72 @@
       }
       for (i = 0; i < pairs.length; i++) {
         var p = pairs[i];
-        /* The SECTION's rect, not the container's — the container carries the transform
-           and would report its own displacement back into the input. */
-        var c = Math.min(1, Math.max(0, 1 - p.inEl.getBoundingClientRect().top / V));
+        /* THE RUN HAPPENS AFTER THE INCOMING SECTION HAS PINNED, and that is the whole fix
+         * for the hand-off tightening when you scroll fast.
+         *
+         * It used to run while the incoming section was still travelling up the screen, and
+         * measure itself off that travel. So one block was where the BROWSER had put it this
+         * frame, and the other was where JAVASCRIPT had put it last frame — and JavaScript is
+         * always a frame behind the compositor. The difference between the two landed straight
+         * in the gap: measured, the closest the pair came was 69px at 20px a notch, 29 at 60,
+         * and MINUS 209 at 300. The error was exactly one frame of scrolling every time, which
+         * is why no amount of reshaping the curve touched it — the curve was never the problem.
+         *
+         * Both blocks are pinned during the run now. The outgoing one already was; the incoming
+         * one is parked a viewport below the fold by its own transform until its section sticks
+         * at the top of the screen, and only then does it come up — by transform, not by scroll.
+         * Neither block's base moves any more, so both are a frame late TOGETHER and the gap
+         * between them is exact at any speed. A flick costs the pair drifting a few pixels as a
+         * whole, which is not something anyone can see.
+         *
+         * c is measured off the STACK, not the section: the section stops moving once it pins,
+         * which is exactly when the run starts, so it has no progress left to report. The stack
+         * keeps scrolling under it. */
+        var stack = p.inEl.parentElement;
+        var c = Math.min(1, Math.max(0, -stack.getBoundingClientRect().top / V));
         var hm = p.out.offsetHeight, ht = p.in.offsetHeight;
 
-        var T = Math.max(0, (V - ht) / 2) * (1 - c);
+        /* TWO PATHS, NOT A SOLVED GAP — and that is what makes it speed-proof.
+         *
+         * It used to compute the gap it wanted and solve the outgoing block's offset from it.
+         * That looks equivalent and is not, because the two blocks were not moved by the same
+         * thing: the incoming one rode the browser's own scroll, while the whole of the
+         * outgoing one's 750px exit was a transform written from JavaScript — and JavaScript
+         * is always a frame behind the compositor. A frame is a few pixels when you nudge the
+         * wheel and two hundred when you flick it, so the gap the pair actually showed was the
+         * designed one minus one frame of scrolling. Measured, the closest the two blocks came
+         * was 62px at 20px a notch, 22px at 60, and MINUS 215px at 300 — they overlapped.
+         *
+         * So neither block rides the scroll any more. The V*(1-c) term below cancels the
+         * incoming block's native motion and its path is re-imposed as a transform, exactly
+         * like the outgoing block's. Both are now the same function of the same c, both are a
+         * frame late together, and their DIFFERENCE — which is the only thing anyone looks at —
+         * is exact at any speed. What a flick costs is the pair drifting a few pixels as a
+         * whole, which nobody can see.
+         *
+         * The paths themselves are the simplest pair that does the job: the outgoing block
+         * accelerates away and the incoming one decelerates in, both monotonic, with w setting
+         * how far each departs from a constant pace. That is where "close, then open again"
+         * comes from — early in the run the outgoing block has barely started while the
+         * incoming one is arriving fast, so the two crowd together; late in the run it is the
+         * other way round and they part. No hump is added to anything, and no block's speed
+         * ever reverses, which is what used to read as elastic. */
+        var P = V / 2 + ht / 2;      /* the incoming block's travel: fold to centred */
+        var Q = V / 2 + hm / 2;      /* the outgoing block's travel: centred to gone */
+        var w = SQUEEZE;
+        /* The gap is at its narrowest in the middle of the run; keep it off GAP_MIN there. */
+        var linMid = (P + Q) / 2 - (ht + hm) / 2;
+        w = Math.max(0, Math.min(w, (linMid - GAP_MIN) / ((P + Q) / 4)));
+        var E = (1 - w) * c + w * (1 - (1 - c) * (1 - c));   /* incoming: fast, then slow */
+        var A = (1 - w) * c + w * c * c;                      /* outgoing: slow, then fast */
 
-        var G0 = Math.max(0, V / 2 - hm / 2);   /* outgoing centred, incoming on the fold */
-        var G1 = Math.max(0, V / 2 - ht / 2);   /* incoming centred, outgoing flush at y=0 */
-        var mid = (G0 + G1) / 2;
-        /* Capped so M' = V - G0 - D*b'(c) can never go negative. Uncapped, the curve asks
-           the gap to close faster than scrolling closes it, and the difference has to come
-           out of shoving the outgoing block backwards. */
-        var D = Math.min(mid * SQUEEZE, Math.max(0, mid - GAP_MIN), (V - G0) / Math.PI);
-        var bump = Math.sin(Math.PI * c);
-        var G = G0 + (G1 - G0) * c - D * bump * bump;
-        var M = G - V * (1 - c) + (hm + ht) / 2 + T;
+        /* Pinned at the top of the screen, the incoming section's own top is 0, so the block's
+           position is entirely this: a viewport-and-a-half below centre at the start of the run
+           and centred at the end. */
+        var T = -P * (1 - E);
+        var M = Q * A;
 
-        var inTop  = V * (1 - c) + V / 2 - T - ht / 2;
+        var inTop  = V / 2 - ht / 2 + P * (1 - E);
         var outBot = V / 2 + hm / 2 - M;
         var slack  = inTop - outBot;
         if (slack < PAD) M += PAD - slack;    /* clear the outgoing further, never hold the
@@ -524,15 +589,19 @@
         p.out.__acc += -M;
         p.in.__acc += -T;
 
-        /* Published for the ?diag=1 overlay. The hand-off is only sound while both blocks
-           fit the viewport with room to spare — G0 and G1 ARE that room — so this is the
-           one number that says whether the layout can work at this size at all. */
+        /* Published for the ?diag=1 overlay. The hand-off is only sound while both blocks fit
+           the viewport with room to spare at the two ENDS of the run — one centred with the
+           other just off screen — so these two are the numbers that say whether the layout can
+           work at this size at all. */
+        var endStart = V / 2 - hm / 2;     /* outgoing centred, incoming at the fold */
+        var endFinish = V / 2 - ht / 2;    /* incoming centred, outgoing gone */
         if (i === 0) window.__homeDiag = [];
         window.__homeDiag.push(
           "pair" + (i + 1) + " V=" + Math.round(V) +
           " hOut=" + Math.round(hm) + " hIn=" + Math.round(ht) +
-          " G0=" + Math.round(G0) + " G1=" + Math.round(G1) +
-          (Math.min(G0, G1) < 40 ? "  <-- TOO TIGHT" : ""));
+          " gap0=" + Math.round(endStart) + " gap1=" + Math.round(endFinish) +
+          " w=" + w.toFixed(2) +
+          (Math.min(endStart, endFinish) < 40 ? "  <-- TOO TIGHT" : ""));
       }
 
       /* Re-centre the last panel in what the footer has not taken. The footer covers the

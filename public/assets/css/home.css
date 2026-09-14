@@ -225,6 +225,14 @@ body.home{ background: transparent; }
   margin-bottom:4px; font-weight:700;
 }
 .wheel-panel .wp-row .wp-v{ color: var(--text-on-dark); font-size:0.96rem; }
+/* The chapter paragraph. Looser leading than the panel's old labelled rows had: those were
+   three short answers that wanted to be scanned, this is one passage that wants to be read. */
+.wheel-panel .wp-lead{
+  color: var(--text-on-dark);
+  font-size: 0.95rem;
+  line-height: 1.75;
+  margin: 0;
+}
 
 /* ---------------- 5. TOC (hover totems -> big title + click through) ---------------- */
 /* No background here either — same "one continuous surface" treatment as #preface and
@@ -248,7 +256,18 @@ body.home{ background: transparent; }
    it. The last panel needs no hold. */
 .stack{
   position: relative; z-index: 1;
-  margin-top: -100vh; margin-top: -100dvh;
+  /* Transparent to the pointer for the same reason as the section inside it, and more so: with
+     two viewports of overlap this box reaches a long way over its neighbour while showing
+     nothing at all. Only .container takes events; everything above it in the tree is scaffolding
+     for the scroll, not something anyone points at. */
+  pointer-events: none;
+  /* TWO viewports of overlap, not one. The hand-off now runs while the incoming section is
+     already stuck to the top of the screen — that is what makes it immune to how fast the page
+     is scrolled — and the outgoing panel has to still be pinned throughout it. One viewport of
+     overlap released the outgoing panel halfway through and it simply scrolled away, taking the
+     gap from 165px to 1123px as it went. The extra viewport is given back in the heights below,
+     so the page is exactly as long as it was; only the overlap is deeper. */
+  margin-top: -200vh; margin-top: -200dvh;
   /* One viewport for the slide in, ONE AND A HALF for the panel to DWELL at centre. The
      dwell is not decoration: the totems are the only interactive thing on this page, and
      without it the window where the panel is centred and neither neighbour intrudes is a few
@@ -256,19 +275,19 @@ body.home{ background: transparent; }
      butterfly, which is driven off page progress and carries on regardless.
      The slide itself is untouched: it is a movement, not a hold, and stretching it would only
      make the totems crawl. Every DWELL on the page went up by half. */
-  min-height: 250vh; min-height: 250dvh;
+  min-height: 350vh; min-height: 350dvh;
 }
 /* min-height, not height: if a panel's content ever exceeds a viewport the hold has to
    grow with it rather than have the panel overflow its own track. Slide in (1), dwell
    (0.75, was 0.5), then hold the panel pinned while the NEXT one takes over (1). */
-.stack-hold{ min-height: 275vh; min-height: 275dvh; }
+.stack-hold{ min-height: 375vh; min-height: 375dvh; }
 /* The last panel's dwell matches the totems' — three quarters of a viewport, the same as
    the middle term of .stack-hold's 275dvh — so this fallback is one viewport to slide in plus
    three quarters to dwell. home.js overwrites it at runtime with viewport * (1 + dwell), plus the footer's
    measured height when the footer is going to travel across the panel: the dwell is the
    quantity worth controlling and CSS cannot know how tall the footer is. This value only
    applies if the script never runs. */
-.stack-brief{ min-height: 175vh; min-height: 175dvh; }
+.stack-brief{ min-height: 275vh; min-height: 275dvh; }
 /* The panels are TRANSPARENT. An earlier version gave them an opaque ground so they
    could cover each other, which was wrong twice over: it hid the things that should
    never be interrupted — the fixed wash, the medallion, the butterfly are all page-level
@@ -290,8 +309,17 @@ body.home{ background: transparent; }
   position: sticky; top: 0;
   min-height: 100vh; min-height: 100dvh;
   display: flex; align-items: center;
+  /* TRANSPARENT TO THE POINTER, because the box is not the panel.
+     Each of these is a full viewport tall and mostly empty — the panel itself is the .container
+     inside, which spends most of the run parked below the fold by its own transform. The stacks
+     overlap by two viewports, so two of these boxes are on screen at once, and the later one in
+     the document was taking every click and hover in the region it covered even though there
+     was nothing of it to see: the structural-colour row simply stopped responding to the
+     pointer wherever the quick-links box happened to lie over it. Only the content block takes
+     events now, and a content block that is off screen cannot be in the way of anything. */
+  pointer-events: none;
 }
-.stack > section > .container{ width: 100%; }
+.stack > section > .container{ width: 100%; pointer-events: auto; }
 /* Pure translation, no fade and no scale: the two blocks move at DIFFERENT speeds so the
    gap between them closes through the middle of the hand-off and re-opens at the end. The
    incoming one is pulled up early, the outgoing one accelerates away — it is pushed out,
@@ -802,13 +830,13 @@ body.home{ background: transparent; }
 .dial-hub{
   z-index: 2;
   transform-origin: 50% 50%;
-  /* Smaller than it was drawn, so the ring's inner edge is uncovered and there is a gap
-     between the two — without one, a densely painted hub and a densely painted ring meet
-     edge to edge and read as a single busy surface. The scale lives here rather than in the
-     script, which only composes it with the counter-rotation it has to compute. */
-  /* Divided by the 0.9 the ring just shrank by, so the hub keeps the size it had: this
-     scale is a fraction of the wheel, and the wheel moved underneath it. */
-  --hub-scale: 0.729;
+  /* BAKED INTO THE ARTWORK, so this is 1 and stays 1.
+     The hub is drawn larger than the hole the ring leaves, and the difference used to be taken
+     out here — 0.729 once, then 0.5 — which meant a number in a stylesheet had to be kept in
+     step with five image files by hand. It is applied when the pieces are exported now (see
+     dial-export.mjs): the hub is scaled to the ring's own inner radius, measured off the same
+     artboard the ring was measured on. */
+  --hub-scale: 1;
   /* Full strength, and separated by SHADOW rather than by dimming. Turning the hub down to
      0.82 did part it from the ring, but it also put the centre of the wheel in shade, which
      is the one place the eye goes first. Two shadows instead: a tight one that reads as
@@ -938,4 +966,380 @@ body.home{ background: transparent; }
 }
 @media (prefers-reduced-motion: reduce){
   #preface .lit-word{ animation: none; }
+}
+
+
+/* ---------------- 12. STRUCTURAL COLOUR — cards that turn and stay turned ---------------- */
+/* One number runs the section: how far the turn has travelled, 0 to 100. Each card owns a
+   quarter of that run, so card i turns across [i*25, (i+1)*25] and is face up past it. The
+   turn is a real rotation in 3D rather than a cross-fade, because the thing being shown is a
+   surface changing — a plain face becoming an iridescent one — and a card that turns says that
+   where a card that dissolves does not.
+
+   perspective is on each card, not on the row: on the row, the cards at the ends would swing as
+   if hinged on the middle of it. */
+#face4{ padding: 0; }   /* a pinned panel, centred by .stack > section */
+#face4 .eyebrow{
+  color: var(--kingfisher-3); font-size: 0.78rem; letter-spacing: 0.16em;
+  text-transform: uppercase; font-weight: 700;
+}
+#face4 h2{
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  color: var(--cream-glow-lit);
+  margin: 6px 0 14px;
+}
+.face4-intro{ color: rgba(239,231,214,0.72); max-width: 62ch; margin: 0 0 30px; line-height: 1.7; }
+
+.face4-grid{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.f4-card{
+  margin: 0; min-width: 0;
+  perspective: 1200px;
+  outline: none;
+}
+.f4-flip{
+  position: relative;
+  /* Portrait, like the row this is modelled on: a card that has to carry a paragraph on its
+     back needs the height more than the width. */
+  aspect-ratio: 3 / 4;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--turn, 0) * 180deg));
+  /* Timed by the script, per card. --dur is zero while the slider is being dragged, because a
+     drag is already continuous and a transition on top of it would make every card lag the
+     thumb by its own duration; --delay is what staggers a run of cards so they turn one after
+     another instead of together, in whichever direction the pointer went. */
+  transition: transform var(--dur, 460ms) cubic-bezier(0.4, 0.1, 0.2, 1) var(--delay, 0ms);
+}
+.f4-face{
+  position: absolute; inset: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+/* The plain face: the specimen without its microstructure. Flat on purpose. */
+.f4-front{
+  background: linear-gradient(155deg, color-mix(in srgb, var(--a) 88%, #fff) 0%, var(--a) 62%,
+                              color-mix(in srgb, var(--a) 80%, #000) 100%);
+}
+/* The turned face: the text, over the iridescence that specimen actually makes. */
+.f4-back{
+  transform: rotateY(180deg);
+  display: flex; align-items: center;
+  padding: 18px;
+  background-image:
+    linear-gradient(180deg, rgba(8,12,13,0.12) 0%, rgba(8,12,13,0.42) 100%),
+    linear-gradient(135deg, var(--b1) 0%, var(--b2) 58%,
+                    color-mix(in srgb, var(--b2) 60%, #fff) 100%);
+}
+.f4-back p{
+  margin: 0;
+  font-size: 0.78rem; line-height: 1.55;
+  color: #fff;
+  /* The gradients behind this run from dark to bright, so the type needs its own floor rather
+     than relying on the background to provide one. */
+  text-shadow: 0 1px 3px rgba(0,0,0,0.55);
+}
+.f4-no{
+  position: absolute; left: 12px; top: 12px;
+  font-size: 0.72rem; letter-spacing: 0.12em; font-weight: 700;
+  color: rgba(255,255,255,0.86);
+  background: rgba(8,12,13,0.45); backdrop-filter: blur(6px);
+  border-radius: 999px; padding: 3px 9px;
+}
+/* The label under each card is the row's timeline: it names the specimen whether the card is
+   face down or face up, and brightens once its card has been turned. */
+.f4-cap{
+  margin: 14px 2px 0;
+  font-family: var(--font-display); font-size: 1rem;
+  color: rgba(239,231,214,0.45);
+  /* Same delay as its card, so the label lights up with the card rather than ahead of it. */
+  transition: color 0.35s ease var(--delay, 0ms);
+}
+.f4-card.turned .f4-cap{ color: var(--cream-glow-lit); }
+.f4-card:focus-visible .f4-flip{ outline: 2px solid var(--kingfisher-3); outline-offset: 4px; }
+
+.face4-range{
+  display: flex; align-items: center; gap: 16px;
+  margin: 30px 0 0;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.045);
+  backdrop-filter: blur(14px) saturate(1.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+}
+.f4-reset{
+  flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid rgba(239,231,214,0.22); background: transparent;
+  color: rgba(239,231,214,0.7); font-size: 1rem; cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.f4-reset:hover{ color: var(--cream-glow-lit); border-color: rgba(64,224,208,0.55); }
+/* The track the eye follows. --p is the run, 0 to 1, written by the script; --bar is how long
+   the glide takes, which the script sets to the length of the staggered run so the ball arrives
+   with the last card rather than ahead of it. */
+.f4-track{
+  position: relative;
+  flex: 1 1 auto; min-width: 0;
+  height: 22px;
+  display: flex; align-items: center;
+}
+.f4-track::before{
+  content: ""; position: absolute; left: 0; right: 0; height: 4px; border-radius: 999px;
+  background: rgba(239,231,214,0.14);
+}
+.f4-fill{
+  position: absolute; left: 0; height: 4px; border-radius: 999px;
+  width: calc(var(--p, 0) * 100%);
+  background: linear-gradient(90deg, var(--kingfisher-2), #c9a24b);
+  transition: width var(--bar, 460ms) cubic-bezier(0.4, 0.1, 0.2, 1);
+}
+.f4-ball{
+  position: absolute; top: 50%;
+  left: calc(var(--p, 0) * 100%);
+  width: 20px; height: 20px; border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--cream-glow-lit);
+  border: 3px solid var(--kingfisher-2);
+  box-shadow: 0 0 14px rgba(64,224,208,0.55);
+  transition: left var(--bar, 460ms) cubic-bezier(0.4, 0.1, 0.2, 1);
+}
+/* The real control, invisible and on top: dragging, arrow keys and the accessibility tree all
+   still come from here. Its own thumb and track are what the two spans above replace. */
+.f4-slider{
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  margin: 0; opacity: 0; cursor: pointer;
+  -webkit-appearance: none; appearance: none; background: transparent;
+}
+.f4-slider::-webkit-slider-thumb{ -webkit-appearance: none; appearance: none; width: 22px; height: 22px; }
+.f4-slider::-moz-range-thumb{ width: 22px; height: 22px; border: 0; }
+.f4-slider:focus-visible + .f4-ball,
+.f4-track:has(.f4-slider:focus-visible)::before{ outline: 2px solid var(--kingfisher-3); outline-offset: 4px; }
+.f4-readout{
+  flex: 0 0 auto; font-size: 0.82rem; color: rgba(239,231,214,0.72);
+  min-width: 13ch; text-align: right;
+}
+
+@media (max-width: 860px){
+  /* Two up, and the text on the back gets smaller with the card. Hover does not exist here, so
+     the slider is the only way through the sequence — which is why it was never optional. */
+  .face4-grid{ grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .f4-back{ padding: 12px; }
+  .f4-back p{ font-size: 0.74rem; line-height: 1.5; }
+  .face4-range{ gap: 10px; padding: 10px 12px; }
+  .f4-readout{ display: none; }
+}
+
+/* ---------------- 11. QUICK LINKS — one card per page ---------------- */
+/* A row of cards that turn over. The art is the front, the words are the back, and the whole
+   card is a single link so it stays clickable from either face.
+
+   The card's shape is 500x650 because that is the aspect ratio of the artwork; the two are a
+   pair, and art re-drawn at another ratio has to be followed here or object-fit starts cropping
+   edges off it. perspective lives on the wrapper rather than on the grid, so each card turns
+   about its own centre — on the grid, cards at the edges would swing as if hinged on the middle
+   of the row. */
+/* No padding: this is a pinned panel now, centred in its own viewport by .stack > section, so
+   vertical padding would only make the panel taller than the screen it has to sit inside. */
+#quick-links{ padding: 0; }
+#quick-links .eyebrow{
+  color: var(--kingfisher-3); font-size: 0.78rem; letter-spacing: 0.16em;
+  text-transform: uppercase; font-weight: 700;
+}
+#quick-links h2{
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  color: var(--cream-glow-lit);
+  margin: 6px 0 40px;
+}
+.quick-links-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 20px;
+}
+.quick-card-wrap{
+  display: flex;
+  min-width: 0;               /* let the track shrink rather than force an overflow */
+  aspect-ratio: 500 / 650;
+  /* Perspective is depth, and depth costs a little symmetry: under it the near half of a turning
+     card is magnified by more than the far half is shrunk, so the projected outline leans toward
+     whichever edge is nearer. Measured at 1000px that was 6.3px each way on a 223px card — out
+     to the right at 45 degrees, out to the left at 135, and exactly back on centre at 0, 90 and
+     180. It is what a real card does in your hand, and it is the only reason the turn does not
+     read as a flat horizontal squash.
+     1600px halves it to about 4px while keeping the turn solid. The only setting with provably
+     zero drift is no perspective at all, and that is a squash, not a turn. */
+  perspective: 1600px;
+}
+.quick-card{
+  position: relative;
+  flex: 1;
+  border-radius: var(--radius-lg);
+  color: var(--text-on-dark);
+  text-decoration: none;
+  transform-style: preserve-3d;
+  /* EASE IN AS WELL AS OUT. This was cubic-bezier(0.22, 1, 0.36, 1) — ease-out-quint, which
+     leaves at almost full speed and then crawls for the last third. On a fade nobody notices;
+     on something turning in space it reads as a flick followed by a stall, which is exactly
+     what "stiff" means here. A curve that starts from rest, has its speed in the middle and
+     settles at the end is how a real card behaves when you turn it over.
+     The shadow used to run on its own 0.3s ease and finish while the card was still only
+     halfway round, so the lift arrived before the movement did. Same curve, same duration. */
+  /* The angle is a variable so a script can drive it; --flip-ms is how long the move takes, and
+     quickcards.js sets it from how far there is left to go. Left at a fixed duration, a card
+     interrupted at 170 degrees took just as long to come back as one interrupted at 10, which
+     is what made a half-flip feel rubbery. The CSS values below are the no-script fallback. */
+  --turn: 0;
+  transform: rotateY(calc(var(--turn) * -180deg));
+  /* The shadow has its own, much shorter duration. It is the acknowledgement — "yes, this one" —
+     and it has to land the instant the pointer arrives, while the turn waits to see whether the
+     pointer meant it. Tying the two together is what made a glance across the row set four cards
+     turning at once. */
+  transition: transform var(--flip-ms, 0.66s) cubic-bezier(0.45, 0.05, 0.25, 1),
+              box-shadow 200ms ease-out;
+  /* At rest: a tight contact shadow, so the hover state has something to grow OUT of. Fading up
+     from no shadow at all reads as a glow being switched on rather than as a card being
+     lifted — there is no "before" for the eye to compare against. */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.30), 0 1px 2px rgba(0,0,0,0.22);
+  /* Promoted up front rather than on hover: asking for the layer at the moment the turn starts
+     is asking for it one frame too late, and that frame is a visible hitch. */
+  will-change: transform;
+}
+/* THE HOVER IS TESTED ON THE WRAPPER, which does not move — and that is the whole point.
+   Tested on the card itself, the element being rotated is also the element being pointed at: a
+   card turned near 90 degrees projects to almost nothing on screen, so the pointer falls outside
+   it, the hover ends, it turns back, the pointer is inside again, and it turns once more. The
+   card strobes and the cause is invisible, because the hit box is correct at every instant — it
+   is the hit box MOVING that is wrong. A wrapper that never transforms has a hit box that never
+   moves. Focus stays on the link, which is what actually receives it. */
+/* The lift, on its own: applied the moment the pointer arrives, by the script, and by :hover as
+   well so that a reader without JavaScript still gets it. */
+.quick-card.is-hot,
+.quick-card-wrap:hover .quick-card,
+.quick-card:focus-visible{
+  /* ROTATION AND NOTHING ELSE. There was a 10px lift here and, before that, a translateZ; the
+     lift is read from the shadow alone now, and the card's box does not move at all.
+     Worth keeping in mind if it is ever put back: a transform list applies right to left, so a
+     translate written BEFORE the rotation acts in the parent's frame and goes straight up the
+     screen whatever angle the card is at, while one written after it goes "up" in the card's
+     own frame — which at ninety degrees points into the screen and at a hundred and eighty
+     points down. That is how the translateZ came to swing the card out to the left. */
+  /* The lift, carried entirely by the shadow now that the card itself does not move. It drops
+     and spreads rather than merely darkening: a shadow that only gets darker reads as a light
+     being turned up, one that also falls and blurs reads as distance from the surface. The
+     tight second shadow is the contact one, and it fades as the card leaves the page. */
+  box-shadow: 0 34px 60px rgba(0,0,0,0.48),
+              0 8px 16px rgba(0,0,0,0.22),
+              0 0 26px rgba(64,224,208,0.40);
+  text-decoration: none;
+}
+.quick-card-front, .quick-card-back{
+  position: absolute; inset: 0;
+  border-radius: var(--radius-lg);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+/* The front is a title over art, as a column. The art is no longer full-bleed because it no
+   longer needs to be: its own painted title has been cropped away and ours takes the space that
+   opens up. The ground is the artwork's own navy rather than ink, so the title block reads as
+   part of the card and not as a bar laid on top of it. */
+.quick-card-front{
+  background: #0d1b4b;
+  display: flex; flex-direction: column;
+  /* The container the title measures itself against. */
+  container-type: inline-size;
+}
+/* Set in cqw — per cent of the CARD's own width — so the title holds exactly the same
+   relationship to the card it sits on at every screen size there is. In px or rem it is right at
+   one width and wrong at all the others, which is the whole fault being fixed here. */
+.qc-name{
+  flex: 0 0 auto;
+  padding: 7cqw 6cqw 5cqw;
+  font-family: var(--font-display);
+  font-size: 10.5cqw;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  text-wrap: balance;       /* a two-line title breaks evenly instead of stranding one word */
+  text-shadow: 0 2px 8px rgba(0,0,0,0.45);
+}
+.qc-sub{
+  display: block;
+  margin-top: 1.6cqw;
+  font-family: var(--font-body);
+  font-size: 4.4cqw; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255,255,255,0.60);
+}
+/* The PICTURE is the flex item, not the img inside it — sizing the img makes the picture size to
+   its content and the column collapses. min-height:0 so it can be shorter than the image wants. */
+.quick-card-front > picture{ flex: 1 1 auto; min-height: 0; display: block; }
+.quick-card-front-img{
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  display: block;
+}
+/* The back carries the copy on the card's own gradient, and deliberately NOT the artwork: this
+   face is turned 180 degrees, so anything drawn on it comes out mirrored. */
+.quick-card-back{
+  transform: rotateY(180deg);
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
+  padding: 19px;
+  background-color: #1a4f7d;
+  background-image:
+    linear-gradient(180deg, rgba(11,15,16,0) 30%, rgba(11,15,16,0.5) 68%, rgba(11,15,16,0.82) 100%),
+    linear-gradient(160deg, #3fa0e8 0%, #2f84c7 48%, #1a4f7d 100%);
+}
+/* A hairline along the card's edge. Two masks composited with xor leave only the band between
+   the border box and the content box, which is a border that can carry a gradient. */
+/* Turning over is a separate decision from lighting up, and it is the script that makes it —
+   after a pause, so that a pointer merely passing through does not start anything. This rule is
+   the fallback for a reader with no JavaScript, where there is nothing to time the pause with
+   and an immediate turn is better than none; the script writes --turn inline on every card at
+   startup, and inline wins, so it never fires when the script is running. */
+.quick-card-wrap:hover .quick-card,
+.quick-card:focus-visible{ --turn: 1; }
+
+.quick-card-ring{
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  pointer-events: none;
+  background: linear-gradient(140deg, rgba(64,224,208,0.75), rgba(47,143,214,0.15) 55%, rgba(64,224,208,0.55));
+  -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+          mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  -webkit-mask-clip: border-box, content-box;
+          mask-clip: border-box, content-box;
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0.55;
+}
+.quick-card-tagline{
+  font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--kingfisher-3); font-weight: 700;
+}
+.quick-card-title{
+  font-family: var(--font-display);
+  font-size: 1.25rem; font-weight: 700; color: var(--cream-glow-lit);
+  margin: 2px 0 6px;
+}
+.quick-card-desc{ font-size: 0.8rem; line-height: 1.55; color: rgba(239,231,214,0.80); }
+.quick-card-cta{ margin-top: 10px; font-size: 1.05rem; color: var(--kingfisher-3); }
+
+@media (prefers-reduced-motion: reduce){
+  /* Collapsed, not removed. transform:none would leave the back face at rotateY(180deg) with
+     its backface hidden, and the description would be unreachable. */
+  .quick-card{ transition-duration: 0.01ms; }
+}
+@media (max-width: 860px){
+  .quick-links-grid{ grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .quick-card-back{ padding: 14px; }
+  .quick-card-title{ font-size: 1.05rem; }
+  .quick-card-desc{ font-size: 0.74rem; }
 }

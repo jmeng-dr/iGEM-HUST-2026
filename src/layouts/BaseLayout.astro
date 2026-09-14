@@ -19,6 +19,10 @@ interface Props {
   navVariant?: 'home' | 'default';
   safetyHref?: string;
   headExtra?: string;
+  /* The "on this page" rail, on by default. A page whose body is one long roster has nothing
+     for it to list but section headings that are already visible, and it steals the gutter the
+     full-width photograph wants. */
+  rail?: boolean;
 }
 const {
   title,
@@ -27,6 +31,7 @@ const {
   navVariant = 'default',
   safetyHref = 'Wet-Lab-Experiments.html#safety',
   headExtra = '',
+  rail = true,
 } = Astro.props;
 ---
 <!DOCTYPE html>
@@ -76,7 +81,7 @@ const {
 {/* The nav variant is on the body because the nav element itself is persisted across
     navigations and therefore cannot carry a per-page class of its own; nav.js reads this
     and re-applies the right one after each swap. */}
-<body class={bodyClass || undefined} data-nav={navVariant}>
+<body class={bodyClass || undefined} data-nav={navVariant} data-rail={rail === false ? "off" : undefined}>
   <a class="skip-link" href="#main">Skip to content</a>
   <slot name="body-top" />
   <SiteNav variant={navVariant} />
@@ -94,6 +99,9 @@ const {
       of these already do nothing when the markup they drive is absent. */}
   <script is:inline src="assets/js/home.js"></script>
   <script is:inline src="assets/js/butterfly.js"></script>
+  <script is:inline src="assets/js/face4.js"></script>
+  <script is:inline src="assets/js/roster.js"></script>
+  <script is:inline src="assets/js/quickcards.js"></script>
   <slot name="body-end" />
 </body>
 </html>
