@@ -1,4 +1,94 @@
 <style>
+  /* THE GROUP PHOTOGRAPH, full screen.
+     100dvh and deliberately BEHIND the bar rather than "viewport minus the bar": the nav has its
+     own opaque background on every page, so the difference is invisible and it removes a whole
+     class of measurement-timing bugs — the same reasoning as the home page's preface. */
+  .team-hero{
+    position: relative;
+    /* The screen MINUS THE BAR. The bar is position:sticky, so it occupies layout space at the
+       top of the document and a plain 100dvh here starts below it — the hero's bottom, and with
+       it the scroll cue, ended up a whole bar-height past the fold. --nav-h is written by
+       nav.js from the bar's measured height; the 77px fallback is what it measures at on a
+       desktop, used only for the frames before the script has run. */
+    min-height: calc(100vh - var(--nav-h, 77px));
+    min-height: calc(100dvh - var(--nav-h, 77px));
+    display: flex; align-items: flex-end;
+    overflow: hidden;
+    background: linear-gradient(160deg, #16202a, #0b0f10);
+  }
+  .team-hero-pic, .team-hero-pic img{
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: center;
+    display: block;
+  }
+  /* The text sits on the photograph, so the photograph has to be darkened under it — but only
+     there. A veil over the whole picture would flatten the faces it exists to show. */
+  .team-hero-text{
+    position: relative; z-index: 1;
+    width: 100%;
+    padding: 26vh 0 clamp(60px, 12vh, 130px);
+    background: linear-gradient(0deg, rgba(8,12,13,0.86) 0%, rgba(8,12,13,0.66) 42%,
+                                rgba(8,12,13,0.10) 78%, rgba(8,12,13,0) 100%);
+  }
+  .team-hero-text .eyebrow{ color: var(--kingfisher-3); }
+  .team-hero-text h1{ color: var(--cream-glow-lit); margin: 6px 0 14px; }
+  .team-hero-text .lede{ color: rgba(244,236,216,0.84); max-width: 62ch; }
+
+  /* Somewhere to go. A page that fills the screen with one picture has to say that there is
+     more under it, or the roster is simply never found. */
+  .team-hero-cue{
+    position: absolute; left: 50%; bottom: 22px; z-index: 2;
+    width: 26px; height: 42px; margin-left: -13px;
+    border: 2px solid rgba(244,236,216,0.45); border-radius: 999px;
+    display: block;
+  }
+  .team-hero-cue span{
+    position: absolute; left: 50%; top: 8px; width: 4px; height: 8px; margin-left: -2px;
+    border-radius: 2px; background: rgba(244,236,216,0.75);
+    animation: team-cue 1.8s ease-in-out infinite;
+  }
+  @keyframes team-cue{ 0%,100%{ transform: translateY(0); opacity: 1; }
+                       60%{ transform: translateY(14px); opacity: 0.15; } }
+  @media (prefers-reduced-motion: reduce){ .team-hero-cue span{ animation: none; } }
+
+  /* No photograph yet: the same full screen, said plainly. */
+  .team-hero.is-empty .team-hero-pic{ display: none; }
+  .team-hero.is-empty::before{
+    content: "Group photograph — not yet supplied";
+    position: absolute; inset: 0; z-index: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: clamp(1.1rem, 2.4vw, 1.8rem);
+    color: rgba(244,236,216,0.34);
+    border: 1px dashed rgba(244,236,216,0.16);
+  }
+
+  /* The filter bar. Pills rather than underlined tabs: there are five of them and one is always
+     on, so they read better as a set of switches than as a row of links. */
+  .roster-head{
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 14px 22px;
+    margin: 0 0 6px;
+  }
+  .roster-head h2{ margin: 0; }
+  .roster-tabs{ display: flex; flex-wrap: wrap; gap: 8px; }
+  .roster-tab{
+    font: inherit; font-size: 0.82rem; font-weight: 600;
+    padding: 6px 14px; border-radius: 999px; cursor: pointer;
+    color: var(--text-mid);
+    background: transparent;
+    border: 1px solid rgba(23,163,152,0.28);
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+  }
+  .roster-tab:hover{ color: var(--text-dark); border-color: rgba(23,163,152,0.55); }
+  .roster-tab.is-on{
+    color: #fff; background: var(--kingfisher-2); border-color: var(--kingfisher-2);
+  }
+  .rt-n{ opacity: 0.62; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .roster-tab.is-on .rt-n{ opacity: 0.78; }
+  /* Hidden, not removed: the grid keeps its own order, so switching back and forth never
+     reshuffles anybody. */
+  .team-card[hidden]{ display: none; }
+
   .team-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(190px,1fr)); gap:18px; margin: 20px 0 10px; }
   .team-card{
     position:relative; aspect-ratio: 3/4; border-radius: var(--radius-md); overflow:hidden;
@@ -20,8 +110,15 @@
   }
   .team-card .tc-name{ font-family:var(--font-display); font-weight:700; font-size:1.02rem; }
   .team-card .tc-role{ font-size:0.72rem; color: var(--kingfisher-3); }
+  /* The portrait stays faintly present behind the text rather than being painted out. At 0.94
+     the card became a black panel on hover and the person vanished from their own card; at 0.84
+     with a blur behind it the face is still there, out of focus, and the text is if anything
+     easier to read for having a soft ground instead of a hard one. */
   .team-card .info-overlay{
-    position:absolute; inset:0; padding:16px; background: rgba(11,15,16,0.94); color: var(--text-on-dark);
+    position:absolute; inset:0; padding:16px; color: var(--text-on-dark);
+    background: rgba(11,15,16,0.84);
+    backdrop-filter: blur(7px) saturate(0.9);
+    -webkit-backdrop-filter: blur(7px) saturate(0.9);
     opacity:0; transform: translateY(10px); transition: opacity 0.28s, transform 0.28s; overflow-y:auto;
   }
   .team-card:hover .info-overlay, .team-card:focus-within .info-overlay{ opacity:1; transform:none; }

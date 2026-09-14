@@ -64,6 +64,10 @@
     var stale = document.querySelector(".page-sidenav-rail");
     if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
 
+    /* Some pages opt out: see the `rail` prop on BaseLayout. A roster has nothing for a rail to
+       list that is not already on the screen, and on that page the gutter belongs to the
+       full-width photograph. */
+    if (document.body && document.body.dataset.rail === "off") return;
     var body = document.querySelector(".page-body");
     if (!body) return;                       // home page, redirect stubs
 

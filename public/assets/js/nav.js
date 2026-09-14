@@ -381,6 +381,13 @@
         if (!h || h === navH) return;
         navH = h;
         document.documentElement.style.scrollPaddingTop = (h + 10) + "px";
+        /* Published for anything that has to fill "the screen below the bar". The bar is
+           position:sticky, so it takes layout space at the top of the document: a block that
+           asks for 100dvh starts underneath it and therefore ENDS one bar-height past the fold.
+           On the team page that pushed the scroll cue — which lives at the very bottom of the
+           first screen and exists only to say there is more under it — clean off the screen.
+           Measured rather than assumed, because the bar is taller once it wraps. */
+        document.documentElement.style.setProperty("--nav-h", h + "px");
       }
 
       function applyNav() {

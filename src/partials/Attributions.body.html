@@ -1,104 +1,55 @@
-<section class="page-hero">
-  <div class="container">
-    <div class="eyebrow">Attributions</div>
-    <h1>Who built what</h1>
-    <p class="lede">Hover or tab onto any card to see that person's contribution and peer feedback. The roster and portraits below are the team's own; display names are the initials published so far, and each person's written contribution is still being collected. Nothing here is invented to fill a gap.</p>
+<!-- THE GROUP PHOTOGRAPH IS THE PAGE, to begin with: it fills the screen, and the roster is
+     something you scroll down to. A team page that opens on a paragraph and a row of thumbnails
+     is a directory; one that opens on the whole team at full size is a team.
+
+     The picture is an ordinary <img>. The only unusual thing here is what happens when the file
+     is absent: onerror marks the section empty and the CSS shows a labelled plate at the same
+     full-screen size, so the layout is the layout either way and there is never a broken-image
+     icon. Nothing needs changing when the photograph arrives — drop team-group.webp (and .avif)
+     into assets/img/ and it appears. Neither exists yet: the source is the team's ~19MB group
+     PNG, which has not been converted or uploaded anywhere the site can reach. -->
+<section class="team-hero is-empty">
+  <picture class="team-hero-pic">
+    <source srcset="assets/img/team-group.avif" type="image/avif">
+    <img src="assets/img/team-group.webp" alt="HUST-China 2026, the Di&#462;n Cu&igrave; team"
+         width="2400" height="1350" fetchpriority="high" decoding="async"
+         onerror="this.closest('.team-hero').classList.add('is-empty');"
+         onload="this.closest('.team-hero').classList.remove('is-empty');">
+  </picture>
+  <div class="team-hero-text">
+    <div class="container">
+      <div class="eyebrow">Attributions</div>
+      <h1>Who built what</h1>
+      <p class="lede">Hover or tab onto any card to see that person&rsquo;s contribution and peer
+        feedback. The roster and portraits are the team&rsquo;s own; display names are the
+        initials published so far, and each person&rsquo;s written contribution is still being
+        collected. Nothing here is invented to fill a gap.</p>
+    </div>
   </div>
+  <a class="team-hero-cue" href="#roster" aria-label="Skip to the roster">
+    <span></span>
+  </a>
 </section>
 
-<div class="page-body">
+<div class="page-body" id="roster">
   <div class="container">
 
-    <section>
-      <h2>Wet Lab <span class="credit-tag">10 members</span></h2>
-      <p class="section-note">Placeholder cards: swap in real names, photos, roles and contributions.</p>
-      <div class="team-grid" id="wet-grid"></div>
-    </section>
+    <!-- ONE ROSTER, FILTERED — not five lists stacked up.
+         Split into sections, the page answered "who is in the wet lab" and never "who is on
+         this team": you could not see the whole roster at once, and the four smaller groups
+         read as afterthoughts below the big one. A single grid with the sub-teams as filters
+         answers both — All is what it opens on, and the tabs narrow it without moving anything.
 
-    <section>
-      <h2>Dry Lab <span class="credit-tag">7 members</span></h2>
-      <p class="section-note">The modelling work behind these credits is documented in full on <a href="Project-Description.html#modelling">Project: Model</a> — optical (§1), synthetic-biology (§2) and protein (§3). Display names are the initials the team has published so far; which member led which section has not been published, so no assignment is claimed here.</p>
-      <div class="team-grid" id="dry-grid">
-        <div class="team-card" tabindex="0">
-          <div class="photo-ph">Photo</div>
-          <div class="name-plate"><div class="tc-name">Dry Lab Member 1</div><div class="tc-role">Optical Modelling</div></div>
-          <div class="info-overlay">
-            <div class="tc-name2">Dry Lab Member 1</div><div class="tc-role2">Optical Modelling</div>
-            <div class="tc-k">Contribution</div><div class="tc-v">Bragg reflection / TMM / inverse-design work. See Dry Lab §1.</div>
-            <div class="tc-k">What others say</div><div class="tc-v quote">TODO: add peer feedback</div>
-          </div>
-        </div>
-        <div class="team-card" tabindex="0">
-          <div class="photo-ph">Photo</div>
-          <div class="name-plate"><div class="tc-name">Dry Lab Member 2</div><div class="tc-role">Optical Modelling</div></div>
-          <div class="info-overlay">
-            <div class="tc-name2">Dry Lab Member 2</div><div class="tc-role2">Optical Modelling</div>
-            <div class="tc-k">Contribution</div><div class="tc-v">Bragg reflection / TMM / inverse-design work. See Dry Lab §1.</div>
-            <div class="tc-k">What others say</div><div class="tc-v quote">TODO: add peer feedback</div>
-          </div>
-        </div>
-        <div class="team-card" tabindex="0">
-          <div class="photo-ph">Photo</div>
-          <div class="name-plate"><div class="tc-name">Dry Lab Member 3</div><div class="tc-role">Synbio Modelling</div></div>
-          <div class="info-overlay">
-            <div class="tc-name2">Dry Lab Member 3</div><div class="tc-role2">Synthetic-Biology Modelling</div>
-            <div class="tc-k">Contribution</div><div class="tc-v">Enzyme kinetics, FBA, RBS-strength design. See Dry Lab §2.</div>
-            <div class="tc-k">What others say</div><div class="tc-v quote">TODO: add peer feedback</div>
-          </div>
-        </div>
-        <div class="team-card" tabindex="0">
-          <div class="photo-ph">Photo</div>
-          <div class="name-plate"><div class="tc-name">Dry Lab Member 4</div><div class="tc-role">Synbio Modelling</div></div>
-          <div class="info-overlay">
-            <div class="tc-name2">Dry Lab Member 4</div><div class="tc-role2">Synthetic-Biology Modelling</div>
-            <div class="tc-k">Contribution</div><div class="tc-v">Enzyme kinetics, FBA, RBS-strength design. See Dry Lab §2.</div>
-            <div class="tc-k">What others say</div><div class="tc-v quote">TODO: add peer feedback</div>
-          </div>
-        </div>
-        <div class="team-card" tabindex="0">
-          <div class="photo-ph">Photo</div>
-          <div class="name-plate"><div class="tc-name">Dry Lab Member 5</div><div class="tc-role">Synbio Modelling</div></div>
-          <div class="info-overlay">
-            <div class="tc-name2">Dry Lab Member 5</div><div class="tc-role2">Synthetic-Biology Modelling</div>
-            <div class="tc-k">Contribution</div><div class="tc-v">Enzyme kinetics, FBA, RBS-strength design. See Dry Lab §2.</div>
-            <div class="tc-k">What others say</div><div class="tc-v quote">TODO: add peer feedback</div>
-          </div>
-        </div>
-        <div class="team-card" tabindex="0">
-          <div class="photo-ph">Photo</div>
-          <div class="name-plate"><div class="tc-name">Dry Lab Member 6</div><div class="tc-role">Protein Modelling</div></div>
-          <div class="info-overlay">
-            <div class="tc-name2">Dry Lab Member 6</div><div class="tc-role2">Protein Modelling</div>
-            <div class="tc-k">Contribution</div><div class="tc-v">refCBA MD simulation, NCD analysis, π–π stacking, electrostatics. See Dry Lab §3.</div>
-            <div class="tc-k">What others say</div><div class="tc-v quote">TODO: add peer feedback</div>
-          </div>
-        </div>
-        <div class="team-card" tabindex="0">
-          <div class="photo-ph">Photo</div>
-          <div class="name-plate"><div class="tc-name">Dry Lab Member 7</div><div class="tc-role">Protein Modelling</div></div>
-          <div class="info-overlay">
-            <div class="tc-name2">Dry Lab Member 7</div><div class="tc-role2">Protein Modelling</div>
-            <div class="tc-k">Contribution</div><div class="tc-v">refCBA MD simulation, NCD analysis, π–π stacking, electrostatics. See Dry Lab §3.</div>
-            <div class="tc-k">What others say</div><div class="tc-v quote">TODO: add peer feedback</div>
-          </div>
-        </div>
+         The cards are rendered at build time from src/data/roster.ts, so the filtering works on
+         markup that is already in the page rather than on a list the script has to build. With
+         JavaScript off, every card is simply visible, which is the correct roster. -->
+    <section class="roster">
+      <div class="roster-head">
+        <h2 id="the-team">The team <span class="credit-tag" id="roster-count"></span></h2>
+        <div class="roster-tabs" role="tablist" aria-label="Filter the roster by sub-team"></div>
       </div>
-    </section>
-
-    <section>
-      <h2>Human Practices <span class="credit-tag">6 members</span></h2>
-      <p class="section-note">Placeholder cards.</p>
-      <div class="team-grid" id="hp-grid"></div>
-    </section>
-
-    <section>
-      <h2>Advisors <span class="credit-tag">3</span></h2>
-      <div class="team-grid" id="advisor-grid"></div>
-    </section>
-
-    <section>
-      <h2>Principal Investigators <span class="credit-tag">2</span></h2>
-      <div class="team-grid" id="pi-grid"></div>
+      <p class="section-note" id="roster-note"></p>
+      <div class="team-grid" id="roster-grid"></div>
     </section>
 
     <section id="verifiability">
